@@ -4,6 +4,7 @@
 #include <mex.h>
 
 #include <Importer.hpp>
+#include <Exporter.hpp>
 #include <scene.h>
 #include <postprocess.h>
 
@@ -78,6 +79,15 @@ void setAMesh(const aiScene* scene, const mxArray* vertexData) {
     }
 }
 
+void exportScene(const aiScene* scene, const char* outFileName) {
+    if (!scene || !outFileName) {
+        return;
+    }
+    
+    Assimp::Exporter exporter;
+    exporter.Export(scene, "collada", outFileName, 0);
+}
+
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     if (nrhs < 1 || !mxIsChar(prhs[0])) {
@@ -106,8 +116,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mexPrintf("Loaded scene from \"%s\"\n", pFile.c_str());
     describeScene(scene);
     
-    if (2 == nrhs && mxIsDouble(prhs[1])) {
+    if (2 <= nrhs && mxIsDouble(prhs[1])) {
         setAMesh(scene, prhs[1]);
+    }
+    
+    if (3 <= nrhs && mxIsChar(prhs[2])) {
+        char* outFile = mxArrayToString(prhs[2]);
+        exportScene(scene, outFile);
+        mxFree(outFile);
     }
     
     if (1 == nlhs) {
