@@ -2,10 +2,10 @@ clear;
 clc;
 
 %% Choose source and library files.
-source = 'mexximp.cpp';
-output = '-output mexximp';
+source = 'mexximp_test.cc mexximp_util.cc';
+output = '-output mexximpTest';
 
-INC = '-I/usr/local/include/assimp';
+INC = '-I/usr/local/include';
 LINC = '-L/usr/local/lib';
 LIBS = '-lassimp';
 
@@ -15,18 +15,11 @@ fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
 %% Run it.
-mexximp();
-mexximp('notcare');
-data = mexximp('Dragon.dae');
+mexximpTest();
 
-%% Mess with it.
-figure(1)
-data = mexximp('Dragon.dae');
-scatter3(data(1,:), data(2,:), data(3,:), '.');
-view([5 75])
-
-figure(2)
-data = data + 0.5*rand(size(data)) - 0.25;
-data = mexximp('Dragon.dae', data, 'Dragon2.dae');
-scatter3(data(1,:), data(2,:), data(3,:), '.');
-view([5 75])
+for ii = 0:100
+    in = 1:ii;
+    out = mexximpTest('vec3', in);
+    disp(in)
+    disp(out)
+end
