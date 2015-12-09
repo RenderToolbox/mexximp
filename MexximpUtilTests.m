@@ -2,7 +2,7 @@ classdef MexximpUtilTests < matlab.unittest.TestCase
     
     properties (Constant)
         floatTolerance = 1e-6;
-        itemSize = 0:100;
+        itemSize = [0:9 10:10:1023];
     end
     
     methods (Test)
@@ -48,6 +48,15 @@ classdef MexximpUtilTests < matlab.unittest.TestCase
                 texels = randi(255, [4, testCase.itemSize(ii)], 'uint8');
                 texelsPrime = mexximpTest('texel', texels);
                 testCase.assertEqual(texelsPrime, texels);
+            end
+        end
+        
+        function test4x4RoundTrips(testCase)
+            for ii = 1:numel(testCase.itemSize)
+                matrices = rand(4, 4, testCase.itemSize(ii));
+                matricesPrime = mexximpTest('4x4', matrices);
+                testCase.assertEqual(matricesPrime, matrices, ...
+                    'AbsTol', testCase.floatTolerance);
             end
         end
         

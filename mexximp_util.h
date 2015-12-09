@@ -43,6 +43,9 @@ namespace mexximp {
     unsigned to_assimp_texel(const mxArray* matlab_texel, aiTexel** assimp_texel);
     unsigned to_matlab_texel(const aiTexel* assimp_texel, mxArray** matlab_texel, unsigned num_vectors);
     
+    unsigned to_assimp_4x4(const mxArray* matlab_4x4, aiMatrix4x4** assimp_4x4);
+    unsigned to_matlab_4x4(const aiMatrix4x4* assimp_4x4, mxArray** matlab_4x4, unsigned num_vectors);
+    
 }
 
 #endif  // MEXXIMP_UTIL_H_

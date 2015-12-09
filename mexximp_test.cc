@@ -36,7 +36,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         aiTexel* assimp_texel;
         unsigned num_vectors = mexximp::to_assimp_texel(prhs[1], &assimp_texel);
         mexximp::to_matlab_texel(assimp_texel, &plhs[0], num_vectors);
+    } else if(0 == strcmp("4x4", whichTest)) {
+        aiMatrix4x4* assimp_4x4;
+        unsigned num_matrices = mexximp::to_assimp_4x4(prhs[1], &assimp_4x4);
+        mexximp::to_matlab_4x4(assimp_4x4, &plhs[0], num_matrices);
     }
-
-    
 }

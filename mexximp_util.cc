@@ -257,4 +257,92 @@ namespace mexximp {
         
         return num_vectors;
     }
+    
+    // 4x4 matrix
+    
+    unsigned to_assimp_4x4(const mxArray* matlab_4x4, aiMatrix4x4** assimp_4x4) {
+        if (!matlab_4x4 || !assimp_4x4 || !mxIsDouble(matlab_4x4)) {
+            return 0;
+        }
+        
+        double* matlab_data = mxGetPr(matlab_4x4);
+        if (!matlab_data) {
+            return 0;
+        }
+        
+        unsigned num_matrices = mxGetNumberOfElements(matlab_4x4) / 16;
+        *assimp_4x4 = (aiMatrix4x4*)mxCalloc(num_matrices, sizeof(aiMatrix4x4));
+        if (!*assimp_4x4) {
+            return 0;
+        }
+        
+        for (unsigned i = 0; i < num_matrices; i++) {
+            (*assimp_4x4)[i].a1 = matlab_data[16 * i];
+            (*assimp_4x4)[i].a2 = matlab_data[16 * i + 1];
+            (*assimp_4x4)[i].a3 = matlab_data[16 * i + 2];
+            (*assimp_4x4)[i].a4 = matlab_data[16 * i + 3];
+            
+            (*assimp_4x4)[i].b1 = matlab_data[16 * i + 4];
+            (*assimp_4x4)[i].b2 = matlab_data[16 * i + 5];
+            (*assimp_4x4)[i].b3 = matlab_data[16 * i + 6];
+            (*assimp_4x4)[i].b4 = matlab_data[16 * i + 7];
+            
+            (*assimp_4x4)[i].c1 = matlab_data[16 * i + 8];
+            (*assimp_4x4)[i].c2 = matlab_data[16 * i + 9];
+            (*assimp_4x4)[i].c3 = matlab_data[16 * i + 10];
+            (*assimp_4x4)[i].c4 = matlab_data[16 * i + 11];
+            
+            (*assimp_4x4)[i].d1 = matlab_data[16 * i + 12];
+            (*assimp_4x4)[i].d2 = matlab_data[16 * i + 13];
+            (*assimp_4x4)[i].d3 = matlab_data[16 * i + 14];
+            (*assimp_4x4)[i].d4 = matlab_data[16 * i + 15];
+        }
+        
+        return num_matrices;
+    }
+    
+    unsigned to_matlab_4x4(const aiMatrix4x4* assimp_4x4, mxArray** matlab_4x4, unsigned num_matrices) {
+        if (!matlab_4x4) {
+            return 0;
+        }
+        
+        mwSize dims[3] = {4,4,0};
+        
+        if (!assimp_4x4 || 0 == num_matrices) {
+            *matlab_4x4 = mxCreateNumericArray(3, &dims[0], mxDOUBLE_CLASS, mxREAL);
+            return 0;
+        }
+        
+        dims[2] = num_matrices;
+        *matlab_4x4 = mxCreateNumericArray(3, &dims[0], mxDOUBLE_CLASS, mxREAL);
+        
+        double* matlab_data = mxGetPr(*matlab_4x4);
+        if (!matlab_data) {
+            return 0;
+        }
+        
+        for (unsigned i = 0; i < num_matrices; i++) {
+            matlab_data[16 * i] = assimp_4x4[i].a1;
+            matlab_data[16 * i + 1] = assimp_4x4[i].a2;
+            matlab_data[16 * i + 2] = assimp_4x4[i].a3;
+            matlab_data[16 * i + 3] = assimp_4x4[i].a4;
+            
+            matlab_data[16 * i + 4] = assimp_4x4[i].b1;
+            matlab_data[16 * i + 5] = assimp_4x4[i].b2;
+            matlab_data[16 * i + 6] = assimp_4x4[i].b3;
+            matlab_data[16 * i + 7] = assimp_4x4[i].b4;
+            
+            matlab_data[16 * i + 8] = assimp_4x4[i].c1;
+            matlab_data[16 * i + 9] = assimp_4x4[i].c2;
+            matlab_data[16 * i + 10] = assimp_4x4[i].c3;
+            matlab_data[16 * i + 11] = assimp_4x4[i].c4;
+            
+            matlab_data[16 * i + 12] = assimp_4x4[i].d1;
+            matlab_data[16 * i + 13] = assimp_4x4[i].d2;
+            matlab_data[16 * i + 14] = assimp_4x4[i].d3;
+            matlab_data[16 * i + 15] = assimp_4x4[i].d4;
+        }
+        
+        return num_matrices;
+    }
 }
