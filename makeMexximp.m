@@ -2,7 +2,7 @@ clear;
 clc;
 
 %% Choose source and library files.
-source = 'mexximp_test.cc mexximp_util.cc';
+source = 'mexximp_test.cc mexximp_util.cc mexximp_scene.cc';
 output = '-output mexximpTest';
 
 INC = '-I/usr/local/include';

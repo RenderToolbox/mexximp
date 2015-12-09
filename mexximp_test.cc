@@ -3,6 +3,7 @@
 #include <mex.h>
 
 #include "mexximp_util.h"
+#include "mexximp_scene.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     if (2 != nrhs || !mxIsChar(prhs[0])) {
@@ -40,5 +41,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         aiMatrix4x4* assimp_4x4;
         unsigned num_matrices = mexximp::to_assimp_4x4(prhs[1], &assimp_4x4);
         mexximp::to_matlab_4x4(assimp_4x4, &plhs[0], num_matrices);
+    } else if(0 == strcmp("scene", whichTest)) {
+        aiScene* assimp_scene;
+        mexximp::to_assimp_scene(prhs[1], &assimp_scene);
+        mexximp::to_matlab_scene(assimp_scene, &plhs[0]);
     }
 }
