@@ -43,10 +43,6 @@ namespace mexximp {
         }
         
         *matlab_vec3 = mxCreateDoubleMatrix(3, num_vectors, mxREAL);
-        if (0 == num_vectors) {
-            *matlab_vec3 = emptyDouble();
-            return 0;
-        }
         
         double* matlab_data = mxGetPr(*matlab_vec3);
         if (!matlab_data) {
@@ -137,10 +133,6 @@ namespace mexximp {
         }
         
         *matlab_rgb = mxCreateDoubleMatrix(3, num_vectors, mxREAL);
-        if (0 == num_vectors) {
-            *matlab_rgb = emptyDouble();
-            return 0;
-        }
         
         double* matlab_data = mxGetPr(*matlab_rgb);
         if (!matlab_data) {
@@ -151,6 +143,61 @@ namespace mexximp {
             matlab_data[3 * i] = assimp_rgb[i].r;
             matlab_data[3 * i + 1] = assimp_rgb[i].g;
             matlab_data[3 * i + 2] = assimp_rgb[i].b;
+        }
+        
+        return num_vectors;
+    }
+    
+    // rgba
+    
+    unsigned to_assimp_rgba(const mxArray* matlab_rgba, aiColor4D** assimp_rgba) {
+        if (!matlab_rgba || !assimp_rgba || !mxIsDouble(matlab_rgba)) {
+            return 0;
+        }
+        
+        double* matlab_data = mxGetPr(matlab_rgba);
+        if (!matlab_data) {
+            return 0;
+        }
+        
+        unsigned num_vectors = mxGetNumberOfElements(matlab_rgba) / 4;
+        *assimp_rgba = (aiColor4D*)mxCalloc(num_vectors, sizeof(aiColor4D));
+        if (!*assimp_rgba) {
+            return 0;
+        }
+        
+        for (unsigned i = 0; i < num_vectors; i++) {
+            (*assimp_rgba)[i].r = matlab_data[4 * i];
+            (*assimp_rgba)[i].g = matlab_data[4 * i + 1];
+            (*assimp_rgba)[i].b = matlab_data[4 * i + 2];
+            (*assimp_rgba)[i].a = matlab_data[4 * i + 3];
+        }
+        
+        return num_vectors;
+    }
+    
+    unsigned to_matlab_rgba(const aiColor4D* assimp_rgba, mxArray** matlab_rgba, unsigned num_vectors) {
+        if (!matlab_rgba) {
+            return 0;
+        }
+        
+        if (!assimp_rgba || 0 == num_vectors) {
+            *matlab_rgba = mxCreateDoubleMatrix(4, 0, mxREAL);
+            return 0;
+        }
+        
+        *matlab_rgba = mxCreateDoubleMatrix(4, num_vectors, mxREAL);
+        
+        double* matlab_data = mxGetPr(*matlab_rgba);
+        if (!matlab_data) {
+            return 0;
+        }
+        
+        for (unsigned i = 0; i < num_vectors; i++) {
+            matlab_data[4 * i] = assimp_rgba[i].r;
+            matlab_data[4 * i + 1] = assimp_rgba[i].g;
+            matlab_data[4 * i + 2] = assimp_rgba[i].b;
+            matlab_data[4 * i + 3] = assimp_rgba[i].a;
         }
         
         return num_vectors;

@@ -37,6 +37,9 @@ namespace mexximp {
     unsigned to_assimp_rgb(const mxArray* matlab_rgb, aiColor3D** assimp_rgb);
     unsigned to_matlab_rgb(const aiColor3D* assimp_rgb, mxArray** matlab_rgb, unsigned num_vectors);
     
+    unsigned to_assimp_rgba(const mxArray* matlab_rgba, aiColor4D** assimp_rgba);
+    unsigned to_matlab_rgba(const aiColor4D* assimp_rgba, mxArray** matlab_rgba, unsigned num_vectors);
+
 }
 
 #endif  // MEXXIMP_UTIL_H_
