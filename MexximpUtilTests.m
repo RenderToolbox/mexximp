@@ -7,10 +7,10 @@ classdef MexximpUtilTests < matlab.unittest.TestCase
     
     methods (Test)
         
-        function testVec3RoundTrips(testCase)
+        function testXyzRoundTrips(testCase)
             for ii = 1:numel(testCase.itemSize)
                 vectors = rand(3, testCase.itemSize(ii));
-                vectorsPrime = mexximpTest('vec3', vectors);
+                vectorsPrime = mexximpTest('xyz', vectors);
                 testCase.assertEqual(vectorsPrime, vectors, ...
                     'AbsTol', testCase.floatTolerance);
             end

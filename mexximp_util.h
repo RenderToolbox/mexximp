@@ -2,7 +2,7 @@
  *
  *  These functions are alllowed to allocate Matlab Heap memory themselves
  *  using functions like mxCreateDoubleMatrix() and mxCalloc().  Assimp
- *  might use this memory while exporting scene files.  Matlab will
+ *  might read this memory while exporting scene files.  Matlab will
  *  automatically free this memory after Assimp finishes and control
  *  returns to the Matlab prompt.
  *
@@ -28,8 +28,8 @@ namespace mexximp {
         return mxCreateCharArray(2, &dims[0]);
     }
     
-    unsigned to_assimp_vec3(const mxArray* matlab_vec3, aiVector3D** assimp_vec3);
-    unsigned to_matlab_vec3(const aiVector3D* assimp_vec3, mxArray** matlab_vec3, unsigned num_vectors);
+    unsigned to_assimp_xyz(const mxArray* matlab_xyz, aiVector3D** assimp_xyz);
+    unsigned to_matlab_xyz(const aiVector3D* assimp_xyz, mxArray** matlab_xyz, unsigned num_vectors);
     
     unsigned to_assimp_string(const mxArray* matlab_string, aiString** assimp_string);
     unsigned to_matlab_string(const aiString* assimp_string, mxArray** matlab_string);
