@@ -6,7 +6,7 @@
 namespace mexximp {
     
     unsigned to_assimp_vec3(const mxArray* matlab_vec3, aiVector3D** assimp_vec3) {
-        if (!matlab_vec3 || !assimp_vec3) {
+        if (!matlab_vec3 || !assimp_vec3 || !mxIsDouble(matlab_vec3)) {
             return 0;
         }
         
@@ -36,7 +36,7 @@ namespace mexximp {
         }
         
         if (!assimp_vec3 || 0 == num_vectors) {
-            *matlab_vec3 = emptyDouble();
+            *matlab_vec3 = mxCreateDoubleMatrix(3, 0, mxREAL);
             return 0;
         }
         
@@ -58,6 +58,41 @@ namespace mexximp {
         }
         
         return num_vectors;
+    }
+    
+    unsigned to_assimp_string(const mxArray* matlab_string, aiString** assimp_string) {
+        if (!matlab_string || !assimp_string || !mxIsChar(matlab_string)) {
+            return 0;
+        }
+        
+        char* matlab_data = mxArrayToString(matlab_string);
+        if (!matlab_data) {
+            return 0;
+        }
+        
+        *assimp_string = (aiString*)mxCalloc(1, sizeof(aiString));
+        if (!*assimp_string) {
+            return 0;
+        }
+        
+        (*assimp_string)->Set(matlab_data);
+        
+        return (*assimp_string)->length;
+    }
+    
+    unsigned to_matlab_string(const aiString* assimp_string, mxArray** matlab_string) {
+        if (!matlab_string) {
+            return 0;
+        }
+        
+        if (!assimp_string || 0 == assimp_string->length) {
+            *matlab_string = emptyString();
+            return 0;
+        }
+                
+        *matlab_string = mxCreateString(assimp_string->C_Str());
+        
+        return assimp_string->length;
     }
     
 }

@@ -20,6 +20,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         aiVector3D* assimp_vec3;
         unsigned num_vectors = mexximp::to_assimp_vec3(prhs[1], &assimp_vec3);
         mexximp::to_matlab_vec3(assimp_vec3, &plhs[0], num_vectors);
+    } else if(0 == strcmp("string", whichTest)) {
+        aiString* assimp_string;
+        mexximp::to_assimp_string(prhs[1], &assimp_string);
+        mexximp::to_matlab_string(assimp_string, &plhs[0]);
     }
     
 }

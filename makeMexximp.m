@@ -14,12 +14,5 @@ mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
-%% Run it.
-mexximpTest();
-
-for ii = 0:100
-    in = 1:ii;
-    out = mexximpTest('vec3', in);
-    disp(in)
-    disp(out)
-end
+%% Test it.
+runtests();
