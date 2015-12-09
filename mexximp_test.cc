@@ -24,6 +24,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         aiString* assimp_string;
         mexximp::to_assimp_string(prhs[1], &assimp_string);
         mexximp::to_matlab_string(assimp_string, &plhs[0]);
+    } else if(0 == strcmp("rgb", whichTest)) {
+        aiColor3D* assimp_rgb;
+        unsigned num_vectors = mexximp::to_assimp_rgb(prhs[1], &assimp_rgb);
+        mexximp::to_matlab_rgb(assimp_rgb, &plhs[0], num_vectors);
     }
     
 }

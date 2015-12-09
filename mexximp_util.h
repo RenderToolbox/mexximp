@@ -33,6 +33,10 @@ namespace mexximp {
     
     unsigned to_assimp_string(const mxArray* matlab_string, aiString** assimp_string);
     unsigned to_matlab_string(const aiString* assimp_string, mxArray** matlab_string);
+    
+    unsigned to_assimp_rgb(const mxArray* matlab_rgb, aiColor3D** assimp_rgb);
+    unsigned to_matlab_rgb(const aiColor3D* assimp_rgb, mxArray** matlab_rgb, unsigned num_vectors);
+    
 }
 
 #endif  // MEXXIMP_UTIL_H_

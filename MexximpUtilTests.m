@@ -25,5 +25,15 @@ classdef MexximpUtilTests < matlab.unittest.TestCase
             end
         end
         
+        function testRgbRoundTrips(testCase)
+            for ii = 1:numel(testCase.itemSize)
+                rgbs = rand(3, testCase.itemSize(ii));
+                rgbsPrime = mexximpTest('rgb', rgbs);
+                testCase.assertEqual(rgbsPrime, rgbs, ...
+                    'AbsTol', testCase.floatTolerance);
+            end
+        end
+        
+        
     end
 end
