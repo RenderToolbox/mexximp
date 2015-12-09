@@ -43,5 +43,13 @@ classdef MexximpUtilTests < matlab.unittest.TestCase
             end
         end
         
+        function testTexelRoundTrips(testCase)
+            for ii = 1:numel(testCase.itemSize)
+                texels = randi(255, [4, testCase.itemSize(ii)], 'uint8');
+                texelsPrime = mexximpTest('texel', texels);
+                testCase.assertEqual(texelsPrime, texels);
+            end
+        end
+        
     end
 end

@@ -148,7 +148,7 @@ namespace mexximp {
         return num_vectors;
     }
     
-    // rgba
+    // rgba (float values)
     
     unsigned to_assimp_rgba(const mxArray* matlab_rgba, aiColor4D** assimp_rgba) {
         if (!matlab_rgba || !assimp_rgba || !mxIsDouble(matlab_rgba)) {
@@ -198,6 +198,61 @@ namespace mexximp {
             matlab_data[4 * i + 1] = assimp_rgba[i].g;
             matlab_data[4 * i + 2] = assimp_rgba[i].b;
             matlab_data[4 * i + 3] = assimp_rgba[i].a;
+        }
+        
+        return num_vectors;
+    }
+    
+    // texel (ARGB8888 values)
+    
+    unsigned to_assimp_texel(const mxArray* matlab_texel, aiTexel** assimp_texel) {
+        if (!matlab_texel || !assimp_texel || !mxIsUint8(matlab_texel)) {
+            return 0;
+        }
+        
+        char* matlab_data = (char*)mxGetData(matlab_texel);
+        if (!matlab_data) {
+            return 0;
+        }
+        
+        unsigned num_vectors = mxGetNumberOfElements(matlab_texel) / 4;
+        *assimp_texel = (aiTexel*)mxCalloc(num_vectors, sizeof(aiTexel));
+        if (!*assimp_texel) {
+            return 0;
+        }
+        
+        for (unsigned i = 0; i < num_vectors; i++) {
+            (*assimp_texel)[i].r = matlab_data[4 * i];
+            (*assimp_texel)[i].g = matlab_data[4 * i + 1];
+            (*assimp_texel)[i].b = matlab_data[4 * i + 2];
+            (*assimp_texel)[i].a = matlab_data[4 * i + 3];
+        }
+        
+        return num_vectors;
+    }
+    
+    unsigned to_matlab_texel(const aiTexel* assimp_texel, mxArray** matlab_texel, unsigned num_vectors) {
+        if (!matlab_texel) {
+            return 0;
+        }
+        
+        if (!assimp_texel || 0 == num_vectors) {
+            *matlab_texel = mxCreateNumericMatrix(4, 0, mxUINT8_CLASS, mxREAL);
+            return 0;
+        }
+        
+        *matlab_texel = mxCreateNumericMatrix(4, num_vectors, mxUINT8_CLASS, mxREAL);
+        
+        char* matlab_data = (char*)mxGetData(*matlab_texel);
+        if (!matlab_data) {
+            return 0;
+        }
+        
+        for (unsigned i = 0; i < num_vectors; i++) {
+            matlab_data[4 * i] = assimp_texel[i].r;
+            matlab_data[4 * i + 1] = assimp_texel[i].g;
+            matlab_data[4 * i + 2] = assimp_texel[i].b;
+            matlab_data[4 * i + 3] = assimp_texel[i].a;
         }
         
         return num_vectors;

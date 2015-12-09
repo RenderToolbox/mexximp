@@ -32,6 +32,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         aiColor4D* assimp_rgba;
         unsigned num_vectors = mexximp::to_assimp_rgba(prhs[1], &assimp_rgba);
         mexximp::to_matlab_rgba(assimp_rgba, &plhs[0], num_vectors);
+    } else if(0 == strcmp("texel", whichTest)) {
+        aiTexel* assimp_texel;
+        unsigned num_vectors = mexximp::to_assimp_texel(prhs[1], &assimp_texel);
+        mexximp::to_matlab_texel(assimp_texel, &plhs[0], num_vectors);
     }
+
     
 }
