@@ -39,20 +39,56 @@ namespace mexximp {
         "clipPlaneNear",
     };
     
-    //TODO
-    inline float get_scalar(const mxArray* matlab_struct, const char* field_name, const float default_value);
-    inline void set_scalar(const mxArray* matlab_struct, const char* field_name, const float value);
+    // let Matlab allocate a scene and pointer members
+    inline aiScene* mx_new_scene() {
+        aiScene* assimp_scene = (aiScene*)mxCalloc(1, sizeof(aiScene));
+        if (!assimp_scene) {
+            return 0;
+        }
+        
+        assimp_scene->mCameras = (aiCamera**)mxCalloc(1, sizeof(aiCamera*));
+        return assimp_scene;
+    }
+    
+    inline float get_scalar(const mxArray* matlab_struct, const unsigned index, const char* field_name, const float default_value) {
+        if (!matlab_struct || !mxIsStruct(matlab_struct)) {
+            return default_value;
+        }
+        
+        const mxArray* field = mxGetField(matlab_struct, index, field_name);
+        if (!field || !mxIsNumeric(field)) {
+            return default_value;
+        }
+        
+        return mxGetScalar(field);
+    }
+    
+    inline void set_scalar(mxArray* matlab_struct, const unsigned index, const char* field_name, const float value) {
+        if (!matlab_struct || !mxIsStruct(matlab_struct)) {
+            return;
+        }
+        
+        mxArray* scalar = mxCreateDoubleScalar(value);
+        mxSetField(matlab_struct, index, field_name, scalar);
+    }
     
     //TODO
-    inline const char* get_string(const mxArray* matlab_struct, const char* field_name, const char* default_value);
-    inline void set_string(const mxArray* matlab_struct, const char* field_name, const char* value);
+    inline const char* get_string(
+            const mxArray* matlab_struct,
+            const unsigned index,
+            const char* field_name,
+            const char* default_value);
+    inline void set_string(
+            const mxArray* matlab_struct,
+            const unsigned index,
+            const char* field_name,
+            const char* value);
     
     unsigned to_assimp_scene(const mxArray* matlab_scene, aiScene** assimp_scene);
     unsigned to_matlab_scene(const aiScene* assimp_scene, mxArray** matlab_scene);
     
-    //TODO
     unsigned to_assimp_cameras(const mxArray* matlab_cameras, aiCamera** assimp_cameras);
-    unsigned to_matlab_cameras(const aiScene* assimp_cameras, mxArray** matlab_cameras, unsigned num_cameras);
+    unsigned to_matlab_cameras(const aiCamera* assimp_cameras, mxArray** matlab_cameras, unsigned num_cameras);
     
 }
 
