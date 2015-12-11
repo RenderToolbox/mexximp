@@ -56,6 +56,18 @@ namespace mexximp {
         "specularColor",
     };
     
+    static const char* material_field_names[] = {
+        "properties",
+    };
+    
+    static const char* material_property_field_names[] = {
+        "key",
+        "dataType",
+        "data",
+        "textureSemantic",
+        "textureIndex"
+    };
+    
     // scalar to from struct
     
     inline float get_scalar(const mxArray* matlab_struct, const unsigned index, const char* field_name, const float default_value) {
@@ -188,6 +200,101 @@ namespace mexximp {
         return aiLightSource_UNDEFINED;
     }
     
+    // material property type <-> string
+    
+    inline const char* material_property_type_string(aiPropertyTypeInfo type_code) {
+        switch (type_code) {
+            case aiPTI_Float:
+                return "float";
+            case aiPTI_String:
+                return "string";
+            case aiPTI_Integer:
+                return "integer";
+            case aiPTI_Buffer:
+                return "buffer";
+            default:
+                return "unknown_code";
+        }
+    }
+    
+    inline aiPropertyTypeInfo material_property_type_code(const char* type_string) {
+        if (!type_string || !strcmp("buffer", type_string)) {
+            return aiPTI_Buffer;
+        } else if (!strcmp("float", type_string)) {
+            return aiPTI_Float;
+        } else if (!strcmp("string", type_string)) {
+            return aiPTI_String;
+        } else if (!strcmp("integer", type_string)) {
+            return aiPTI_Integer;
+        }
+        return aiPTI_Buffer;
+    }
+    
+    // texture type <-> string
+    inline const char* texture_type_string(aiTextureType type_code) {
+        switch (type_code) {
+            case aiTextureType_NONE:
+                return "none";
+            case aiTextureType_DIFFUSE:
+                return "diffuse";
+            case aiTextureType_SPECULAR:
+                return "specular";
+            case aiTextureType_AMBIENT:
+                return "ambient";
+            case aiTextureType_EMISSIVE:
+                return "emissive";
+            case aiTextureType_HEIGHT:
+                return "height";
+            case aiTextureType_NORMALS:
+                return "normals";
+            case aiTextureType_SHININESS:
+                return "shininess";
+            case aiTextureType_OPACITY:
+                return "opacity";
+            case aiTextureType_DISPLACEMENT:
+                return "displacement";
+            case aiTextureType_LIGHTMAP:
+                return "light_map";
+            case aiTextureType_REFLECTION:
+                return "reflection";
+            case aiTextureType_UNKNOWN:
+                return "unknown";
+            default:
+                return "unknown_code";
+        }
+    }
+    
+    inline aiTextureType texture_type_code(const char* type_string) {
+        if (!type_string || !strcmp("unknown", type_string)) {
+            return aiTextureType_UNKNOWN;
+        } else if (!strcmp("none", type_string)) {
+            return aiTextureType_NONE;
+        } else if (!strcmp("diffuse", type_string)) {
+            return aiTextureType_DIFFUSE;
+        } else if (!strcmp("specular", type_string)) {
+            return aiTextureType_SPECULAR;
+        } else if (!strcmp("ambient", type_string)) {
+            return aiTextureType_AMBIENT;
+        } else if (!strcmp("emissive", type_string)) {
+            return aiTextureType_EMISSIVE;
+        } else if (!strcmp("height", type_string)) {
+            return aiTextureType_HEIGHT;
+        } else if (!strcmp("normals", type_string)) {
+            return aiTextureType_NORMALS;
+        } else if (!strcmp("shininess", type_string)) {
+            return aiTextureType_SHININESS;
+        } else if (!strcmp("opacity", type_string)) {
+            return aiTextureType_OPACITY;
+        } else if (!strcmp("displacement", type_string)) {
+            return aiTextureType_DISPLACEMENT;
+        } else if (!strcmp("light_map", type_string)) {
+            return aiTextureType_LIGHTMAP;
+        } else if (!strcmp("reflection", type_string)) {
+            return aiTextureType_REFLECTION;
+        }
+        return aiTextureType_UNKNOWN;
+    }
+    
     // scene "constructor" using Matlab memory allocator
     inline aiScene* mx_new_scene() {
         aiScene* assimp_scene = (aiScene*)mxCalloc(1, sizeof(aiScene));
@@ -214,6 +321,11 @@ namespace mexximp {
     unsigned to_assimp_lights(const mxArray* matlab_lights, aiLight** assimp_lights);
     unsigned to_matlab_lights(const aiLight* assimp_lights, mxArray** matlab_lights, unsigned num_lights);
     
+    unsigned to_assimp_materials(const mxArray* matlab_materials, aiMaterial** assimp_materials);
+    unsigned to_matlab_materials(const aiMaterial* assimp_materials, mxArray** matlab_materials, unsigned num_materials);
+    
+    unsigned to_assimp_material_properties(const mxArray* matlab_properties, aiMaterialProperty** assimp_properties);
+    unsigned to_matlab_material_properties(const aiMaterialProperty* assimp_properties, mxArray** matlab_properties, unsigned num_properties);
 }
 
 #endif  // MEXXIMP_SCENE_H_
