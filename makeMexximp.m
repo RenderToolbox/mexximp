@@ -15,5 +15,5 @@ fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
 %% Test it.
-runtests('MexximpSceneTests/testCamerasRoundTrip');
-%runtests();
+%runtests()
+runtests('MexximpSceneTests');

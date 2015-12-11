@@ -2,8 +2,6 @@
 #include "mexximp_scene.h"
 #include "mexximp_util.h"
 
-#include <mex.h>
-
 namespace mexximp {
     
     // scene (top-level)
@@ -60,6 +58,10 @@ namespace mexximp {
         }
         
         for (unsigned i = 0; i < num_cameras; i++) {
+            (*assimp_cameras)[i].mPosition = get_xyz(matlab_cameras, i, "position", 0)[0];
+            (*assimp_cameras)[i].mLookAt = get_xyz(matlab_cameras, i, "lookAtDirection", 0)[0];
+            (*assimp_cameras)[i].mUp = get_xyz(matlab_cameras, i, "upDirection", 0)[0];
+            (*assimp_cameras)[i].mName = get_string(matlab_cameras, i, "name", "camera")[0];
             (*assimp_cameras)[i].mAspect = get_scalar(matlab_cameras, i, "aspectRatio", 1.0);
             (*assimp_cameras)[i].mClipPlaneNear = get_scalar(matlab_cameras, i, "clipPlaneNear", 0.1);
             (*assimp_cameras)[i].mClipPlaneFar = get_scalar(matlab_cameras, i, "clipPlaneFar", 1000);
@@ -86,6 +88,10 @@ namespace mexximp {
                 &camera_field_names[0]);
         
         for (unsigned i = 0; i < num_cameras; i++) {
+            set_xyz(*matlab_cameras, i, "position", &assimp_cameras[i].mPosition, 1);
+            set_xyz(*matlab_cameras, i, "lookAtDirection", &assimp_cameras[i].mLookAt, 1);
+            set_xyz(*matlab_cameras, i, "upDirection", &assimp_cameras[i].mUp, 1);
+            set_string(*matlab_cameras, i, "name", &assimp_cameras[i].mName);
             set_scalar(*matlab_cameras, i, "aspectRatio", assimp_cameras[i].mAspect);
             set_scalar(*matlab_cameras, i, "clipPlaneNear", assimp_cameras[i].mClipPlaneNear);
             set_scalar(*matlab_cameras, i, "clipPlaneFar", assimp_cameras[i].mClipPlaneFar);
