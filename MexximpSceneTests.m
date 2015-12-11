@@ -33,6 +33,27 @@ classdef MexximpSceneTests < matlab.unittest.TestCase
                 testCase.doSceneRoundTrip(scene);
             end
         end
+        
+        function testLightsRoundTrip(testCase)
+            scene = testCase.emptyScene;
+            for s = testCase.itemSize
+                scene.lights = struct( ...
+                    'name', MexximpSceneTests.randomString(s), ...
+                    'position', rand(3, 1), ...
+                    'type', MexximpSceneTests.randomLightTypes(s), ...
+                    'lookAtDirection', rand(3, 1), ...
+                    'innerConeAngle', num2cell(rand(1, s)), ...
+                    'outerConeAngle', num2cell(rand(1, s)), ...
+                    'constantAttenuation', num2cell(rand(1, s)), ...
+                    'linearAttenuation', num2cell(rand(1, s)), ...
+                    'quadraticAttenuation', num2cell(rand(1, s)), ...
+                    'ambientColor', rand(3, 1), ...
+                    'diffuseColor', rand(3, 1), ...
+                    'specularColor', rand(3, 1));
+                testCase.doSceneRoundTrip(scene);
+            end
+        end
+        
     end
     
     methods (Access = private)
@@ -47,6 +68,11 @@ classdef MexximpSceneTests < matlab.unittest.TestCase
         function string = randomString(stringSize)
             alphabet = '0':'z';
             string = alphabet(randi(numel(alphabet), [1, stringSize]));
+        end
+        
+        function types = randomLightTypes(nTypes)
+            allTypes = {'undefined', 'directional', 'point', 'spot'};
+            types = allTypes(randi(numel(allTypes), [1, nTypes]));
         end
     end
 end

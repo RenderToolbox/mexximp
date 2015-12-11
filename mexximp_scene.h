@@ -41,6 +41,21 @@ namespace mexximp {
         "clipPlaneNear",
     };
     
+    static const char* light_field_names[] = {
+        "name",
+        "position",
+        "type",
+        "lookAtDirection",
+        "innerConeAngle",
+        "outerConeAngle",
+        "constantAttenuation",
+        "linearAttenuation",
+        "quadraticAttenuation",
+        "ambientColor",
+        "diffuseColor",
+        "specularColor",
+    };
+    
     // scalar to from struct
     
     inline float get_scalar(const mxArray* matlab_struct, const unsigned index, const char* field_name, const float default_value) {
@@ -82,6 +97,21 @@ namespace mexximp {
         }
     }
     
+    inline const char* get_c_string(const mxArray* matlab_struct, const unsigned index, const char* field_name, const char* default_value) {
+        mxArray* string = mxGetField(matlab_struct, index, field_name);
+        if (!string) {
+            return default_value;
+        }
+        return mxArrayToString(string);
+    }
+    
+    inline void set_c_string(mxArray* matlab_struct, const unsigned index, const char* field_name, const char* value) {
+        mxArray* string = mxCreateString(value);
+        if (string) {
+            mxSetField(matlab_struct, index, field_name, string);
+        }
+    }
+    
     // xyz to from struct
     
     inline aiVector3D* get_xyz(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out) {
@@ -105,7 +135,60 @@ namespace mexximp {
         }
     }
     
-    // allocate a scene from Matlab's memory
+    // rgb to from struct
+    
+    inline aiColor3D* get_rgb(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out) {
+        aiColor3D* target;
+        unsigned num_vectors = to_assimp_rgb(mxGetField(matlab_struct, index, field_name), &target);
+        if (!target) {
+            target = (aiColor3D*)mxCalloc(1, sizeof(aiColor3D));
+            num_vectors = 1;
+        }
+        if (num_vectors_out) {
+            *num_vectors_out = num_vectors;
+        }
+        return target;
+    }
+    
+    inline void set_rgb(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiColor3D* value, const unsigned num_vectors) {
+        mxArray* rgb;
+        to_matlab_rgb(value, &rgb, num_vectors);
+        if (rgb) {
+            mxSetField(matlab_struct, index, field_name, rgb);
+        }
+    }
+    
+    // light type <-> string
+    
+    inline const char* light_type_string(aiLightSourceType type_code) {
+        switch (type_code) {
+            case aiLightSource_UNDEFINED:
+                return "undefined";
+            case aiLightSource_DIRECTIONAL:
+                return "directional";
+            case aiLightSource_POINT:
+                return "point";
+            case aiLightSource_SPOT:
+                return "spot";
+            default:
+                return "unknown_code";
+        }
+    }
+    
+    inline aiLightSourceType light_type_code(const char* type_string) {
+        if (!type_string || !strcmp("undefined", type_string)) {
+            return aiLightSource_UNDEFINED;
+        } else if (!strcmp("directional", type_string)) {
+            return aiLightSource_DIRECTIONAL;
+        } else if (!strcmp("point", type_string)) {
+            return aiLightSource_POINT;
+        } else if (!strcmp("spot", type_string)) {
+            return aiLightSource_SPOT;
+        }
+        return aiLightSource_UNDEFINED;
+    }
+    
+    // scene "constructor" using Matlab memory allocator
     inline aiScene* mx_new_scene() {
         aiScene* assimp_scene = (aiScene*)mxCalloc(1, sizeof(aiScene));
         if (!assimp_scene) {
@@ -127,6 +210,9 @@ namespace mexximp {
     
     unsigned to_assimp_cameras(const mxArray* matlab_cameras, aiCamera** assimp_cameras);
     unsigned to_matlab_cameras(const aiCamera* assimp_cameras, mxArray** matlab_cameras, unsigned num_cameras);
+    
+    unsigned to_assimp_lights(const mxArray* matlab_lights, aiLight** assimp_lights);
+    unsigned to_matlab_lights(const aiLight* assimp_lights, mxArray** matlab_lights, unsigned num_lights);
     
 }
 
