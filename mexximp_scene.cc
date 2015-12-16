@@ -1,6 +1,7 @@
 
 #include "mexximp_scene.h"
 #include "mexximp_util.h"
+#include "mexximp_strings.h"
 
 namespace mexximp {
     
@@ -250,8 +251,14 @@ namespace mexximp {
         for (unsigned i = 0; i < num_properties; i++) {
             (*assimp_properties)[i].mKey = get_string(matlab_properties, i, "key", "property")[0];
             (*assimp_properties)[i].mIndex = get_scalar(matlab_properties, i, "textureIndex", 0);
-            (*assimp_properties)[i].mType = material_property_type_code(get_c_string(matlab_properties, i, "dataType", "buffer"));
             (*assimp_properties)[i].mSemantic = texture_type_code(get_c_string(matlab_properties, i, "textureSemantic", "unknown"));
+            
+            aiPropertyTypeInfo type_code = material_property_type_code(get_c_string(matlab_properties, i, "dataType", "buffer"));
+            (*assimp_properties)[i].mType = type_code;
+            
+            unsigned num_bytes;
+            (*assimp_properties)[i].mData = get_property_data(matlab_properties, i, "data", type_code, &num_bytes);
+            (*assimp_properties)[i].mDataLength = num_bytes;
         }
         
         return num_properties;
@@ -276,8 +283,11 @@ namespace mexximp {
         for (unsigned i = 0; i < num_properties; i++) {
             set_string(*matlab_properties, i, "key", &assimp_properties[i].mKey);
             set_scalar(*matlab_properties, i, "textureIndex", assimp_properties[i].mIndex);
-            set_c_string(*matlab_properties, i, "dataType", material_property_type_string(assimp_properties[i].mType));
             set_c_string(*matlab_properties, i, "textureSemantic", texture_type_string((aiTextureType)assimp_properties[i].mSemantic));
+            
+            aiPropertyTypeInfo type_code = assimp_properties[i].mType;
+            set_c_string(*matlab_properties, i, "dataType", material_property_type_string(type_code));
+            set_property_data(*matlab_properties, i, "data", assimp_properties[i].mData,  type_code, assimp_properties[i].mDataLength);
         }
         
         return num_properties;

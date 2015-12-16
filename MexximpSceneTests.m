@@ -68,10 +68,12 @@ classdef MexximpSceneTests < matlab.unittest.TestCase
                     keys{ii} = MexximpSceneTests.randomString(s);
                 end
                 
+                dataTypes = MexximpSceneTests.randomElements(s, testCase.dataTypes);
+                datas = MexximpSceneTests.randomDatas(s, dataTypes);
                 properties = struct( ...
                     'key', keys, ...
-                    'dataType',  MexximpSceneTests.randomElements(s, testCase.dataTypes), ...
-                    'data', [], ...
+                    'dataType',  dataTypes, ...
+                    'data', datas, ...
                     'textureSemantic', MexximpSceneTests.randomElements(s, testCase.textureSemantics), ...
                     'textureIndex', num2cell(randi([0 s], [1 s])));
                 
@@ -99,6 +101,24 @@ classdef MexximpSceneTests < matlab.unittest.TestCase
         
         function types = randomElements(nElements, allElements)
             types = allElements(randi(numel(allElements), [1, nElements]));
+        end
+        
+        function datas = randomDatas(nElements, types)
+            datas = cell(1, nElements);
+            for ii = 1:nElements
+                switch(types{ii})
+                    case 'float'
+                        datas{ii} = rand(1, nElements);
+                    case 'string'
+                        datas{ii} = MexximpSceneTests.randomString(nElements);
+                    case 'integer'
+                        datas{ii} = randi([-nElements nElements], 1, nElements, 'uint32');
+                    case 'buffer'
+                        datas{ii} = randi(255, 1, nElements, 'uint8');
+                    otherwise
+                        datas{ii} = [];
+                end
+            end
         end
     end
 end

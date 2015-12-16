@@ -12,61 +12,14 @@
 #ifndef MEXXIMP_SCENE_H_
 #define MEXXIMP_SCENE_H_
 
+#include <cstring>
 #include <mex.h>
 #include <matrix.h>
+#include <tmwtypes.h>
 #include <assimp/scene.h>
 #include "mexximp_util.h"
 
-#define COUNT(x) ((sizeof x) / (sizeof x[0]))
-
 namespace mexximp {
-    
-    static const char* scene_field_names[] = {
-        "cameras",
-        "lights",
-        "materials",
-        "meshes",
-        "embeddedTextures",
-        "rootNode",
-    };
-    
-    static const char* camera_field_names[] = {
-        "name",
-        "position",
-        "lookAtDirection",
-        "upDirection",
-        "aspectRatio",
-        "horizontalFov",
-        "clipPlaneFar",
-        "clipPlaneNear",
-    };
-    
-    static const char* light_field_names[] = {
-        "name",
-        "position",
-        "type",
-        "lookAtDirection",
-        "innerConeAngle",
-        "outerConeAngle",
-        "constantAttenuation",
-        "linearAttenuation",
-        "quadraticAttenuation",
-        "ambientColor",
-        "diffuseColor",
-        "specularColor",
-    };
-    
-    static const char* material_field_names[] = {
-        "properties",
-    };
-    
-    static const char* material_property_field_names[] = {
-        "key",
-        "dataType",
-        "data",
-        "textureSemantic",
-        "textureIndex"
-    };
     
     // scalar to from struct
     
@@ -170,129 +123,130 @@ namespace mexximp {
         }
     }
     
-    // light type <-> string
+    // material property data to from struct
     
-    inline const char* light_type_string(aiLightSourceType type_code) {
-        switch (type_code) {
-            case aiLightSource_UNDEFINED:
-                return "undefined";
-            case aiLightSource_DIRECTIONAL:
-                return "directional";
-            case aiLightSource_POINT:
-                return "point";
-            case aiLightSource_SPOT:
-                return "spot";
-            default:
-                return "unknown_code";
+    inline char* get_property_data(const mxArray* matlab_struct, const unsigned index, const char* field_name, aiPropertyTypeInfo type_code, unsigned* num_bytes_out) {
+        
+        if (num_bytes_out) {
+            *num_bytes_out = 0;
         }
-    }
-    
-    inline aiLightSourceType light_type_code(const char* type_string) {
-        if (!type_string || !strcmp("undefined", type_string)) {
-            return aiLightSource_UNDEFINED;
-        } else if (!strcmp("directional", type_string)) {
-            return aiLightSource_DIRECTIONAL;
-        } else if (!strcmp("point", type_string)) {
-            return aiLightSource_POINT;
-        } else if (!strcmp("spot", type_string)) {
-            return aiLightSource_SPOT;
+        
+        mxArray* property = mxGetField(matlab_struct, index, field_name);
+        if (!property) {
+            return 0;
         }
-        return aiLightSource_UNDEFINED;
-    }
-    
-    // material property type <-> string
-    
-    inline const char* material_property_type_string(aiPropertyTypeInfo type_code) {
+        
+        unsigned num_elements = mxGetNumberOfElements(property);
+        if (!num_elements) {
+            return 0;
+        }
+        
+        void* data = mxGetData(property);
+        if (!data) {
+            return 0;
+        }
+        
+        char* target;
+        unsigned num_bytes;
         switch (type_code) {
-            case aiPTI_Float:
-                return "float";
+            case aiPTI_Float: {
+                num_bytes = num_elements * sizeof(float);
+                target = (char*)mxMalloc(num_bytes);
+                if (!target) {
+                    return 0;
+                }
+                for (int i=0; i<num_elements; i++) {
+                    ((float*)target)[i] = ((double*)data)[i];
+                }
+                break;
+            }
             case aiPTI_String:
-                return "string";
+                num_bytes = sizeof(aiString);
+                target = (char*)mxMalloc(num_bytes);
+                ((aiString*)target)->Set(mxArrayToString(property));
+                break;
             case aiPTI_Integer:
-                return "integer";
+                num_bytes = num_elements * sizeof(uint32_T);
+                target = (char*)mxMalloc(num_bytes);
+                if (!target) {
+                    return 0;
+                }
+                memcpy(target, data, num_bytes);
+                break;
             case aiPTI_Buffer:
-                return "buffer";
             default:
-                return "unknown_code";
+                num_bytes = num_elements;
+                target = (char*)mxMalloc(num_bytes);
+                if (!target) {
+                    return 0;
+                }
+                memcpy(target, data, num_bytes);
+                break;
         }
+        
+        if (num_bytes_out) {
+            *num_bytes_out = num_bytes;
+        }
+        return target;
     }
     
-    inline aiPropertyTypeInfo material_property_type_code(const char* type_string) {
-        if (!type_string || !strcmp("buffer", type_string)) {
-            return aiPTI_Buffer;
-        } else if (!strcmp("float", type_string)) {
-            return aiPTI_Float;
-        } else if (!strcmp("string", type_string)) {
-            return aiPTI_String;
-        } else if (!strcmp("integer", type_string)) {
-            return aiPTI_Integer;
+    inline void set_property_data(mxArray* matlab_struct, const unsigned index, const char* field_name, const char* value,  aiPropertyTypeInfo type_code, unsigned num_bytes) {
+        mxArray* property;
+        
+        if (!num_bytes) {
+            return;
         }
-        return aiPTI_Buffer;
-    }
-    
-    // texture type <-> string
-    inline const char* texture_type_string(aiTextureType type_code) {
+        
         switch (type_code) {
-            case aiTextureType_NONE:
-                return "none";
-            case aiTextureType_DIFFUSE:
-                return "diffuse";
-            case aiTextureType_SPECULAR:
-                return "specular";
-            case aiTextureType_AMBIENT:
-                return "ambient";
-            case aiTextureType_EMISSIVE:
-                return "emissive";
-            case aiTextureType_HEIGHT:
-                return "height";
-            case aiTextureType_NORMALS:
-                return "normals";
-            case aiTextureType_SHININESS:
-                return "shininess";
-            case aiTextureType_OPACITY:
-                return "opacity";
-            case aiTextureType_DISPLACEMENT:
-                return "displacement";
-            case aiTextureType_LIGHTMAP:
-                return "light_map";
-            case aiTextureType_REFLECTION:
-                return "reflection";
-            case aiTextureType_UNKNOWN:
-                return "unknown";
-            default:
-                return "unknown_code";
+            case aiPTI_Float: {
+                unsigned num_elements = num_bytes / sizeof(float);
+                property = mxCreateDoubleMatrix(1, num_elements, mxREAL);
+                if (!property) {
+                    break;
+                }
+                double* data = mxGetPr(property);
+                if (!data) {
+                    break;
+                }
+                for (int i=0; i<num_elements; i++) {
+                    data[i] = ((float*)value)[i];
+                }
+                break;
+            }
+            case aiPTI_String:
+                property = mxCreateString(((aiString*)value)->C_Str());
+                break;
+            case aiPTI_Integer: {
+                unsigned num_elements = num_bytes / sizeof(uint32_T);
+                property = mxCreateNumericMatrix(1, num_elements, mxUINT32_CLASS, mxREAL);
+                if (!property) {
+                    break;
+                }
+                double* data = mxGetPr(property);
+                if (!data) {
+                    break;
+                }
+                memcpy(data, value, num_bytes);
+                break;
+            }
+            case aiPTI_Buffer:
+            default: {
+                property = mxCreateNumericMatrix(1, num_bytes, mxUINT8_CLASS, mxREAL);
+                if (!property) {
+                    break;
+                }
+                void* data = mxGetData(property);
+                if (!data) {
+                    break;
+                }
+                memcpy(data, value, num_bytes);
+                break;
+            }
         }
-    }
-    
-    inline aiTextureType texture_type_code(const char* type_string) {
-        if (!type_string || !strcmp("unknown", type_string)) {
-            return aiTextureType_UNKNOWN;
-        } else if (!strcmp("none", type_string)) {
-            return aiTextureType_NONE;
-        } else if (!strcmp("diffuse", type_string)) {
-            return aiTextureType_DIFFUSE;
-        } else if (!strcmp("specular", type_string)) {
-            return aiTextureType_SPECULAR;
-        } else if (!strcmp("ambient", type_string)) {
-            return aiTextureType_AMBIENT;
-        } else if (!strcmp("emissive", type_string)) {
-            return aiTextureType_EMISSIVE;
-        } else if (!strcmp("height", type_string)) {
-            return aiTextureType_HEIGHT;
-        } else if (!strcmp("normals", type_string)) {
-            return aiTextureType_NORMALS;
-        } else if (!strcmp("shininess", type_string)) {
-            return aiTextureType_SHININESS;
-        } else if (!strcmp("opacity", type_string)) {
-            return aiTextureType_OPACITY;
-        } else if (!strcmp("displacement", type_string)) {
-            return aiTextureType_DISPLACEMENT;
-        } else if (!strcmp("light_map", type_string)) {
-            return aiTextureType_LIGHTMAP;
-        } else if (!strcmp("reflection", type_string)) {
-            return aiTextureType_REFLECTION;
+        
+        if (property) {
+            mxSetField(matlab_struct, index, field_name, property);
         }
-        return aiTextureType_UNKNOWN;
     }
     
     // scene "constructor" using Matlab memory allocator
