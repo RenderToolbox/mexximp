@@ -150,6 +150,9 @@ namespace mexximp {
         unsigned num_bytes;
         switch (type_code) {
             case aiPTI_Float: {
+                if (!mxIsDouble(property)) {
+                    return 0;
+                }
                 num_bytes = num_elements * sizeof(float);
                 target = (char*)mxMalloc(num_bytes);
                 if (!target) {
@@ -161,12 +164,18 @@ namespace mexximp {
                 break;
             }
             case aiPTI_String:
+                if (!mxIsChar(property)) {
+                    return 0;
+                }
                 num_bytes = sizeof(aiString);
                 target = (char*)mxMalloc(num_bytes);
                 ((aiString*)target)->Set(mxArrayToString(property));
                 break;
             case aiPTI_Integer:
-                num_bytes = num_elements * sizeof(uint32_T);
+                if (!mxIsInt32(property)) {
+                    return 0;
+                }
+                num_bytes = num_elements * sizeof(int32_T);
                 target = (char*)mxMalloc(num_bytes);
                 if (!target) {
                     return 0;
@@ -174,6 +183,10 @@ namespace mexximp {
                 memcpy(target, data, num_bytes);
                 break;
             case aiPTI_Buffer:
+                if (!mxIsUint8(property)) {
+                    return 0;
+                }
+                // fall through to default
             default:
                 num_bytes = num_elements;
                 target = (char*)mxMalloc(num_bytes);
