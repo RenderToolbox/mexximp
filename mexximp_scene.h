@@ -218,7 +218,7 @@ namespace mexximp {
                 break;
             case aiPTI_Integer: {
                 unsigned num_elements = num_bytes / sizeof(uint32_T);
-                property = mxCreateNumericMatrix(1, num_elements, mxUINT32_CLASS, mxREAL);
+                property = mxCreateNumericMatrix(1, num_elements, mxINT32_CLASS, mxREAL);
                 if (!property) {
                     break;
                 }

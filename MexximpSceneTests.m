@@ -112,7 +112,7 @@ classdef MexximpSceneTests < matlab.unittest.TestCase
                     case 'string'
                         datas{ii} = MexximpSceneTests.randomString(nElements);
                     case 'integer'
-                        datas{ii} = randi([-nElements nElements], 1, nElements, 'uint32');
+                        datas{ii} = randi([-nElements nElements], 1, nElements, 'int32');
                     case 'buffer'
                         datas{ii} = randi(255, 1, nElements, 'uint8');
                     otherwise
