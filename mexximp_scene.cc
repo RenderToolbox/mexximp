@@ -26,6 +26,9 @@ namespace mexximp {
         mxArray* matlab_materials = mxGetField(matlab_scene, 0, "materials");
         (*assimp_scene)->mNumMaterials = to_assimp_materials(matlab_materials, (*assimp_scene)->mMaterials);
         
+        mxArray* matlab_meshes = mxGetField(matlab_scene, 0, "meshes");
+        (*assimp_scene)->mNumMeshes = to_assimp_meshes(matlab_meshes, (*assimp_scene)->mMeshes);
+        
         return 1;
     }
     
@@ -55,6 +58,10 @@ namespace mexximp {
         mxArray* matlab_materials;
         to_matlab_materials(*(assimp_scene->mMaterials), &matlab_materials, assimp_scene->mNumMaterials);
         mxSetField(*matlab_scene, 0, "materials", matlab_materials);
+        
+        mxArray* matlab_meshes;
+        to_matlab_meshes(*(assimp_scene->mMeshes), &matlab_meshes, assimp_scene->mNumMeshes);
+        mxSetField(*matlab_scene, 0, "meshes", matlab_meshes);
         
         return 1;
     }
@@ -249,7 +256,9 @@ namespace mexximp {
         }
         
         for (unsigned i = 0; i < num_properties; i++) {
-            (*assimp_properties)[i].mKey = get_string(matlab_properties, i, "key", "property")[0];
+            aiString* key = get_string(matlab_properties, i, "key", "property");
+            key->Set(ugly_key(key->C_Str()));
+            (*assimp_properties)[i].mKey = key[0];
             (*assimp_properties)[i].mIndex = get_scalar(matlab_properties, i, "textureIndex", 0);
             (*assimp_properties)[i].mSemantic = texture_type_code(get_c_string(matlab_properties, i, "textureSemantic", "unknown"));
             
@@ -281,7 +290,7 @@ namespace mexximp {
                 &material_property_field_names[0]);
         
         for (unsigned i = 0; i < num_properties; i++) {
-            set_string(*matlab_properties, i, "key", &assimp_properties[i].mKey);
+            set_c_string(*matlab_properties, i, "key", nice_key(assimp_properties[i].mKey.C_Str()));
             set_scalar(*matlab_properties, i, "textureIndex", assimp_properties[i].mIndex);
             set_c_string(*matlab_properties, i, "textureSemantic", texture_type_string((aiTextureType)assimp_properties[i].mSemantic));
             
@@ -291,5 +300,96 @@ namespace mexximp {
         }
         
         return num_properties;
+    }
+    
+    // meshes
+    
+    unsigned to_assimp_meshes(const mxArray* matlab_meshes, aiMesh** assimp_meshes) {
+        if (!matlab_meshes || !assimp_meshes || !mxIsStruct(matlab_meshes)) {
+            return 0;
+        }
+        
+        unsigned num_meshes = mxGetNumberOfElements(matlab_meshes);
+        *assimp_meshes = (aiMesh*)mxCalloc(num_meshes, sizeof(aiMesh));
+        if (!*assimp_meshes) {
+            return 0;
+        }
+        
+        for (unsigned i = 0; i < num_meshes; i++) {
+            (*assimp_meshes)[i].mName = get_string(matlab_meshes, i, "name", "mesh")[0];
+            (*assimp_meshes)[i].mMaterialIndex = get_scalar(matlab_meshes, i, "materialIndex", 0);
+            (*assimp_meshes)[i].mVertices = get_xyz(matlab_meshes, i, "vertices", &(*assimp_meshes)[i].mNumVertices);
+            (*assimp_meshes)[i].mBitangents = get_xyz(matlab_meshes, i, "bitangents", 0);
+            (*assimp_meshes)[i].mNormals = get_xyz(matlab_meshes, i, "normals", 0);
+            (*assimp_meshes)[i].mTangents = get_xyz(matlab_meshes, i, "tangents", 0);
+            (*assimp_meshes)[i].mPrimitiveTypes = mesh_primitive_codes(mxGetField(matlab_meshes, i, "primitiveTypes"));
+            
+            (*assimp_meshes)[i].mColors[0] = get_rgba(matlab_meshes, i, "colors0", 0);
+            (*assimp_meshes)[i].mColors[1] = get_rgba(matlab_meshes, i, "colors1", 0);
+            (*assimp_meshes)[i].mColors[2] = get_rgba(matlab_meshes, i, "colors2", 0);
+            (*assimp_meshes)[i].mColors[3] = get_rgba(matlab_meshes, i, "colors3", 0);
+            (*assimp_meshes)[i].mColors[4] = get_rgba(matlab_meshes, i, "colors4", 0);
+            (*assimp_meshes)[i].mColors[5] = get_rgba(matlab_meshes, i, "colors5", 0);
+            (*assimp_meshes)[i].mColors[6] = get_rgba(matlab_meshes, i, "colors6", 0);
+            (*assimp_meshes)[i].mColors[7] = get_rgba(matlab_meshes, i, "colors7", 0);
+            
+            (*assimp_meshes)[i].mTextureCoords[0] = get_xyz(matlab_meshes, i, "textureCoordinates0", 0);
+            (*assimp_meshes)[i].mTextureCoords[1] = get_xyz(matlab_meshes, i, "textureCoordinates1", 0);
+            (*assimp_meshes)[i].mTextureCoords[2] = get_xyz(matlab_meshes, i, "textureCoordinates2", 0);
+            (*assimp_meshes)[i].mTextureCoords[3] = get_xyz(matlab_meshes, i, "textureCoordinates3", 0);
+            (*assimp_meshes)[i].mTextureCoords[4] = get_xyz(matlab_meshes, i, "textureCoordinates4", 0);
+            (*assimp_meshes)[i].mTextureCoords[5] = get_xyz(matlab_meshes, i, "textureCoordinates5", 0);
+            (*assimp_meshes)[i].mTextureCoords[6] = get_xyz(matlab_meshes, i, "textureCoordinates6", 0);
+            (*assimp_meshes)[i].mTextureCoords[7] = get_xyz(matlab_meshes, i, "textureCoordinates7", 0);
+        }
+        
+        return num_meshes;
+    }
+    
+    unsigned to_matlab_meshes(const aiMesh* assimp_meshes, mxArray** matlab_meshes, unsigned num_meshes) {
+        if (!matlab_meshes) {
+            return 0;
+        }
+        
+        if (!assimp_meshes || 0 == num_meshes) {
+            *matlab_meshes = emptyDouble();
+            return 0;
+        }
+        
+        *matlab_meshes = mxCreateStructMatrix(
+                1,
+                num_meshes,
+                COUNT(mesh_field_names),
+                &mesh_field_names[0]);
+        
+        for (unsigned i = 0; i < num_meshes; i++) {
+            set_string(*matlab_meshes, i, "name", &assimp_meshes[i].mName);
+            set_scalar(*matlab_meshes, i, "materialIndex", assimp_meshes[i].mMaterialIndex);
+            set_xyz(*matlab_meshes, i, "vertices", assimp_meshes[i].mVertices, assimp_meshes[i].mNumVertices);
+            set_xyz(*matlab_meshes, i, "bitangents", assimp_meshes[i].mBitangents, assimp_meshes[i].mNumVertices);
+            set_xyz(*matlab_meshes, i, "normals", assimp_meshes[i].mNormals, assimp_meshes[i].mNumVertices);
+            set_xyz(*matlab_meshes, i, "tangents", assimp_meshes[i].mTangents, assimp_meshes[i].mNumVertices);
+            mxSetField(*matlab_meshes, i, "primitiveTypes", mesh_primitive_struct(assimp_meshes[i].mPrimitiveTypes));
+            
+            set_rgba(*matlab_meshes, i, "colors0", assimp_meshes[i].mColors[0], assimp_meshes[i].mNumVertices);
+            set_rgba(*matlab_meshes, i, "colors1", assimp_meshes[i].mColors[1], assimp_meshes[i].mNumVertices);
+            set_rgba(*matlab_meshes, i, "colors2", assimp_meshes[i].mColors[2], assimp_meshes[i].mNumVertices);
+            set_rgba(*matlab_meshes, i, "colors3", assimp_meshes[i].mColors[3], assimp_meshes[i].mNumVertices);
+            set_rgba(*matlab_meshes, i, "colors4", assimp_meshes[i].mColors[4], assimp_meshes[i].mNumVertices);
+            set_rgba(*matlab_meshes, i, "colors5", assimp_meshes[i].mColors[5], assimp_meshes[i].mNumVertices);
+            set_rgba(*matlab_meshes, i, "colors6", assimp_meshes[i].mColors[6], assimp_meshes[i].mNumVertices);
+            set_rgba(*matlab_meshes, i, "colors7", assimp_meshes[i].mColors[7], assimp_meshes[i].mNumVertices);
+            
+            set_xyz(*matlab_meshes, i, "textureCoordinates0", assimp_meshes[i].mTextureCoords[0], assimp_meshes[i].mNumVertices);
+            set_xyz(*matlab_meshes, i, "textureCoordinates1", assimp_meshes[i].mTextureCoords[1], assimp_meshes[i].mNumVertices);
+            set_xyz(*matlab_meshes, i, "textureCoordinates2", assimp_meshes[i].mTextureCoords[2], assimp_meshes[i].mNumVertices);
+            set_xyz(*matlab_meshes, i, "textureCoordinates3", assimp_meshes[i].mTextureCoords[3], assimp_meshes[i].mNumVertices);
+            set_xyz(*matlab_meshes, i, "textureCoordinates4", assimp_meshes[i].mTextureCoords[4], assimp_meshes[i].mNumVertices);
+            set_xyz(*matlab_meshes, i, "textureCoordinates5", assimp_meshes[i].mTextureCoords[5], assimp_meshes[i].mNumVertices);
+            set_xyz(*matlab_meshes, i, "textureCoordinates6", assimp_meshes[i].mTextureCoords[6], assimp_meshes[i].mNumVertices);
+            set_xyz(*matlab_meshes, i, "textureCoordinates7", assimp_meshes[i].mTextureCoords[7], assimp_meshes[i].mNumVertices);
+        }
+        
+        return num_meshes;
     }
 }

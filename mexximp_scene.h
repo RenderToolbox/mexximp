@@ -82,10 +82,6 @@ namespace mexximp {
     inline aiVector3D* get_xyz(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out) {
         aiVector3D* target;
         unsigned num_vectors = to_assimp_xyz(mxGetField(matlab_struct, index, field_name), &target);
-        if (!target) {
-            target = (aiVector3D*)mxCalloc(1, sizeof(aiVector3D));
-            num_vectors = 1;
-        }
         if (num_vectors_out) {
             *num_vectors_out = num_vectors;
         }
@@ -105,10 +101,6 @@ namespace mexximp {
     inline aiColor3D* get_rgb(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out) {
         aiColor3D* target;
         unsigned num_vectors = to_assimp_rgb(mxGetField(matlab_struct, index, field_name), &target);
-        if (!target) {
-            target = (aiColor3D*)mxCalloc(1, sizeof(aiColor3D));
-            num_vectors = 1;
-        }
         if (num_vectors_out) {
             *num_vectors_out = num_vectors;
         }
@@ -120,6 +112,25 @@ namespace mexximp {
         to_matlab_rgb(value, &rgb, num_vectors);
         if (rgb) {
             mxSetField(matlab_struct, index, field_name, rgb);
+        }
+    }
+    
+    // rgba to from struct
+    
+    inline aiColor4D* get_rgba(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out) {
+        aiColor4D* target;
+        unsigned num_vectors = to_assimp_rgba(mxGetField(matlab_struct, index, field_name), &target);
+        if (num_vectors_out) {
+            *num_vectors_out = num_vectors;
+        }
+        return target;
+    }
+    
+    inline void set_rgba(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiColor4D* value, const unsigned num_vectors) {
+        mxArray* rgba;
+        to_matlab_rgba(value, &rgba, num_vectors);
+        if (rgba) {
+            mxSetField(matlab_struct, index, field_name, rgba);
         }
     }
     
@@ -293,6 +304,9 @@ namespace mexximp {
     
     unsigned to_assimp_material_properties(const mxArray* matlab_properties, aiMaterialProperty** assimp_properties);
     unsigned to_matlab_material_properties(const aiMaterialProperty* assimp_properties, mxArray** matlab_properties, unsigned num_properties);
+    
+    unsigned to_assimp_meshes(const mxArray* matlab_meshes, aiMesh** assimp_meshes);
+    unsigned to_matlab_meshes(const aiMesh* assimp_meshes, mxArray** matlab_meshes, unsigned num_meshes);
 }
 
 #endif  // MEXXIMP_SCENE_H_

@@ -14,12 +14,14 @@ namespace mexximp {
         
         double* matlab_data = mxGetPr(matlab_xyz);
         if (!matlab_data) {
+            *assimp_xyz = 0;
             return 0;
         }
         
         unsigned num_vectors = mxGetNumberOfElements(matlab_xyz) / 3;
         *assimp_xyz = (aiVector3D*)mxCalloc(num_vectors, sizeof(aiVector3D));
         if (!*assimp_xyz) {
+            *assimp_xyz = 0;
             return 0;
         }
         
@@ -28,7 +30,7 @@ namespace mexximp {
             (*assimp_xyz)[i].y = matlab_data[3 * i + 1];
             (*assimp_xyz)[i].z = matlab_data[3 * i + 2];
         }
-        
+                
         return num_vectors;
     }
     
@@ -67,6 +69,7 @@ namespace mexximp {
         
         char* matlab_data = mxArrayToString(matlab_string);
         if (!matlab_data) {
+            *assimp_string = 0;
             return 0;
         }
         
@@ -104,6 +107,7 @@ namespace mexximp {
         
         double* matlab_data = mxGetPr(matlab_rgb);
         if (!matlab_data) {
+            *assimp_rgb = 0;
             return 0;
         }
         
@@ -157,6 +161,7 @@ namespace mexximp {
         
         double* matlab_data = mxGetPr(matlab_rgba);
         if (!matlab_data) {
+            *assimp_rgba = 0;
             return 0;
         }
         
@@ -212,6 +217,7 @@ namespace mexximp {
         
         char* matlab_data = (char*)mxGetData(matlab_texel);
         if (!matlab_data) {
+            *assimp_texel = 0;
             return 0;
         }
         
@@ -267,6 +273,7 @@ namespace mexximp {
         
         double* matlab_data = mxGetPr(matlab_4x4);
         if (!matlab_data) {
+            *assimp_4x4 = 0;
             return 0;
         }
         
