@@ -91,6 +91,13 @@ namespace mexximp {
         "indices",
     };
     
+    static const char* node_field_names[] = {
+        "name",
+        "meshIndices",
+        "transformation",
+        "children",
+    };
+    
     // mesh primitive type <-> struct
     
     static const char* mesh_primitive_types[] = {
@@ -99,7 +106,7 @@ namespace mexximp {
         "triangle",
         "polygon",
     };
-    
+        
     inline mxArray* mesh_primitive_struct(unsigned codes) {
         mxArray* primitives = mxCreateStructMatrix(
                 1,

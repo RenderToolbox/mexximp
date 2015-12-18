@@ -86,6 +86,7 @@ classdef MexximpSceneTests < matlab.unittest.TestCase
                 testCase.doSceneRoundTrip(scene);
             end
         end
+        
         function testMeshesRoundTrip(testCase)
             scene = testCase.emptyScene;
             for s = testCase.itemSize
@@ -133,10 +134,29 @@ classdef MexximpSceneTests < matlab.unittest.TestCase
             end
         end
         
+        function testNodeRoundTrip(testCase)
+            scene = testCase.emptyScene;
+            for s = testCase.itemSize
+                
+                % arbitrary node hierarchy 3 levels deep
+                children = cell(1, s);
+                for ii = 1:s
+                    children{ii} = MexximpSceneTests.randomNode(s);
+                    
+                    % vary the number of grandchildren as we go
+                    children{ii}.children = [children{2:ii}];
+                end
+                
+                scene.rootNode = MexximpSceneTests.randomNode(s);
+                scene.rootNode.children = [children{:}];
+                scenePrime = testCase.doSceneRoundTrip(scene);
+            end
+            disp(scenePrime);
+        end
     end
     
     methods (Access = private)
-        function doSceneRoundTrip(testCase, scene)
+        function scenePrime = doSceneRoundTrip(testCase, scene)
             scenePrime = mexximpTest('scene', scene);
             testCase.assertEqual(scenePrime, scene, ...
                 'AbsTol', testCase.floatTolerance);
@@ -169,6 +189,14 @@ classdef MexximpSceneTests < matlab.unittest.TestCase
                         datas{ii} = [];
                 end
             end
+        end
+        
+        function node = randomNode(nElements)
+            node = struct( ...
+                'name', MexximpSceneTests.randomString(nElements), ...
+                'meshIndices', randi(nElements, 1, nElements, 'uint32'), ...
+                'transformation', rand(4, 4), ...
+                'children', []);
         end
     end
 end

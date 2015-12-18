@@ -355,6 +355,25 @@ namespace mexximp {
         }
     }
     
+    // 4x4 to from struct
+    
+    inline aiMatrix4x4* get_4x4(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out) {
+        aiMatrix4x4* target;
+        unsigned num_vectors = to_assimp_4x4(mxGetField(matlab_struct, index, field_name), &target);
+        if (num_vectors_out) {
+            *num_vectors_out = num_vectors;
+        }
+        return target;
+    }
+    
+    inline void set_4x4(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiMatrix4x4* value, const unsigned num_vectors) {
+        mxArray* matlab_4x4;
+        to_matlab_4x4(value, &matlab_4x4, num_vectors);
+        if (matlab_4x4) {
+            mxSetField(matlab_struct, index, field_name, matlab_4x4);
+        }
+    }
+    
     // material property data to from struct
     
     inline char* get_property_data(const mxArray* matlab_struct, const unsigned index, const char* field_name, aiPropertyTypeInfo type_code, unsigned* num_bytes_out) {
@@ -458,6 +477,10 @@ namespace mexximp {
     
     unsigned to_assimp_faces(const mxArray* matlab_faces, aiFace** assimp_faces);
     unsigned to_matlab_faces(const aiFace* assimp_faces, mxArray** matlab_faces, unsigned num_faces);
+    
+    unsigned to_assimp_nodes(const mxArray* matlab_node, unsigned index, aiNode** assimp_node, aiNode* assimp_parent);
+    unsigned to_matlab_nodes(const aiNode* assimp_node, mxArray** matlab_node, unsigned index);
+    
 }
 
 #endif  // MEXXIMP_SCENE_H_

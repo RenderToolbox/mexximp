@@ -29,6 +29,9 @@ namespace mexximp {
         mxArray* matlab_meshes = mxGetField(matlab_scene, 0, "meshes");
         (*assimp_scene)->mNumMeshes = to_assimp_meshes(matlab_meshes, (*assimp_scene)->mMeshes);
         
+        mxArray* matlab_node = mxGetField(matlab_scene, 0, "rootNode");
+        to_assimp_nodes(matlab_node, 0, &(*assimp_scene)->mRootNode, 0);
+        
         return 1;
     }
     
@@ -62,6 +65,14 @@ namespace mexximp {
         mxArray* matlab_meshes;
         to_matlab_meshes(*(assimp_scene->mMeshes), &matlab_meshes, assimp_scene->mNumMeshes);
         mxSetField(*matlab_scene, 0, "meshes", matlab_meshes);
+        
+        mxArray* matlab_node = mxCreateStructMatrix(
+                1,
+                1,
+                COUNT(node_field_names),
+                &node_field_names[0]);
+        to_matlab_nodes(assimp_scene->mRootNode, &matlab_node, 0);
+        mxSetField(*matlab_scene, 0, "rootNode", matlab_node);
         
         return 1;
     }
@@ -448,4 +459,84 @@ namespace mexximp {
         return num_faces;
     }
     
+    // node hierarchy
+    
+    unsigned to_assimp_nodes(const mxArray* matlab_node, unsigned index, aiNode** assimp_node, aiNode* assimp_parent) {
+        if (!matlab_node || !assimp_node || !mxIsStruct(matlab_node)) {
+            return 0;
+        }
+        
+        *assimp_node = (aiNode*)mxCalloc(1, sizeof(aiNode));
+        if (!*assimp_node) {
+            return 0;
+        }
+        
+        (*assimp_node)[0].mParent = assimp_parent;
+        (*assimp_node)[0].mName = get_string(matlab_node, index, "name", "node")[0];
+        (*assimp_node)[0].mTransformation = get_4x4(matlab_node, index, "transformation", 0)[0];
+        (*assimp_node)[0].mMeshes = get_indices(matlab_node, index, "meshIndices", &(*assimp_node)[0].mNumMeshes);
+                
+        mxArray* matlab_children = mxGetField(matlab_node, index, "children");
+        if (!matlab_children) {
+            return 0;
+        }
+        
+        unsigned num_children = mxGetNumberOfElements(matlab_children);
+        (*assimp_node)[0].mNumChildren = num_children;
+        if (!num_children) {
+            return 0;
+        }
+        
+        // child array
+        aiNode** child_array = (aiNode**)mxCalloc(num_children, sizeof(aiNode*));
+        if (!child_array) {
+            return 0;
+        }
+        (*assimp_node)[0].mChildren = child_array;
+                
+        unsigned num_descendants = num_children;
+        for (int i = 0; i<num_children; i++) {
+            num_descendants += to_assimp_nodes(matlab_children, i, &child_array[i], *assimp_node);
+        }
+        
+        return num_descendants;
+    }
+    
+    unsigned to_matlab_nodes(const aiNode* assimp_node, mxArray** matlab_node, unsigned index) {
+        if (!matlab_node) {
+            return 0;
+        }
+        
+        if (!assimp_node) {
+            *matlab_node = emptyDouble();
+            return 0;
+        }
+                
+        set_string(*matlab_node, index, "name", &assimp_node->mName);
+        set_indices(*matlab_node, index, "meshIndices", assimp_node->mMeshes, assimp_node->mNumMeshes);
+        set_4x4(*matlab_node, index, "transformation", &assimp_node->mTransformation, 1);
+        
+        unsigned num_children = assimp_node->mNumChildren;
+        if (!num_children) {
+            return 0;
+        }
+        
+        mxArray* children = mxCreateStructMatrix(
+                1,
+                num_children,
+                COUNT(node_field_names),
+                &node_field_names[0]);
+        if (!children) {
+            return 0;
+        }
+        
+        mxSetField(*matlab_node, index, "children", children);
+        
+        unsigned num_descendants = num_children;
+        for (int i = 0; i<num_children; i++) {
+            num_descendants += to_matlab_nodes(assimp_node->mChildren[i], &children, i);
+        }
+        
+        return num_descendants;
+    }
 }
