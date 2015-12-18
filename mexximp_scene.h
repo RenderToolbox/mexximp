@@ -42,6 +42,227 @@ namespace mexximp {
         mxSetField(matlab_struct, index, field_name, scalar);
     }
     
+    // floats to from struct
+    
+    inline float* get_floats(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_elements_out) {
+        if (num_elements_out) {
+            *num_elements_out = 0;
+        }
+        
+        const mxArray* field = mxGetField(matlab_struct, index, field_name);
+        if (!field || !mxIsDouble(field)) {
+            return 0;
+        }
+        
+        double* data = mxGetPr(field);
+        if (!data) {
+            return 0;
+        }
+        
+        unsigned num_elements = mxGetNumberOfElements(field);
+        unsigned num_bytes = num_elements * sizeof(float);
+        float* target = (float*)mxMalloc(num_bytes);
+        if (!target) {
+            return 0;
+        }
+        for (int i=0; i<num_elements; i++) {
+            target[i] = data[i];
+        }
+        
+        if (num_elements_out) {
+            *num_elements_out = num_elements;
+        }
+        
+        return target;
+    }
+    
+    inline void set_floats(mxArray* matlab_struct, const unsigned index, const char* field_name, const float* floats, unsigned num_elements) {
+        mxArray* field;
+        
+        if (!num_elements) {
+            return;
+        }
+        
+        field = mxCreateDoubleMatrix(1, num_elements, mxREAL);
+        if (!field) {
+            return;
+        }
+        
+        double* data = mxGetPr(field);
+        if (!data) {
+            return;
+        }
+        
+        for (int i=0; i<num_elements; i++) {
+            data[i] = floats[i];
+        }
+        
+        mxSetField(matlab_struct, index, field_name, field);
+    }
+    
+    // integers to from struct
+    
+    inline int32_T* get_ints(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_elements_out) {
+        if (num_elements_out) {
+            *num_elements_out = 0;
+        }
+        
+        const mxArray* field = mxGetField(matlab_struct, index, field_name);
+        if (!field || !mxIsInt32(field)) {
+            return 0;
+        }
+        
+        void* data = mxGetData(field);
+        if (!data) {
+            return 0;
+        }
+        
+        unsigned num_elements = mxGetNumberOfElements(field);
+        unsigned num_bytes = num_elements * sizeof(int32_T);
+        int32_T* target = (int32_T*)mxMalloc(num_bytes);
+        if (!target) {
+            return 0;
+        }
+        memcpy(target, data, num_bytes);
+        
+        if (num_elements_out) {
+            *num_elements_out = num_elements;
+        }
+        
+        return target;
+    }
+    
+    inline void set_ints(mxArray* matlab_struct, const unsigned index, const char* field_name, const int32_T* ints, unsigned num_elements) {
+        mxArray* field;
+        
+        if (!num_elements) {
+            return;
+        }
+        
+        field = mxCreateNumericMatrix(1, num_elements, mxINT32_CLASS, mxREAL);
+        if (!field) {
+            return;
+        }
+        
+        double* data = mxGetPr(field);
+        if (!data) {
+            return;
+        }
+        
+        unsigned num_bytes = num_elements * sizeof(int32_T);
+        memcpy(data, ints, num_bytes);
+        
+        mxSetField(matlab_struct, index, field_name, field);
+    }
+    
+    // indices to from struct
+    
+    inline uint32_T* get_indices(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_elements_out) {
+        if (num_elements_out) {
+            *num_elements_out = 0;
+        }
+        
+        const mxArray* field = mxGetField(matlab_struct, index, field_name);
+        if (!field || !mxIsUint32(field)) {
+            return 0;
+        }
+        
+        void* data = mxGetData(field);
+        if (!data) {
+            return 0;
+        }
+        
+        unsigned num_elements = mxGetNumberOfElements(field);
+        unsigned num_bytes = num_elements * sizeof(uint32_T);
+        uint32_T* target = (uint32_T*)mxMalloc(num_bytes);
+        if (!target) {
+            return 0;
+        }
+        memcpy(target, data, num_bytes);
+        
+        if (num_elements_out) {
+            *num_elements_out = num_elements;
+        }
+        
+        return target;
+    }
+    
+    inline void set_indices(mxArray* matlab_struct, const unsigned index, const char* field_name, const uint32_T* indices, unsigned num_elements) {
+        mxArray* field;
+        
+        if (!num_elements) {
+            return;
+        }
+        
+        field = mxCreateNumericMatrix(1, num_elements, mxUINT32_CLASS, mxREAL);
+        if (!field) {
+            return;
+        }
+        
+        double* data = mxGetPr(field);
+        if (!data) {
+            return;
+        }
+        
+        unsigned num_bytes = num_elements * sizeof(uint32_T);
+        memcpy(data, indices, num_bytes);
+        
+        mxSetField(matlab_struct, index, field_name, field);
+    }
+    
+    // bytes to from struct
+    
+    inline char* get_bytes(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_elements_out) {
+        if (num_elements_out) {
+            *num_elements_out = 0;
+        }
+        
+        const mxArray* field = mxGetField(matlab_struct, index, field_name);
+        if (!field) {
+            return 0;
+        }
+        
+        void* data = mxGetData(field);
+        if (!data) {
+            return 0;
+        }
+        
+        unsigned num_bytes = mxGetNumberOfElements(field);
+        char* target = (char*)mxMalloc(num_bytes);
+        if (!target) {
+            return 0;
+        }
+        memcpy(target, data, num_bytes);
+        
+        if (num_elements_out) {
+            *num_elements_out = num_bytes;
+        }
+        
+        return target;
+    }
+    
+    inline void set_bytes(mxArray* matlab_struct, const unsigned index, const char* field_name, const char* bytes, unsigned num_elements) {
+        mxArray* field;
+        
+        if (!num_elements) {
+            return;
+        }
+        
+        field = mxCreateNumericMatrix(1, num_elements, mxUINT8_CLASS, mxREAL);
+        if (!field) {
+            return;
+        }
+        
+        double* data = mxGetPr(field);
+        if (!data) {
+            return;
+        }
+        
+        memcpy(data, bytes, num_elements);
+        
+        mxSetField(matlab_struct, index, field_name, field);
+    }
+    
     // string to from struct
     
     inline aiString* get_string(const mxArray* matlab_struct, const unsigned index, const char* field_name, const char* default_value) {
@@ -142,134 +363,61 @@ namespace mexximp {
             *num_bytes_out = 0;
         }
         
-        mxArray* property = mxGetField(matlab_struct, index, field_name);
-        if (!property) {
-            return 0;
-        }
-        
-        unsigned num_elements = mxGetNumberOfElements(property);
-        if (!num_elements) {
-            return 0;
-        }
-        
-        void* data = mxGetData(property);
-        if (!data) {
-            return 0;
-        }
-        
-        char* target;
+        unsigned num_elements;
         unsigned num_bytes;
+        char* target;
         switch (type_code) {
-            case aiPTI_Float: {
-                if (!mxIsDouble(property)) {
-                    return 0;
-                }
+            case aiPTI_Float:
+                target = (char*)get_floats(matlab_struct, index, field_name, &num_elements);
                 num_bytes = num_elements * sizeof(float);
-                target = (char*)mxMalloc(num_bytes);
-                if (!target) {
-                    return 0;
-                }
-                for (int i=0; i<num_elements; i++) {
-                    ((float*)target)[i] = ((double*)data)[i];
-                }
+                break;
+            case aiPTI_String: {
+                target = (char*)get_string(matlab_struct, index, field_name, "");
+                num_bytes = sizeof(aiString);
                 break;
             }
-            case aiPTI_String:
-                if (!mxIsChar(property)) {
-                    return 0;
-                }
-                num_bytes = sizeof(aiString);
-                target = (char*)mxMalloc(num_bytes);
-                ((aiString*)target)->Set(mxArrayToString(property));
-                break;
             case aiPTI_Integer:
-                if (!mxIsInt32(property)) {
-                    return 0;
-                }
+                target = (char*)get_ints(matlab_struct, index, field_name, &num_elements);
                 num_bytes = num_elements * sizeof(int32_T);
-                target = (char*)mxMalloc(num_bytes);
-                if (!target) {
-                    return 0;
-                }
-                memcpy(target, data, num_bytes);
                 break;
             case aiPTI_Buffer:
-                if (!mxIsUint8(property)) {
-                    return 0;
-                }
                 // fall through to default
             default:
+                target = (char*)get_bytes(matlab_struct, index, field_name, &num_elements);
                 num_bytes = num_elements;
-                target = (char*)mxMalloc(num_bytes);
-                if (!target) {
-                    return 0;
-                }
-                memcpy(target, data, num_bytes);
                 break;
         }
         
         if (num_bytes_out) {
             *num_bytes_out = num_bytes;
         }
+        
         return target;
     }
     
     inline void set_property_data(mxArray* matlab_struct, const unsigned index, const char* field_name, const char* value,  aiPropertyTypeInfo type_code, unsigned num_bytes) {
-        mxArray* property;
-        
         if (!num_bytes) {
             return;
         }
         
+        unsigned num_elements;
         switch (type_code) {
-            case aiPTI_Float: {
-                unsigned num_elements = num_bytes / sizeof(float);
-                property = mxCreateDoubleMatrix(1, num_elements, mxREAL);
-                if (!property) {
-                    break;
-                }
-                double* data = mxGetPr(property);
-                if (!data) {
-                    break;
-                }
-                for (int i=0; i<num_elements; i++) {
-                    data[i] = ((float*)value)[i];
-                }
-                break;
-            }
+            case aiPTI_Float:
+                num_elements = num_bytes / sizeof(float);
+                set_floats(matlab_struct, index, field_name, (float*)value, num_elements);
+                return;
             case aiPTI_String:
-                property = mxCreateString(((aiString*)value)->C_Str());
-                break;
-            case aiPTI_Integer: {
-                unsigned num_elements = num_bytes / sizeof(uint32_T);
-                property = mxCreateNumericMatrix(1, num_elements, mxINT32_CLASS, mxREAL);
-                if (!property) {
-                    break;
-                }
-                double* data = mxGetPr(property);
-                if (!data) {
-                    break;
-                }
-                memcpy(data, value, num_bytes);
-                break;
-            }
+                set_string(matlab_struct, index, field_name, (aiString*)value);
+                return;
+            case aiPTI_Integer:
+                num_elements = num_bytes / sizeof(int32_T);
+                set_ints(matlab_struct, index, field_name, (int32_T*)value, num_elements);
+                return;
             case aiPTI_Buffer:
-            default: {
-                property = mxCreateNumericMatrix(1, num_bytes, mxUINT8_CLASS, mxREAL);
-                if (!property) {
-                    break;
-                }
-                void* data = mxGetData(property);
-                if (!data) {
-                    break;
-                }
-                memcpy(data, value, num_bytes);
-                break;
-            }
-        }
-        
-        if (property) {
-            mxSetField(matlab_struct, index, field_name, property);
+                // fall through to default
+            default:
+                set_bytes(matlab_struct, index, field_name, (char*)value, num_bytes);
+                return;
         }
     }
     
@@ -307,6 +455,9 @@ namespace mexximp {
     
     unsigned to_assimp_meshes(const mxArray* matlab_meshes, aiMesh** assimp_meshes);
     unsigned to_matlab_meshes(const aiMesh* assimp_meshes, mxArray** matlab_meshes, unsigned num_meshes);
+    
+    unsigned to_assimp_faces(const mxArray* matlab_faces, aiFace** assimp_faces);
+    unsigned to_matlab_faces(const aiFace* assimp_faces, mxArray** matlab_faces, unsigned num_faces);
 }
 
 #endif  // MEXXIMP_SCENE_H_

@@ -341,6 +341,9 @@ namespace mexximp {
             (*assimp_meshes)[i].mTextureCoords[5] = get_xyz(matlab_meshes, i, "textureCoordinates5", 0);
             (*assimp_meshes)[i].mTextureCoords[6] = get_xyz(matlab_meshes, i, "textureCoordinates6", 0);
             (*assimp_meshes)[i].mTextureCoords[7] = get_xyz(matlab_meshes, i, "textureCoordinates7", 0);
+            
+            mxArray* matlab_faces = mxGetField(matlab_meshes, i, "faces");
+            (*assimp_meshes)[i].mNumFaces = to_assimp_faces(matlab_faces, &(*assimp_meshes)[i].mFaces);
         }
         
         return num_meshes;
@@ -388,8 +391,61 @@ namespace mexximp {
             set_xyz(*matlab_meshes, i, "textureCoordinates5", assimp_meshes[i].mTextureCoords[5], assimp_meshes[i].mNumVertices);
             set_xyz(*matlab_meshes, i, "textureCoordinates6", assimp_meshes[i].mTextureCoords[6], assimp_meshes[i].mNumVertices);
             set_xyz(*matlab_meshes, i, "textureCoordinates7", assimp_meshes[i].mTextureCoords[7], assimp_meshes[i].mNumVertices);
+            
+            mxArray* matlab_faces;
+            to_matlab_faces(assimp_meshes[i].mFaces, &matlab_faces, assimp_meshes[i].mNumFaces);
+            if (matlab_faces) {
+                mxSetField(*matlab_meshes, i, "faces", matlab_faces);
+            }
         }
         
         return num_meshes;
     }
+    
+    // mesh faces
+    
+    unsigned to_assimp_faces(const mxArray* matlab_faces, aiFace** assimp_faces) {
+        if (!matlab_faces || !assimp_faces || !mxIsStruct(matlab_faces)) {
+            return 0;
+        }
+        
+        unsigned num_faces = mxGetNumberOfElements(matlab_faces);
+        *assimp_faces = (aiFace*)mxCalloc(num_faces, sizeof(aiFace));
+        if (!*assimp_faces) {
+            return 0;
+        }
+        
+        for (unsigned i = 0; i < num_faces; i++) {
+            // ignore the nIndices passed from matlab -- it's just a convenience
+            (*assimp_faces)[i].mIndices = get_indices(matlab_faces, i, "indices", &(*assimp_faces)[i].mNumIndices);
+        }
+        
+        return num_faces;
+    }
+    
+    unsigned to_matlab_faces(const aiFace* assimp_faces, mxArray** matlab_faces, unsigned num_faces) {
+        if (!matlab_faces) {
+            return 0;
+        }
+        
+        if (!assimp_faces || 0 == num_faces) {
+            *matlab_faces = emptyDouble();
+            return 0;
+        }
+        
+        *matlab_faces = mxCreateStructMatrix(
+                1,
+                num_faces,
+                COUNT(face_field_names),
+                &face_field_names[0]);
+        
+        for (unsigned i = 0; i < num_faces; i++) {
+            // pass nIndices explicitly to matlab as a convenience
+            set_scalar(*matlab_faces, i, "nIndices", assimp_faces[i].mNumIndices);
+            set_indices(*matlab_faces, i, "indices", assimp_faces[i].mIndices, assimp_faces[i].mNumIndices);
+        }
+        
+        return num_faces;
+    }
+    
 }

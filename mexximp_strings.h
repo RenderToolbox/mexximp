@@ -86,6 +86,11 @@ namespace mexximp {
         "textureCoordinates7",
     };
     
+    static const char* face_field_names[] = {
+        "nIndices",
+        "indices",
+    };
+    
     // mesh primitive type <-> struct
     
     static const char* mesh_primitive_types[] = {
