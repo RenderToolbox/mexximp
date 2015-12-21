@@ -14,16 +14,36 @@ mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
-
-%% Choose source and library files.
+%% Build a utility for testing mexximp internals.
 source = 'mexximp_test.cc mexximp_util.cc mexximp_scene.cc';
 output = '-output mexximpTest';
 
-
-%% Build the function.
 mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
-%% Test it.
-runtests()
+%% Test mexximp internals.
+runtests('MexximpUtilTests');
+runtests('MexximpSceneTests');
+
+return;
+
+%% Build the importer.
+source = 'mexximp_import.cc mexximp_util.cc mexximp_scene.cc';
+output = '-output mexximpImport';
+
+mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
+fprintf('%s\n', mexCmd);
+eval(mexCmd);
+
+%% Build the exporter.
+source = 'mexximp_export.cc mexximp_util.cc mexximp_scene.cc';
+output = '-output mexximpExport';
+
+mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
+fprintf('%s\n', mexCmd);
+eval(mexCmd);
+
+%% Test the importer and exporter.
+runtests('MexximpImportTests');
+runtests('MexximpExportTests');
