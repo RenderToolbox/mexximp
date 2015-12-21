@@ -13,7 +13,7 @@
 #define MEXXIMP_UTIL_H_
 
 #include <matrix.h>
-
+#include <assimp/scene.h>
 #include <assimp/texture.h>
 #include <assimp/types.h>
 
@@ -27,6 +27,8 @@ namespace mexximp {
         const mwSize dims[2] = {1, 0};
         return mxCreateCharArray(2, &dims[0]);
     }
+    
+    // basic Assimp type conversions
     
     unsigned to_assimp_xyz(const mxArray* matlab_xyz, aiVector3D** assimp_xyz);
     unsigned to_matlab_xyz(const aiVector3D* assimp_xyz, mxArray** matlab_xyz, unsigned num_vectors);
@@ -46,6 +48,45 @@ namespace mexximp {
     unsigned to_assimp_4x4(const mxArray* matlab_4x4, aiMatrix4x4** assimp_4x4);
     unsigned to_matlab_4x4(const aiMatrix4x4* assimp_4x4, mxArray** matlab_4x4, unsigned num_vectors);
     
+    // data to and from Matlab structs
+    
+    float get_scalar(const mxArray* matlab_struct, const unsigned index, const char* field_name, const float default_value);
+    void set_scalar(mxArray* matlab_struct, const unsigned index, const char* field_name, const float value);
+    
+    float* get_floats(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_elements_out);
+    void set_floats(mxArray* matlab_struct, const unsigned index, const char* field_name, const float* floats, unsigned num_elements);    
+    
+    int32_T* get_ints(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_elements_out);
+    void set_ints(mxArray* matlab_struct, const unsigned index, const char* field_name, const int32_T* ints, unsigned num_elements);
+    
+    uint32_T* get_indices(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_elements_out);
+    void set_indices(mxArray* matlab_struct, const unsigned index, const char* field_name, const uint32_T* indices, unsigned num_elements);
+    
+    char* get_bytes(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_elements_out);
+    void set_bytes(mxArray* matlab_struct, const unsigned index, const char* field_name, const char* bytes, unsigned num_elements);
+    
+    aiString* get_string(const mxArray* matlab_struct, const unsigned index, const char* field_name, const char* default_value);
+    void set_string(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiString* value);
+    const char* get_c_string(const mxArray* matlab_struct, const unsigned index, const char* field_name, const char* default_value);
+    void set_c_string(mxArray* matlab_struct, const unsigned index, const char* field_name, const char* value);
+    
+    aiVector3D* get_xyz(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out);
+    void set_xyz(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiVector3D* value, const unsigned num_vectors);
+    
+    aiColor3D* get_rgb(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out);
+    void set_rgb(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiColor3D* value, const unsigned num_vectors);
+    
+    aiColor4D* get_rgba(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out);
+    void set_rgba(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiColor4D* value, const unsigned num_vectors);
+
+    aiTexel* get_texel(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out);
+    void set_texel(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiTexel* value, const unsigned width, const unsigned height);
+    
+    aiMatrix4x4* get_4x4(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out);
+    void set_4x4(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiMatrix4x4* value, const unsigned num_vectors);
+    
+    char* get_property_data(const mxArray* matlab_struct, const unsigned index, const char* field_name, aiPropertyTypeInfo type_code, unsigned* num_bytes_out);
+    void set_property_data(mxArray* matlab_struct, const unsigned index, const char* field_name, const char* value,  aiPropertyTypeInfo type_code, unsigned num_bytes);    
 }
 
 #endif  // MEXXIMP_UTIL_H_

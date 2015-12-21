@@ -2,7 +2,6 @@
 
 #include <mex.h>
 
-#include "mexximp_util.h"
 #include "mexximp_scene.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {

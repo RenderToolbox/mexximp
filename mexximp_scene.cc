@@ -1,7 +1,7 @@
 
 #include "mexximp_scene.h"
 #include "mexximp_util.h"
-#include "mexximp_strings.h"
+#include "mexximp_constants.h"
 
 namespace mexximp {
     
