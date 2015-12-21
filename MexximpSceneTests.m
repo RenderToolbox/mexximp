@@ -149,9 +149,8 @@ classdef MexximpSceneTests < matlab.unittest.TestCase
                 
                 scene.rootNode = MexximpSceneTests.randomNode(s);
                 scene.rootNode.children = [children{:}];
-                scenePrime = testCase.doSceneRoundTrip(scene);
+                testCase.doSceneRoundTrip(scene);
             end
-            disp(scenePrime);
         end
     end
     

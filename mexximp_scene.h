@@ -440,46 +440,31 @@ namespace mexximp {
         }
     }
     
-    // scene "constructor" using Matlab memory allocator
-    inline aiScene* mx_new_scene() {
-        aiScene* assimp_scene = (aiScene*)mxCalloc(1, sizeof(aiScene));
-        if (!assimp_scene) {
-            return 0;
-        }
-        assimp_scene->mAnimations = (aiAnimation**)mxCalloc(1, sizeof(aiAnimation*));
-        assimp_scene->mCameras = (aiCamera**)mxCalloc(1, sizeof(aiCamera*));
-        assimp_scene->mLights = (aiLight**)mxCalloc(1, sizeof(aiLight*));
-        assimp_scene->mMaterials = (aiMaterial**)mxCalloc(1, sizeof(aiMaterial*));
-        assimp_scene->mMeshes = (aiMesh**)mxCalloc(1, sizeof(aiMesh*));
-        assimp_scene->mTextures = (aiTexture**)mxCalloc(1, sizeof(aiTexture*));
-        return assimp_scene;
-    }
-    
     // structs
     
     unsigned to_assimp_scene(const mxArray* matlab_scene, aiScene** assimp_scene);
     unsigned to_matlab_scene(const aiScene* assimp_scene, mxArray** matlab_scene);
     
-    unsigned to_assimp_cameras(const mxArray* matlab_cameras, aiCamera** assimp_cameras);
-    unsigned to_matlab_cameras(const aiCamera* assimp_cameras, mxArray** matlab_cameras, unsigned num_cameras);
+    unsigned to_assimp_cameras(const mxArray* matlab_cameras, aiCamera*** assimp_cameras);
+    unsigned to_matlab_cameras(aiCamera** assimp_cameras, mxArray** matlab_cameras, unsigned num_cameras);
     
-    unsigned to_assimp_lights(const mxArray* matlab_lights, aiLight** assimp_lights);
-    unsigned to_matlab_lights(const aiLight* assimp_lights, mxArray** matlab_lights, unsigned num_lights);
+    unsigned to_assimp_lights(const mxArray* matlab_lights, aiLight*** assimp_lights);
+    unsigned to_matlab_lights(aiLight** assimp_lights, mxArray** matlab_lights, unsigned num_lights);
     
-    unsigned to_assimp_materials(const mxArray* matlab_materials, aiMaterial** assimp_materials);
-    unsigned to_matlab_materials(const aiMaterial* assimp_materials, mxArray** matlab_materials, unsigned num_materials);
+    unsigned to_assimp_materials(const mxArray* matlab_materials, aiMaterial*** assimp_materials);
+    unsigned to_matlab_materials(aiMaterial** assimp_materials, mxArray** matlab_materials, unsigned num_materials);
     
-    unsigned to_assimp_material_properties(const mxArray* matlab_properties, aiMaterialProperty** assimp_properties);
-    unsigned to_matlab_material_properties(const aiMaterialProperty* assimp_properties, mxArray** matlab_properties, unsigned num_properties);
+    unsigned to_assimp_material_properties(const mxArray* matlab_properties, aiMaterialProperty*** assimp_properties);
+    unsigned to_matlab_material_properties(aiMaterialProperty** assimp_properties, mxArray** matlab_properties, unsigned num_properties);
     
-    unsigned to_assimp_meshes(const mxArray* matlab_meshes, aiMesh** assimp_meshes);
-    unsigned to_matlab_meshes(const aiMesh* assimp_meshes, mxArray** matlab_meshes, unsigned num_meshes);
+    unsigned to_assimp_meshes(const mxArray* matlab_meshes, aiMesh*** assimp_meshes);
+    unsigned to_matlab_meshes(aiMesh** assimp_meshes, mxArray** matlab_meshes, unsigned num_meshes);
     
     unsigned to_assimp_faces(const mxArray* matlab_faces, aiFace** assimp_faces);
-    unsigned to_matlab_faces(const aiFace* assimp_faces, mxArray** matlab_faces, unsigned num_faces);
+    unsigned to_matlab_faces(aiFace* assimp_faces, mxArray** matlab_faces, unsigned num_faces);
     
     unsigned to_assimp_nodes(const mxArray* matlab_node, unsigned index, aiNode** assimp_node, aiNode* assimp_parent);
-    unsigned to_matlab_nodes(const aiNode* assimp_node, mxArray** matlab_node, unsigned index);
+    unsigned to_matlab_nodes(aiNode* assimp_node, mxArray** matlab_node, unsigned index);
     
 }
 
