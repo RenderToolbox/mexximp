@@ -152,6 +152,45 @@ classdef MexximpSceneTests < matlab.unittest.TestCase
                 testCase.doSceneRoundTrip(scene);
             end
         end
+        
+        function testCompressedTextureRoundTrip(testCase)
+            scene = testCase.emptyScene;
+            for s = testCase.itemSize
+                
+                images = cell(1, s);
+                formats = cell(1, s);
+                for ii = 1:s
+                    images{ii} = randi(255, 1, s, 'uint8');
+                    formats{ii} = MexximpSceneTests.randomString(3);
+                end
+                
+                embeddedTextures = struct( ...
+                    'image', images, ...
+                    'format', formats);
+                
+                scene.embeddedTextures = embeddedTextures;
+                testCase.doSceneRoundTrip(scene);
+            end
+        end
+        
+        function testRawTextureRoundTrip(testCase)
+            scene = testCase.emptyScene;
+            for s = testCase.itemSize
+                
+                images = cell(1, s);
+                for ii = 1:s
+                    images{ii} = randi(255, 4, 2*s, s, 'uint8');
+                end
+                
+                embeddedTextures = struct( ...
+                    'image', images, ...
+                    'format', '');
+                
+                scene.embeddedTextures = embeddedTextures;
+                testCase.doSceneRoundTrip(scene);
+            end
+        end
+        
     end
     
     methods (Access = private)

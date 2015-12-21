@@ -97,6 +97,11 @@ namespace mexximp {
         "transformation",
         "children",
     };
+
+    static const char* texture_field_names[] = {
+        "image",
+        "format",
+    };
     
     // mesh primitive type <-> struct
     

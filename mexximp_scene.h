@@ -354,6 +354,25 @@ namespace mexximp {
             mxSetField(matlab_struct, index, field_name, rgba);
         }
     }
+
+    // texel to from struct
+    
+    inline aiTexel* get_texel(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out) {
+        aiTexel* target;
+        unsigned num_vectors = to_assimp_texel(mxGetField(matlab_struct, index, field_name), &target);
+        if (num_vectors_out) {
+            *num_vectors_out = num_vectors;
+        }
+        return target;
+    }
+    
+    inline void set_texel(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiTexel* value, const unsigned width, const unsigned height) {
+        mxArray* texel;        
+        to_matlab_texel(value, &texel, width, height);
+        if (texel) {
+            mxSetField(matlab_struct, index, field_name, texel);
+        }
+    }
     
     // 4x4 to from struct
     
@@ -465,7 +484,10 @@ namespace mexximp {
     
     unsigned to_assimp_nodes(const mxArray* matlab_node, unsigned index, aiNode** assimp_node, aiNode* assimp_parent);
     unsigned to_matlab_nodes(aiNode* assimp_node, mxArray** matlab_node, unsigned index);
-    
+
+    unsigned to_assimp_textures(const mxArray* matlab_textures, aiTexture*** assimp_textures);
+    unsigned to_matlab_textures(aiTexture** assimp_textures, mxArray** matlab_textures, unsigned num_textures);
+
 }
 
 #endif  // MEXXIMP_SCENE_H_

@@ -31,7 +31,7 @@ namespace mexximp {
             (*assimp_xyz)[i].y = matlab_data[3 * i + 1];
             (*assimp_xyz)[i].z = matlab_data[3 * i + 2];
         }
-                
+        
         return num_vectors;
     }
     
@@ -238,23 +238,29 @@ namespace mexximp {
         return num_vectors;
     }
     
-    unsigned to_matlab_texel(const aiTexel* assimp_texel, mxArray** matlab_texel, unsigned num_vectors) {
+    unsigned to_matlab_texel(const aiTexel* assimp_texel, mxArray** matlab_texel, unsigned width, unsigned height) {
         if (!matlab_texel) {
             return 0;
         }
         
-        if (!assimp_texel || 0 == num_vectors) {
+        if (!assimp_texel || 0 == width || 0 == height) {
             *matlab_texel = mxCreateNumericMatrix(4, 0, mxUINT8_CLASS, mxREAL);
             return 0;
         }
         
-        *matlab_texel = mxCreateNumericMatrix(4, num_vectors, mxUINT8_CLASS, mxREAL);
+        // dims as row-major for Assimp
+        mwSize dims[3];
+        dims[0] = 4;
+        dims[1] = width;
+        dims[2] = height;
+        *matlab_texel = mxCreateNumericArray(3, dims, mxUINT8_CLASS, mxREAL);
         
         char* matlab_data = (char*)mxGetData(*matlab_texel);
         if (!matlab_data) {
             return 0;
         }
         
+        unsigned num_vectors = width * height;
         for (unsigned i = 0; i < num_vectors; i++) {
             matlab_data[4 * i] = assimp_texel[i].r;
             matlab_data[4 * i + 1] = assimp_texel[i].g;

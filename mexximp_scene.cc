@@ -32,6 +32,9 @@ namespace mexximp {
         mxArray* matlab_node = mxGetField(matlab_scene, 0, "rootNode");
         to_assimp_nodes(matlab_node, 0, &(*assimp_scene)->mRootNode, 0);
         
+        mxArray* matlab_textures = mxGetField(matlab_scene, 0, "embeddedTextures");
+        (*assimp_scene)->mNumTextures = to_assimp_textures(matlab_textures, &(*assimp_scene)->mTextures);
+        
         return 1;
     }
     
@@ -73,6 +76,10 @@ namespace mexximp {
                 &node_field_names[0]);
         to_matlab_nodes(assimp_scene->mRootNode, &matlab_node, 0);
         mxSetField(*matlab_scene, 0, "rootNode", matlab_node);
+        
+        mxArray* matlab_textures;
+        to_matlab_textures(assimp_scene->mTextures, &matlab_textures, assimp_scene->mNumTextures);
+        mxSetField(*matlab_scene, 0, "embeddedTextures", matlab_textures);
         
         return 1;
     }
@@ -547,4 +554,89 @@ namespace mexximp {
         
         return num_descendants;
     }
+    
+    // embedded textures
+    
+    unsigned to_assimp_textures(const mxArray* matlab_textures, aiTexture*** assimp_textures) {
+        if (!matlab_textures || !assimp_textures || !mxIsStruct(matlab_textures)) {
+            return 0;
+        }
+        
+        unsigned num_textures = mxGetNumberOfElements(matlab_textures);
+        *assimp_textures = (aiTexture**)mxCalloc(num_textures, sizeof(aiTexture*));
+        if (!*assimp_textures) {
+            return 0;
+        }
+        
+        for (unsigned i = 0; i < num_textures; i++) {
+            (*assimp_textures)[i] = (aiTexture*)mxCalloc(1, sizeof(aiTexture));
+            
+            mxArray* matlab_texels = mxGetField(matlab_textures, i, "image");
+            if (!mxIsUint8(matlab_texels)) {
+                continue;
+            }
+            
+            unsigned num_dims = mxGetNumberOfDimensions(matlab_texels);
+            const mwSize* dims = mxGetDimensions(matlab_texels);
+            (*assimp_textures)[i]->mHeight = 0;
+            if (4 == dims[0]) {
+                if (2 == num_dims) {
+                    (*assimp_textures)[i]->mWidth = dims[1];
+                    (*assimp_textures)[i]->mHeight = 1;
+                } else if (3 == num_dims) {
+                    (*assimp_textures)[i]->mWidth = dims[1];
+                    (*assimp_textures)[i]->mHeight = dims[2];
+                }
+            }
+            
+            if (0 == (*assimp_textures)[i]->mHeight) {
+                // raw bytes of compressed texture
+                (*assimp_textures)[i]->pcData = (aiTexel*) get_bytes(matlab_textures, i, "image", &(*assimp_textures)[i]->mWidth);
+                
+                // take up to 3 chars of format string, plus null terminator
+                mxArray* matlab_format = mxGetField(matlab_textures, i, "format");
+                mxGetString(matlab_format, (*assimp_textures)[i]->achFormatHint, 4);
+                
+            } else {
+                // rgba8888 texels of uncompressed texture
+                (*assimp_textures)[i]->pcData = get_texel(matlab_textures, i, "image", 0);
+                // let format string remain zeroed
+            }
+        }
+        
+        return num_textures;
+    }
+    
+    unsigned to_matlab_textures(aiTexture** assimp_textures, mxArray** matlab_textures, unsigned num_textures) {
+        if (!matlab_textures) {
+            return 0;
+        }
+        
+        if (!assimp_textures || 0 == num_textures) {
+            *matlab_textures = emptyDouble();
+            return 0;
+        }
+        
+        *matlab_textures = mxCreateStructMatrix(
+                1,
+                num_textures,
+                COUNT(texture_field_names),
+                &texture_field_names[0]);
+        
+        for (unsigned i = 0; i < num_textures; i++) {
+            if (0 == assimp_textures[i]->mHeight) {
+                // raw bytes of compressed texture
+                set_bytes(*matlab_textures, i, "image", (char*)assimp_textures[i]->pcData, assimp_textures[i]->mWidth);
+                set_c_string(*matlab_textures, i, "format", assimp_textures[i]->achFormatHint);
+                
+            } else {
+                // rgba8888 texels of uncompressed texture
+                set_texel(*matlab_textures, i, "image", assimp_textures[i]->pcData, assimp_textures[i]->mWidth, assimp_textures[i]->mHeight);
+                set_c_string(*matlab_textures, i, "format", "");
+            }
+        }
+        
+        return num_textures;
+    }
+    
 }
