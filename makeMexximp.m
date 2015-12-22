@@ -34,7 +34,8 @@ mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
-return ;
+%% Test the importer.
+runtests('MexximpImportTests');
 
 %% Build the exporter.
 source = 'mexximp_export.cc mexximp_util.cc mexximp_scene.cc';
@@ -45,5 +46,4 @@ fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
 %% Test the importer and exporter.
-runtests('MexximpImportTests');
 runtests('MexximpExportTests');

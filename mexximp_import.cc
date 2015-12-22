@@ -1,24 +1,35 @@
 
 #include <mex.h>
 #include <assimp/Importer.hpp>
+#include <assimp/importerdesc.h>
 #include "mexximp_constants.h"
 #include "mexximp_scene.h"
 
 void printUsage() {
-    aiString extensions;
     Assimp::Importer importer;
-    importer.GetExtensionList(extensions);
     
-    mexPrintf("Import a scene file (%s):\n", extensions.C_Str());
-    mexPrintf("  sceneInfo = mexximp(sceneFile, postprocessSteps)\n");
+    mexPrintf("Import a scene file:\n");
+    mexPrintf("  scene = mexximpImport(sceneFile, postprocessSteps)\n");
     mexPrintf("  see mexximpConstants('postprocessStep') for sample postprocessSteps\n");
+    mexPrintf("The following formats are supported:\n");
+
+    unsigned num_formats = importer.GetImporterCount();
+    for (unsigned i=0; i<num_formats; i++) {
+        const aiImporterDesc* format = importer.GetImporterInfo(i);
+        if (!format) {
+            continue;
+        }
+        mexPrintf("  %s (%s): %s\n", format->mName, format->mFileExtensions, format->mComments);
+    }
     mexPrintf("\n");
+
 }
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     if (nrhs < 1 || !mxIsChar(prhs[0])) {
         printUsage();
+        plhs[0] = mexximp::emptyDouble();
         return;
     }
     
