@@ -33,7 +33,7 @@ namespace mexximp {
     unsigned to_assimp_xyz(const mxArray* matlab_xyz, aiVector3D** assimp_xyz);
     unsigned to_matlab_xyz(const aiVector3D* assimp_xyz, mxArray** matlab_xyz, unsigned num_vectors);
     
-    unsigned to_assimp_string(const mxArray* matlab_string, aiString** assimp_string);
+    unsigned to_assimp_string(const mxArray* matlab_string, aiString* assimp_string);
     unsigned to_matlab_string(const aiString* assimp_string, mxArray** matlab_string);
     
     unsigned to_assimp_rgb(const mxArray* matlab_rgb, aiColor3D** assimp_rgb);
@@ -65,7 +65,7 @@ namespace mexximp {
     char* get_bytes(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_elements_out);
     void set_bytes(mxArray* matlab_struct, const unsigned index, const char* field_name, const char* bytes, unsigned num_elements);
     
-    aiString* get_string(const mxArray* matlab_struct, const unsigned index, const char* field_name, const char* default_value);
+    unsigned get_string(const mxArray* matlab_struct, const unsigned index, const char* field_name, aiString* target, const char* default_value);
     void set_string(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiString* value);
     const char* get_c_string(const mxArray* matlab_struct, const unsigned index, const char* field_name, const char* default_value);
     void set_c_string(mxArray* matlab_struct, const unsigned index, const char* field_name, const char* value);

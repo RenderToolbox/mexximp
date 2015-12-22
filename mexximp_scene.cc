@@ -105,7 +105,7 @@ namespace mexximp {
             (*assimp_cameras)[i]->mPosition = get_xyz(matlab_cameras, i, "position", 0)[0];
             (*assimp_cameras)[i]->mLookAt = get_xyz(matlab_cameras, i, "lookAtDirection", 0)[0];
             (*assimp_cameras)[i]->mUp = get_xyz(matlab_cameras, i, "upDirection", 0)[0];
-            (*assimp_cameras)[i]->mName = get_string(matlab_cameras, i, "name", "camera")[0];
+            get_string(matlab_cameras, i, "name", &(*assimp_cameras)[i]->mName, "camera");
             (*assimp_cameras)[i]->mAspect = get_scalar(matlab_cameras, i, "aspectRatio", 1.0);
             (*assimp_cameras)[i]->mClipPlaneNear = get_scalar(matlab_cameras, i, "clipPlaneNear", 0.1);
             (*assimp_cameras)[i]->mClipPlaneFar = get_scalar(matlab_cameras, i, "clipPlaneFar", 1000);
@@ -166,7 +166,7 @@ namespace mexximp {
             (*assimp_lights)[i]->mColorSpecular = get_rgb(matlab_lights, i, "specularColor", 0)[0];
             (*assimp_lights)[i]->mPosition = get_xyz(matlab_lights, i, "position", 0)[0];
             (*assimp_lights)[i]->mDirection = get_xyz(matlab_lights, i, "lookAtDirection", 0)[0];
-            (*assimp_lights)[i]->mName = get_string(matlab_lights, i, "name", "light")[0];
+            get_string(matlab_lights, i, "name", &(*assimp_lights)[i]->mName, "light");
             (*assimp_lights)[i]->mType = light_type_code(get_c_string(matlab_lights, i, "type", "undefined"));
             (*assimp_lights)[i]->mAngleInnerCone = get_scalar(matlab_lights, i, "innerConeAngle", 2*3.14159);
             (*assimp_lights)[i]->mAngleOuterCone = get_scalar(matlab_lights, i, "outerConeAngle", 2*3.14159);
@@ -290,9 +290,7 @@ namespace mexximp {
         for (unsigned i = 0; i < num_properties; i++) {
             (*assimp_properties)[i] = new aiMaterialProperty();
             
-            aiString* key = get_string(matlab_properties, i, "key", "property");
-            key->Set(ugly_key(key->C_Str()));
-            (*assimp_properties)[i]->mKey = key[0];
+            (*assimp_properties)[i]->mKey.Set(ugly_key(get_c_string(matlab_properties, i, "key", "property")));
             (*assimp_properties)[i]->mIndex = get_scalar(matlab_properties, i, "textureIndex", 0);
             (*assimp_properties)[i]->mSemantic = texture_type_code(get_c_string(matlab_properties, i, "textureSemantic", "unknown"));
             
@@ -352,7 +350,7 @@ namespace mexximp {
         for (unsigned i = 0; i < num_meshes; i++) {
             (*assimp_meshes)[i] = new aiMesh();
             
-            (*assimp_meshes)[i]->mName = get_string(matlab_meshes, i, "name", "mesh")[0];
+            get_string(matlab_meshes, i, "name", &(*assimp_meshes)[i]->mName, "mesh");
             (*assimp_meshes)[i]->mMaterialIndex = get_scalar(matlab_meshes, i, "materialIndex", 0);
             (*assimp_meshes)[i]->mVertices = get_xyz(matlab_meshes, i, "vertices", &(*assimp_meshes)[i]->mNumVertices);
             (*assimp_meshes)[i]->mBitangents = get_xyz(matlab_meshes, i, "bitangents", 0);
@@ -497,7 +495,7 @@ namespace mexximp {
         }
         
         (*assimp_node)->mParent = assimp_parent;
-        (*assimp_node)->mName = get_string(matlab_node, index, "name", "node")[0];
+        get_string(matlab_node, index, "name", &(*assimp_node)->mName, "node");
         (*assimp_node)->mTransformation = get_4x4(matlab_node, index, "transformation", 0)[0];
         (*assimp_node)->mMeshes = get_indices(matlab_node, index, "meshIndices", &(*assimp_node)->mNumMeshes);
         

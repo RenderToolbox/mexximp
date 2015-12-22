@@ -23,10 +23,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         delete [] assimp_xyz;
         
     } else if(0 == strcmp("string", whichTest)) {
-        aiString* assimp_string;
+        aiString assimp_string;
         mexximp::to_assimp_string(prhs[1], &assimp_string);
-        mexximp::to_matlab_string(assimp_string, &plhs[0]);
-        delete assimp_string;
+        mexximp::to_matlab_string(&assimp_string, &plhs[0]);
         
     } else if(0 == strcmp("rgb", whichTest)) {
         aiColor3D* assimp_rgb;

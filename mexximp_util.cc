@@ -68,25 +68,16 @@ namespace mexximp {
     
     // string
     
-    unsigned to_assimp_string(const mxArray* matlab_string, aiString** assimp_string) {
+    unsigned to_assimp_string(const mxArray* matlab_string, aiString* assimp_string) {
         if (!matlab_string || !assimp_string || !mxIsChar(matlab_string)) {
             return 0;
         }
-        
         char* matlab_data = mxArrayToString(matlab_string);
         if (!matlab_data) {
-            *assimp_string = 0;
             return 0;
         }
-        
-        *assimp_string = new aiString();
-        if (!*assimp_string) {
-            return 0;
-        }
-        
-        (*assimp_string)->Set(matlab_data);
-        
-        return (*assimp_string)->length;
+        assimp_string->Set(matlab_data);
+        return assimp_string->length;
     }
     
     unsigned to_matlab_string(const aiString* assimp_string, mxArray** matlab_string) {
@@ -611,14 +602,12 @@ namespace mexximp {
     
     // string to from struct
     
-    aiString* get_string(const mxArray* matlab_struct, const unsigned index, const char* field_name, const char* default_value) {
-        aiString* string;
-        to_assimp_string(mxGetField(matlab_struct, index, field_name), &string);
-        if (!string) {
-            string = new aiString();
-            string->Set(default_value);
+    unsigned get_string(const mxArray* matlab_struct, const unsigned index, const char* field_name, aiString* target, const char* default_value) {
+        unsigned length = to_assimp_string(mxGetField(matlab_struct, index, field_name), target);
+        if (!length) {
+            target->Set(default_value);
         }
-        return string;
+        return target->length;
     }
     
     void set_string(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiString* value) {
@@ -700,7 +689,7 @@ namespace mexximp {
             mxSetField(matlab_struct, index, field_name, rgba);
         }
     }
-
+    
     // texel to from struct
     
     aiTexel* get_texel(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out) {
@@ -713,7 +702,7 @@ namespace mexximp {
     }
     
     void set_texel(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiTexel* value, const unsigned width, const unsigned height) {
-        mxArray* texel;        
+        mxArray* texel;
         to_matlab_texel(value, &texel, width, height);
         if (texel) {
             mxSetField(matlab_struct, index, field_name, texel);
@@ -756,7 +745,10 @@ namespace mexximp {
                 num_bytes = num_elements * sizeof(float);
                 break;
             case aiPTI_String: {
-                target = (char*)get_string(matlab_struct, index, field_name, "");
+                // expect a material property to delete this eventually
+                aiString* string = new aiString();
+                target = (char*) string;                
+                get_string(matlab_struct, index, field_name, string, "");
                 num_bytes = sizeof(aiString);
                 break;
             }
