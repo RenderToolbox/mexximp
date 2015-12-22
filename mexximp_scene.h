@@ -1,10 +1,10 @@
 /** Convert Assimp <-> Matlab 3D scenes.
  *
- *  These functions are alllowed to allocate Matlab Heap memory themselves
- *  using functions like mxCreateDoubleMatrix() and mxCalloc().  Assimp
- *  might read this memory while exporting scene files.  Matlab will
- *  automatically free this memory after Assimp finishes and control
- *  returns to the Matlab prompt.
+ *  These functions are alllowed to allocate heap memory themselves
+ *  using new and new [].  Assimp might read this memory while exporting 
+ *  scene files.  Assimp recursively calls delete and delete [] for 
+ *  these allocations when the top-level scene is destroyed.  So just make
+ *  sure the top-level scene gets destroyed!
  *
  *  2015 benjamin.heasly@gmail.com
  */
@@ -19,7 +19,7 @@ namespace mexximp {
     
     // aiScene to and from Matlab structs
     
-    unsigned to_assimp_scene(const mxArray* matlab_scene, aiScene** assimp_scene);
+    unsigned to_assimp_scene(const mxArray* matlab_scene, aiScene* assimp_scene);
     unsigned to_matlab_scene(const aiScene* assimp_scene, mxArray** matlab_scene);
     
     unsigned to_assimp_cameras(const mxArray* matlab_cameras, aiCamera*** assimp_cameras);

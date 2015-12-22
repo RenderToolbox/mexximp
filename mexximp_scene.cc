@@ -3,37 +3,39 @@
 #include "mexximp_util.h"
 #include "mexximp_constants.h"
 
+#include <mex.h>
+
 namespace mexximp {
     
     // scene (top-level)
     
-    unsigned to_assimp_scene(const mxArray* matlab_scene, aiScene** assimp_scene) {
+    // caller must pass in a newed aiScene
+    unsigned to_assimp_scene(const mxArray* matlab_scene, aiScene* assimp_scene) {
         if (!matlab_scene || !assimp_scene || !mxIsStruct(matlab_scene)) {
             return 0;
         }
         
-        *assimp_scene = (aiScene*)mxCalloc(1, sizeof(aiScene));
-        if (!*assimp_scene) {
+        if (!assimp_scene) {
             return 0;
         }
         
         mxArray* matlab_cameras = mxGetField(matlab_scene, 0, "cameras");
-        (*assimp_scene)->mNumCameras = to_assimp_cameras(matlab_cameras, &(*assimp_scene)->mCameras);
+        assimp_scene->mNumCameras = to_assimp_cameras(matlab_cameras, &assimp_scene->mCameras);
         
         mxArray* matlab_lights = mxGetField(matlab_scene, 0, "lights");
-        (*assimp_scene)->mNumLights = to_assimp_lights(matlab_lights, &(*assimp_scene)->mLights);
+        assimp_scene->mNumLights = to_assimp_lights(matlab_lights, &assimp_scene->mLights);
         
         mxArray* matlab_materials = mxGetField(matlab_scene, 0, "materials");
-        (*assimp_scene)->mNumMaterials = to_assimp_materials(matlab_materials, &(*assimp_scene)->mMaterials);
+        assimp_scene->mNumMaterials = to_assimp_materials(matlab_materials, &assimp_scene->mMaterials);
         
         mxArray* matlab_meshes = mxGetField(matlab_scene, 0, "meshes");
-        (*assimp_scene)->mNumMeshes = to_assimp_meshes(matlab_meshes, &(*assimp_scene)->mMeshes);
+        assimp_scene->mNumMeshes = to_assimp_meshes(matlab_meshes, &assimp_scene->mMeshes);
         
         mxArray* matlab_node = mxGetField(matlab_scene, 0, "rootNode");
-        to_assimp_nodes(matlab_node, 0, &(*assimp_scene)->mRootNode, 0);
+        to_assimp_nodes(matlab_node, 0, &assimp_scene->mRootNode, 0);
         
         mxArray* matlab_textures = mxGetField(matlab_scene, 0, "embeddedTextures");
-        (*assimp_scene)->mNumTextures = to_assimp_textures(matlab_textures, &(*assimp_scene)->mTextures);
+        assimp_scene->mNumTextures = to_assimp_textures(matlab_textures, &assimp_scene->mTextures);
         
         return 1;
     }
@@ -92,13 +94,13 @@ namespace mexximp {
         }
         
         unsigned num_cameras = mxGetNumberOfElements(matlab_cameras);
-        *assimp_cameras = (aiCamera**)mxCalloc(num_cameras, sizeof(aiCamera*));
+        *assimp_cameras = new aiCamera*[num_cameras];
         if (!*assimp_cameras) {
             return 0;
         }
         
         for (unsigned i = 0; i < num_cameras; i++) {
-            (*assimp_cameras)[i] = (aiCamera*)mxCalloc(1, sizeof(aiCamera));
+            (*assimp_cameras)[i] = new aiCamera();
             
             (*assimp_cameras)[i]->mPosition = get_xyz(matlab_cameras, i, "position", 0)[0];
             (*assimp_cameras)[i]->mLookAt = get_xyz(matlab_cameras, i, "lookAtDirection", 0)[0];
@@ -151,13 +153,13 @@ namespace mexximp {
         }
         
         unsigned num_lights = mxGetNumberOfElements(matlab_lights);
-        *assimp_lights = (aiLight**)mxCalloc(num_lights, sizeof(aiLight*));
+        *assimp_lights = new aiLight*[num_lights];
         if (!*assimp_lights) {
             return 0;
         }
         
         for (unsigned i = 0; i < num_lights; i++) {
-            (*assimp_lights)[i] = (aiLight*)mxCalloc(1, sizeof(aiLight));
+            (*assimp_lights)[i] = new aiLight();
             
             (*assimp_lights)[i]->mColorAmbient = get_rgb(matlab_lights, i, "ambientColor", 0)[0];
             (*assimp_lights)[i]->mColorDiffuse = get_rgb(matlab_lights, i, "diffuseColor", 0)[0];
@@ -218,13 +220,13 @@ namespace mexximp {
         }
         
         unsigned num_materials = mxGetNumberOfElements(matlab_materials);
-        *assimp_materials = (aiMaterial**)mxCalloc(num_materials, sizeof(aiMaterial*));
+        *assimp_materials = new aiMaterial*[num_materials];
         if (!*assimp_materials) {
             return 0;
         }
         
         for (unsigned i = 0; i < num_materials; i++) {
-            (*assimp_materials)[i] = (aiMaterial*)mxCalloc(1, sizeof(aiMaterial));
+            (*assimp_materials)[i] = new aiMaterial();
             
             mxArray* matlab_properties = mxGetField(matlab_materials, i, "properties");
             (*assimp_materials)[i]->mNumProperties = to_assimp_material_properties(
@@ -272,13 +274,13 @@ namespace mexximp {
         }
         
         unsigned num_properties = mxGetNumberOfElements(matlab_properties);
-        *assimp_properties = (aiMaterialProperty**)mxCalloc(num_properties, sizeof(aiMaterialProperty*));
+        *assimp_properties = new aiMaterialProperty*[num_properties];
         if (!*assimp_properties) {
             return 0;
         }
         
         for (unsigned i = 0; i < num_properties; i++) {
-            (*assimp_properties)[i] = (aiMaterialProperty*)mxCalloc(1, sizeof(aiMaterialProperty));
+            (*assimp_properties)[i] = new aiMaterialProperty();
             
             aiString* key = get_string(matlab_properties, i, "key", "property");
             key->Set(ugly_key(key->C_Str()));
@@ -334,13 +336,13 @@ namespace mexximp {
         }
         
         unsigned num_meshes = mxGetNumberOfElements(matlab_meshes);
-        *assimp_meshes = (aiMesh**)mxCalloc(num_meshes, sizeof(aiMesh*));
+        *assimp_meshes = new aiMesh*[num_meshes];
         if (!*assimp_meshes) {
             return 0;
         }
         
         for (unsigned i = 0; i < num_meshes; i++) {
-            (*assimp_meshes)[i] = (aiMesh*)mxCalloc(1, sizeof(aiMesh));
+            (*assimp_meshes)[i] = new aiMesh();
             
             (*assimp_meshes)[i]->mName = get_string(matlab_meshes, i, "name", "mesh")[0];
             (*assimp_meshes)[i]->mMaterialIndex = get_scalar(matlab_meshes, i, "materialIndex", 0);
@@ -436,7 +438,7 @@ namespace mexximp {
         }
         
         unsigned num_faces = mxGetNumberOfElements(matlab_faces);
-        *assimp_faces = (aiFace*)mxCalloc(num_faces, sizeof(aiFace));
+        *assimp_faces = new aiFace[num_faces];
         if (!*assimp_faces) {
             return 0;
         }
@@ -481,7 +483,7 @@ namespace mexximp {
             return 0;
         }
         
-        *assimp_node = (aiNode*)mxCalloc(1, sizeof(aiNode));
+        *assimp_node = new aiNode();
         if (!*assimp_node) {
             return 0;
         }
@@ -503,7 +505,7 @@ namespace mexximp {
         }
         
         // child array
-        aiNode** child_array = (aiNode**)mxCalloc(num_children, sizeof(aiNode*));
+        aiNode** child_array = new aiNode*[num_children];
         if (!child_array) {
             return 0;
         }
@@ -563,13 +565,13 @@ namespace mexximp {
         }
         
         unsigned num_textures = mxGetNumberOfElements(matlab_textures);
-        *assimp_textures = (aiTexture**)mxCalloc(num_textures, sizeof(aiTexture*));
+        *assimp_textures = new aiTexture*[num_textures];
         if (!*assimp_textures) {
             return 0;
         }
         
         for (unsigned i = 0; i < num_textures; i++) {
-            (*assimp_textures)[i] = (aiTexture*)mxCalloc(1, sizeof(aiTexture));
+            (*assimp_textures)[i] = new aiTexture();
             
             mxArray* matlab_texels = mxGetField(matlab_textures, i, "image");
             if (!mxIsUint8(matlab_texels)) {

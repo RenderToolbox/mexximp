@@ -1,4 +1,4 @@
-
+// Utility functions for converting Assimp types and structures to Matlab.
 
 #include "mexximp_util.h"
 
@@ -26,9 +26,8 @@ namespace mexximp {
         }
         
         unsigned num_vectors = mxGetNumberOfElements(matlab_xyz) / 3;
-        *assimp_xyz = (aiVector3D*)mxCalloc(num_vectors, sizeof(aiVector3D));
+        *assimp_xyz = new aiVector3D[num_vectors];
         if (!*assimp_xyz) {
-            *assimp_xyz = 0;
             return 0;
         }
         
@@ -80,7 +79,7 @@ namespace mexximp {
             return 0;
         }
         
-        *assimp_string = (aiString*)mxCalloc(1, sizeof(aiString));
+        *assimp_string = new aiString();
         if (!*assimp_string) {
             return 0;
         }
@@ -119,7 +118,7 @@ namespace mexximp {
         }
         
         unsigned num_vectors = mxGetNumberOfElements(matlab_rgb) / 3;
-        *assimp_rgb = (aiColor3D*)mxCalloc(num_vectors, sizeof(aiColor3D));
+        *assimp_rgb = new aiColor3D[num_vectors];
         if (!*assimp_rgb) {
             return 0;
         }
@@ -173,7 +172,7 @@ namespace mexximp {
         }
         
         unsigned num_vectors = mxGetNumberOfElements(matlab_rgba) / 4;
-        *assimp_rgba = (aiColor4D*)mxCalloc(num_vectors, sizeof(aiColor4D));
+        *assimp_rgba = new aiColor4D[num_vectors];
         if (!*assimp_rgba) {
             return 0;
         }
@@ -229,7 +228,7 @@ namespace mexximp {
         }
         
         unsigned num_vectors = mxGetNumberOfElements(matlab_texel) / 4;
-        *assimp_texel = (aiTexel*)mxCalloc(num_vectors, sizeof(aiTexel));
+        *assimp_texel = new aiTexel[num_vectors];
         if (!*assimp_texel) {
             return 0;
         }
@@ -291,7 +290,7 @@ namespace mexximp {
         }
         
         unsigned num_matrices = mxGetNumberOfElements(matlab_4x4) / 16;
-        *assimp_4x4 = (aiMatrix4x4*)mxCalloc(num_matrices, sizeof(aiMatrix4x4));
+        *assimp_4x4 = new aiMatrix4x4[num_matrices];
         if (!*assimp_4x4) {
             return 0;
         }
@@ -408,7 +407,7 @@ namespace mexximp {
         
         unsigned num_elements = mxGetNumberOfElements(field);
         unsigned num_bytes = num_elements * sizeof(float);
-        float* target = (float*)mxMalloc(num_bytes);
+        float* target = new float[num_elements];
         if (!target) {
             return 0;
         }
@@ -466,7 +465,7 @@ namespace mexximp {
         
         unsigned num_elements = mxGetNumberOfElements(field);
         unsigned num_bytes = num_elements * sizeof(int32_T);
-        int32_T* target = (int32_T*)mxMalloc(num_bytes);
+        int32_T* target = new int32_T[num_elements];
         if (!target) {
             return 0;
         }
@@ -521,7 +520,7 @@ namespace mexximp {
         
         unsigned num_elements = mxGetNumberOfElements(field);
         unsigned num_bytes = num_elements * sizeof(uint32_T);
-        uint32_T* target = (uint32_T*)mxMalloc(num_bytes);
+        uint32_T* target = new uint32_T[num_bytes];
         if (!target) {
             return 0;
         }
@@ -575,7 +574,7 @@ namespace mexximp {
         }
         
         unsigned num_bytes = mxGetNumberOfElements(field);
-        char* target = (char*)mxMalloc(num_bytes);
+        char* target = new char[num_bytes];
         if (!target) {
             return 0;
         }
@@ -616,7 +615,7 @@ namespace mexximp {
         aiString* string;
         to_assimp_string(mxGetField(matlab_struct, index, field_name), &string);
         if (!string) {
-            string = (aiString*)mxCalloc(1, sizeof(aiString));
+            string = new aiString();
             string->Set(default_value);
         }
         return string;

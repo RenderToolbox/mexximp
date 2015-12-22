@@ -31,13 +31,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         return;
     }
     
-    int postprocessFlags = 0;
+    unsigned postprocessFlags = 0;
     if (3 < nrhs && mxIsStruct(prhs[3])) {
         postprocessFlags = mexximp::postprocess_step_codes(prhs[3]);
     }
 
-    aiScene* scene;
-    mexximp::to_assimp_scene(plhs[0], &scene);
+    aiScene* scene = new aiScene();
+    mexximp::to_assimp_scene(prhs[0], scene);
     if (!scene) {
         mexPrintf("Could not convert scene to Assimp format.\n");
         mexPrintf("\n");
@@ -52,6 +52,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     char* sceneFile = mxArrayToString(prhs[2]);
     const std::string& pFile(sceneFile);
     mxFree(sceneFile);
+    
+    mexPrintf("I am exporting as %s to %s and %d\n", pFormat.c_str(), pFile.c_str(), scene->mNumMeshes);
     
     Assimp::Exporter exporter;
     aiReturn status = exporter.Export(scene, pFormat, pFile, postprocessFlags);
