@@ -228,6 +228,10 @@ namespace mexximp {
         for (unsigned i = 0; i < num_materials; i++) {
             (*assimp_materials)[i] = new aiMaterial();
             
+            // get 5 properties by default, we will allocate our own below
+            (*assimp_materials)[i]->Clear();
+            delete[] (*assimp_materials)[i]->mProperties;
+            
             mxArray* matlab_properties = mxGetField(matlab_materials, i, "properties");
             (*assimp_materials)[i]->mNumProperties = to_assimp_material_properties(
                     matlab_properties,
@@ -274,6 +278,10 @@ namespace mexximp {
         }
         
         unsigned num_properties = mxGetNumberOfElements(matlab_properties);
+        if (!num_properties) {
+            return 0;
+        }
+        
         *assimp_properties = new aiMaterialProperty*[num_properties];
         if (!*assimp_properties) {
             return 0;
@@ -488,10 +496,10 @@ namespace mexximp {
             return 0;
         }
         
-        (*assimp_node)[0].mParent = assimp_parent;
-        (*assimp_node)[0].mName = get_string(matlab_node, index, "name", "node")[0];
-        (*assimp_node)[0].mTransformation = get_4x4(matlab_node, index, "transformation", 0)[0];
-        (*assimp_node)[0].mMeshes = get_indices(matlab_node, index, "meshIndices", &(*assimp_node)[0].mNumMeshes);
+        (*assimp_node)->mParent = assimp_parent;
+        (*assimp_node)->mName = get_string(matlab_node, index, "name", "node")[0];
+        (*assimp_node)->mTransformation = get_4x4(matlab_node, index, "transformation", 0)[0];
+        (*assimp_node)->mMeshes = get_indices(matlab_node, index, "meshIndices", &(*assimp_node)->mNumMeshes);
         
         mxArray* matlab_children = mxGetField(matlab_node, index, "children");
         if (!matlab_children) {
@@ -499,7 +507,7 @@ namespace mexximp {
         }
         
         unsigned num_children = mxGetNumberOfElements(matlab_children);
-        (*assimp_node)[0].mNumChildren = num_children;
+        (*assimp_node)->mNumChildren = num_children;
         if (!num_children) {
             return 0;
         }
@@ -509,7 +517,7 @@ namespace mexximp {
         if (!child_array) {
             return 0;
         }
-        (*assimp_node)[0].mChildren = child_array;
+        (*assimp_node)->mChildren = child_array;
         
         unsigned num_descendants = num_children;
         for (int i = 0; i<num_children; i++) {

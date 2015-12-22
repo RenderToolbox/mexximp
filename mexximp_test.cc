@@ -53,9 +53,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         delete [] assimp_4x4;
         
     } else if(0 == strcmp("scene", whichTest)) {
-        aiScene* assimp_scene = new aiScene();
-        mexximp::to_assimp_scene(prhs[1], assimp_scene);
-        mexximp::to_matlab_scene(assimp_scene, &plhs[0]);
-        delete assimp_scene;
+        aiScene assimp_scene;
+        mexximp::to_assimp_scene(prhs[1], &assimp_scene);
+        mexximp::to_matlab_scene(&assimp_scene, &plhs[0]);
     }
 }
