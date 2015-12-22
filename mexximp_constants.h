@@ -7,6 +7,7 @@
 #define MEXXIMP_CONSTANTS_H_
 
 #include <assimp/scene.h>
+#include <assimp/postprocess.h>
 #include "mexximp_util.h"
 
 #define COUNT(x) ((sizeof x) / (sizeof x[0]))
@@ -158,56 +159,156 @@ namespace mexximp {
                 declared);
     }
     
+    // postprocessor flags and presets to and from struct
+    
+    static const char* prosprocess_step_strings[] = {
+        "calculateTangentSpace",
+        "joinIdenticalVertices",
+        "makeLeftHanded",
+        "triangulate",
+        "removeComponent",
+        "generateNormals",
+        "generateSmoothNormals",
+        "splitLargeMeshes",
+        "pretransformVertices",
+        "limitBoneWeights",
+        "validateDataStructure",
+        "improveCacheLocality",
+        "removeRedundantMaterials",
+        "fixInfacingNormals",
+        "sortByPtype",
+        "findDegenerates",
+        "findInvalidData",
+        "generateUVCoordinates",
+        "transformUVCoordinates",
+        "findInstances",
+        "optimizeMeshes",
+        "optimizeGraph",
+        "flipUVs",
+        "flipWindingOrder",
+        "splitByBoneCount",
+        "debone",
+        "convertToLeftHanded",
+        "targetRealtimeFast",
+        "targetRealtimeQuality",
+        "targetRealtimeMaxQuality",
+    };
+    
+    static const int prosprocess_step_values[] = {
+        aiProcess_CalcTangentSpace,
+        aiProcess_JoinIdenticalVertices,
+        aiProcess_MakeLeftHanded,
+        aiProcess_Triangulate,
+        aiProcess_RemoveComponent,
+        aiProcess_GenNormals,
+        aiProcess_GenSmoothNormals,
+        aiProcess_SplitLargeMeshes,
+        aiProcess_PreTransformVertices,
+        aiProcess_LimitBoneWeights,
+        aiProcess_ValidateDataStructure,
+        aiProcess_ImproveCacheLocality,
+        aiProcess_RemoveRedundantMaterials,
+        aiProcess_FixInfacingNormals,
+        aiProcess_SortByPType,
+        aiProcess_FindDegenerates,
+        aiProcess_FindInvalidData,
+        aiProcess_GenUVCoords,
+        aiProcess_TransformUVCoords,
+        aiProcess_FindInstances,
+        aiProcess_OptimizeMeshes,
+        aiProcess_OptimizeGraph,
+        aiProcess_FlipUVs,
+        aiProcess_FlipWindingOrder,
+        aiProcess_SplitByBoneCount,
+        aiProcess_Debone,
+        aiProcess_ConvertToLeftHanded,
+        aiProcessPreset_TargetRealtime_Fast,
+        aiProcessPreset_TargetRealtime_Quality,
+        aiProcessPreset_TargetRealtime_MaxQuality,
+    };
+    
+    inline mxArray* postprocess_step_struct(int codes) {
+        mxArray* steps = create_blank_struct(prosprocess_step_strings, COUNT(prosprocess_step_strings));
+        if (!steps) {
+            return 0;
+        }
+        
+        for (unsigned i=0; i<COUNT(prosprocess_step_strings); i++) {
+            const char* string = prosprocess_step_strings[i];
+            int code = prosprocess_step_values[i];
+            mxSetField(steps, 0, string, mxCreateLogicalScalar(codes & code));
+        }
+        
+        return steps;
+    }
+    
+    inline int postprocess_step_codes(const mxArray* steps) {
+        if (!steps) {
+            return 0;
+        }
+        
+        int codes = 0;
+        
+        for (unsigned i=0; i<COUNT(prosprocess_step_strings); i++) {
+            const char* string = prosprocess_step_strings[i];
+            int code = prosprocess_step_values[i];
+            
+            mxArray* step = mxGetField(steps, 0, string);
+            if (step && mxIsLogicalScalarTrue(step)) {
+                codes |= code;
+            }
+        }
+        
+        return codes;
+    }
+    
     // mesh primitive type <-> struct
     
-    static const char* mesh_primitive_types[] = {
+    static const char* mesh_primitive_strings[] = {
         "point",
         "line",
         "triangle",
         "polygon",
     };
     
-    inline mxArray* mesh_primitive_struct(unsigned codes) {
-        mxArray* primitives = mxCreateStructMatrix(
-                1,
-                1,
-                COUNT(mesh_primitive_types),
-                &mesh_primitive_types[0]);
+    static const aiPrimitiveType mesh_primitive_values[] = {
+        aiPrimitiveType_POINT,
+        aiPrimitiveType_LINE,
+        aiPrimitiveType_TRIANGLE,
+        aiPrimitiveType_POLYGON,
+    };
+    
+    inline mxArray* mesh_primitive_struct(int codes) {
+        mxArray* primitives = create_blank_struct(mesh_primitive_strings, COUNT(mesh_primitive_strings));
         if (!primitives) {
             return 0;
         }
-        mxSetField(primitives, 0, "point", mxCreateLogicalScalar(codes & aiPrimitiveType_POINT));
-        mxSetField(primitives, 0, "line", mxCreateLogicalScalar(codes & aiPrimitiveType_LINE));
-        mxSetField(primitives, 0, "triangle", mxCreateLogicalScalar(codes & aiPrimitiveType_TRIANGLE));
-        mxSetField(primitives, 0, "polygon", mxCreateLogicalScalar(codes & aiPrimitiveType_POLYGON));
+        
+        for (unsigned i=0; i<COUNT(mesh_primitive_strings); i++) {
+            const char* string = mesh_primitive_strings[i];
+            aiPrimitiveType code = mesh_primitive_values[i];
+            mxSetField(primitives, 0, string, mxCreateLogicalScalar(codes & code));
+        }
+        
         return primitives;
     }
     
-    inline unsigned mesh_primitive_codes(const mxArray* primitives) {
+    inline int mesh_primitive_codes(mxArray* primitives) {
         if (!primitives) {
             return 0;
         }
         
-        unsigned codes = 0;
+        int codes = 0;
         
-        mxArray* point = mxGetField(primitives, 0, "point");
-        if (point && mxIsLogicalScalarTrue(point)) {
-            codes |= aiPrimitiveType_POINT;
-        }
-        
-        mxArray* line = mxGetField(primitives, 0, "line");
-        if (line && mxIsLogicalScalarTrue(line)) {
-            codes |= aiPrimitiveType_LINE;
-        }
-        
-        mxArray* triangle = mxGetField(primitives, 0, "triangle");
-        if (triangle && mxIsLogicalScalarTrue(triangle)) {
-            codes |= aiPrimitiveType_TRIANGLE;
-        }
-        
-        mxArray* polygon = mxGetField(primitives, 0, "polygon");
-        if (polygon && mxIsLogicalScalarTrue(polygon)) {
-            codes |= aiPrimitiveType_POLYGON;
+        for (unsigned i=0; i<COUNT(mesh_primitive_strings); i++) {
+            const char* string = mesh_primitive_strings[i];
+            aiPrimitiveType code = mesh_primitive_values[i];
+            mxSetField(primitives, 0, string, mxCreateLogicalScalar(codes & code));
+            
+            mxArray* primitive = mxGetField(primitives, 0, string);
+            if (primitive && mxIsLogicalScalarTrue(primitive)) {
+                codes |= code;
+            }
         }
         
         return codes;

@@ -45,5 +45,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         plhs[0] = mexximp::create_string_cell(mexximp::texture_type_strings, COUNT(mexximp::texture_type_strings));
     } else if(0 == strcmp("materialPropertyKey", whichConstant)) {
         plhs[0] = mexximp::create_string_cell(mexximp::nice_key_strings, COUNT(mexximp::nice_key_strings));
+    } else if(0 == strcmp("postprocessStep", whichConstant)) {
+        plhs[0] = mexximp::postprocess_step_struct(0);
     }
 }
