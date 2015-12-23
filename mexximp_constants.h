@@ -303,7 +303,6 @@ namespace mexximp {
         for (unsigned i=0; i<COUNT(mesh_primitive_strings); i++) {
             const char* string = mesh_primitive_strings[i];
             aiPrimitiveType code = mesh_primitive_values[i];
-            mxSetField(primitives, 0, string, mxCreateLogicalScalar(codes & code));
             
             mxArray* primitive = mxGetField(primitives, 0, string);
             if (primitive && mxIsLogicalScalarTrue(primitive)) {
