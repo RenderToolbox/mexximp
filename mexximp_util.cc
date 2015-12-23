@@ -644,6 +644,17 @@ namespace mexximp {
         return target;
     }
     
+    void get_xyz_in_place(const mxArray* matlab_struct, const unsigned index, const char* field_name, aiVector3D* target) {
+        aiVector3D* temp;
+        unsigned num_vectors = to_assimp_xyz(mxGetField(matlab_struct, index, field_name), &temp);
+        if (temp) {
+            target->x = temp->x;
+            target->y = temp->y;
+            target->z = temp->z;
+            delete [] temp;
+        }
+    }
+    
     void set_xyz(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiVector3D* value, const unsigned num_vectors) {
         mxArray* xyz;
         to_matlab_xyz(value, &xyz, num_vectors);
@@ -661,6 +672,17 @@ namespace mexximp {
             *num_vectors_out = num_vectors;
         }
         return target;
+    }
+    
+    void get_rgb_in_place(const mxArray* matlab_struct, const unsigned index, const char* field_name, aiColor3D* target) {
+        aiColor3D* temp;
+        unsigned num_vectors = to_assimp_rgb(mxGetField(matlab_struct, index, field_name), &temp);
+        if (temp) {
+            target->r = temp->r;
+            target->g = temp->g;
+            target->b = temp->b;
+            delete [] temp;
+        }
     }
     
     void set_rgb(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiColor3D* value, const unsigned num_vectors) {
@@ -720,6 +742,34 @@ namespace mexximp {
         return target;
     }
     
+    void get_4x4_in_place(const mxArray* matlab_struct, const unsigned index, const char* field_name, aiMatrix4x4* target) {
+        aiMatrix4x4* temp;
+        unsigned num_vectors = to_assimp_4x4(mxGetField(matlab_struct, index, field_name), &temp);
+        if (temp) {
+            target->a1 = temp->a1;
+            target->a2 = temp->a2;
+            target->a3 = temp->a3;
+            target->a4 = temp->a4;
+
+            target->b1 = temp->b1;
+            target->b2 = temp->b2;
+            target->b3 = temp->b3;
+            target->b4 = temp->b4;
+            
+            target->c1 = temp->c1;
+            target->c2 = temp->c2;
+            target->c3 = temp->c3;
+            target->c4 = temp->c4;
+            
+            target->d1 = temp->d1;
+            target->d2 = temp->d2;
+            target->d3 = temp->d3;
+            target->d4 = temp->d4;
+            
+            delete [] temp;
+        }
+    }
+    
     void set_4x4(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiMatrix4x4* value, const unsigned num_vectors) {
         mxArray* matlab_4x4;
         to_matlab_4x4(value, &matlab_4x4, num_vectors);
@@ -736,32 +786,47 @@ namespace mexximp {
             *num_bytes_out = 0;
         }
         
+        // get data and copy to a char array.
+        // must use new char[] so that Assimp knows how to free it later.
         unsigned num_elements;
         unsigned num_bytes;
         char* target;
         switch (type_code) {
-            case aiPTI_Float:
-                target = (char*)get_floats(matlab_struct, index, field_name, &num_elements);
+            case aiPTI_Float: {
+                float* floats = get_floats(matlab_struct, index, field_name, &num_elements);
                 num_bytes = num_elements * sizeof(float);
-                break;
-            case aiPTI_String: {
-                // expect a material property to delete this eventually
-                aiString* string = new aiString();
-                target = (char*) string;                
-                get_string(matlab_struct, index, field_name, string, "");
-                num_bytes = sizeof(aiString);
+                target = new char[num_bytes];
+                memcpy(target, floats, num_bytes);
+                delete [] floats;
                 break;
             }
-            case aiPTI_Integer:
-                target = (char*)get_ints(matlab_struct, index, field_name, &num_elements);
-                num_bytes = num_elements * sizeof(int32_T);
+            case aiPTI_String: {
+                // Assimp encodes strings as 4-byte-length + data + null
+                // https://github.com/assimp/assimp/blob/master/code/MaterialSystem.cpp#L268
+                const char* string = get_c_string(matlab_struct, index, field_name, "");
+                uint32_T length = strlen(string);
+                num_bytes = 4 + length + 1;
+                target = new char[num_bytes];
+                memcpy(target, &length, 4);
+                memcpy(target + 4, string, length);
+                target[num_bytes-1] = 0;
                 break;
+            }
+            case aiPTI_Integer: {
+                int* ints = get_ints(matlab_struct, index, field_name, &num_elements);
+                num_bytes = num_elements * sizeof(int32_T);
+                target = new char[num_bytes];
+                memcpy(target, ints, num_bytes);
+                delete [] ints;
+                break;
+            }
             case aiPTI_Buffer:
                 // fall through to default
-            default:
-                target = (char*)get_bytes(matlab_struct, index, field_name, &num_elements);
+            default: {
+                target = get_bytes(matlab_struct, index, field_name, &num_elements);
                 num_bytes = num_elements;
                 break;
+            }
         }
         
         if (num_bytes_out) {
@@ -783,7 +848,9 @@ namespace mexximp {
                 set_floats(matlab_struct, index, field_name, (float*)value, num_elements);
                 return;
             case aiPTI_String:
-                set_string(matlab_struct, index, field_name, (aiString*)value);
+                // Assimp encodes strings as 4-byte-length + data + null
+                // https://github.com/assimp/assimp/blob/master/code/MaterialSystem.cpp#L268
+                set_c_string(matlab_struct, index, field_name, &value[4]);
                 return;
             case aiPTI_Integer:
                 num_elements = num_bytes / sizeof(int32_T);

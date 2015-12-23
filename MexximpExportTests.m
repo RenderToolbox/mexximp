@@ -3,6 +3,7 @@ classdef MexximpExportTests < matlab.unittest.TestCase
     properties (Constant)
         sampleFile = fullfile(fileparts(mfilename('fullpath')), 'Dragon.dae');
         postprocessorSteps = mexximpConstants('postprocessStep');
+        floatTolerance = 1e-6;
     end
     
     methods (Test)
@@ -22,14 +23,15 @@ classdef MexximpExportTests < matlab.unittest.TestCase
             testCase.assertNotEmpty(status);
         end
         
-%         function testRoundTripOK(testCase)
-%             scene = mexximpImport(testCase.sampleFile);
-%             testCase.assertNotEmpty(scene);
-%             testCase.assertInstanceOf(scene, 'struct');
-%             
-%             exportTemp = fullfile(tempdir(), 'roundTrip.dae');
-%             status = mexximpExport(scene, 'collada', exportTemp);
-%             testCase.assertNotEmpty(status);
-%         end
+        function testRoundTripOK(testCase)
+            scene = mexximpImport(testCase.sampleFile);
+            testCase.assertNotEmpty(scene);
+            testCase.assertInstanceOf(scene, 'struct');
+            
+            exportTemp = fullfile(tempdir(), 'roundTrip.dae');
+            status = mexximpExport(scene, 'collada', exportTemp);
+            testCase.assertNotEmpty(status);
+        end
+        
     end
 end

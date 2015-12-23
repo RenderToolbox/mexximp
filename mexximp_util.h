@@ -71,9 +71,11 @@ namespace mexximp {
     void set_c_string(mxArray* matlab_struct, const unsigned index, const char* field_name, const char* value);
     
     aiVector3D* get_xyz(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out);
+    void get_xyz_in_place(const mxArray* matlab_struct, const unsigned index, const char* field_name, aiVector3D* target);
     void set_xyz(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiVector3D* value, const unsigned num_vectors);
     
     aiColor3D* get_rgb(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out);
+    void get_rgb_in_place(const mxArray* matlab_struct, const unsigned index, const char* field_name, aiColor3D* target);
     void set_rgb(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiColor3D* value, const unsigned num_vectors);
     
     aiColor4D* get_rgba(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out);
@@ -83,6 +85,7 @@ namespace mexximp {
     void set_texel(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiTexel* value, const unsigned width, const unsigned height);
     
     aiMatrix4x4* get_4x4(const mxArray* matlab_struct, const unsigned index, const char* field_name, unsigned* num_vectors_out);
+    void get_4x4_in_place(const mxArray* matlab_struct, const unsigned index, const char* field_name, aiMatrix4x4* target);
     void set_4x4(mxArray* matlab_struct, const unsigned index, const char* field_name, const aiMatrix4x4* value, const unsigned num_vectors);
     
     char* get_property_data(const mxArray* matlab_struct, const unsigned index, const char* field_name, aiPropertyTypeInfo type_code, unsigned* num_bytes_out);

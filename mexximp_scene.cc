@@ -102,9 +102,9 @@ namespace mexximp {
         for (unsigned i = 0; i < num_cameras; i++) {
             (*assimp_cameras)[i] = new aiCamera();
             
-            (*assimp_cameras)[i]->mPosition = get_xyz(matlab_cameras, i, "position", 0)[0];
-            (*assimp_cameras)[i]->mLookAt = get_xyz(matlab_cameras, i, "lookAtDirection", 0)[0];
-            (*assimp_cameras)[i]->mUp = get_xyz(matlab_cameras, i, "upDirection", 0)[0];
+            get_xyz_in_place(matlab_cameras, i, "position", &(*assimp_cameras)[i]->mPosition);
+            get_xyz_in_place(matlab_cameras, i, "lookAtDirection", &(*assimp_cameras)[i]->mLookAt);
+            get_xyz_in_place(matlab_cameras, i, "upDirection", &(*assimp_cameras)[i]->mUp);
             get_string(matlab_cameras, i, "name", &(*assimp_cameras)[i]->mName, "camera");
             (*assimp_cameras)[i]->mAspect = get_scalar(matlab_cameras, i, "aspectRatio", 1.0);
             (*assimp_cameras)[i]->mClipPlaneNear = get_scalar(matlab_cameras, i, "clipPlaneNear", 0.1);
@@ -161,11 +161,11 @@ namespace mexximp {
         for (unsigned i = 0; i < num_lights; i++) {
             (*assimp_lights)[i] = new aiLight();
             
-            (*assimp_lights)[i]->mColorAmbient = get_rgb(matlab_lights, i, "ambientColor", 0)[0];
-            (*assimp_lights)[i]->mColorDiffuse = get_rgb(matlab_lights, i, "diffuseColor", 0)[0];
-            (*assimp_lights)[i]->mColorSpecular = get_rgb(matlab_lights, i, "specularColor", 0)[0];
-            (*assimp_lights)[i]->mPosition = get_xyz(matlab_lights, i, "position", 0)[0];
-            (*assimp_lights)[i]->mDirection = get_xyz(matlab_lights, i, "lookAtDirection", 0)[0];
+            get_rgb_in_place(matlab_lights, i, "ambientColor", &(*assimp_lights)[i]->mColorAmbient);
+            get_rgb_in_place(matlab_lights, i, "diffuseColor", &(*assimp_lights)[i]->mColorDiffuse);
+            get_rgb_in_place(matlab_lights, i, "specularColor", &(*assimp_lights)[i]->mColorSpecular);
+            get_xyz_in_place(matlab_lights, i, "position", &(*assimp_lights)[i]->mPosition);
+            get_xyz_in_place(matlab_lights, i, "lookAtDirection", &(*assimp_lights)[i]->mDirection);
             get_string(matlab_lights, i, "name", &(*assimp_lights)[i]->mName, "light");
             (*assimp_lights)[i]->mType = light_type_code(get_c_string(matlab_lights, i, "type", "undefined"));
             (*assimp_lights)[i]->mAngleInnerCone = get_scalar(matlab_lights, i, "innerConeAngle", 2*3.14159);
@@ -233,9 +233,11 @@ namespace mexximp {
             delete[] (*assimp_materials)[i]->mProperties;
             
             mxArray* matlab_properties = mxGetField(matlab_materials, i, "properties");
-            (*assimp_materials)[i]->mNumProperties = to_assimp_material_properties(
+            unsigned num_properties = to_assimp_material_properties(
                     matlab_properties,
                     &(*assimp_materials)[i]->mProperties);
+            (*assimp_materials)[i]->mNumAllocated = num_properties;
+            (*assimp_materials)[i]->mNumProperties = num_properties;
         }
         
         return num_materials;
@@ -291,6 +293,7 @@ namespace mexximp {
             (*assimp_properties)[i] = new aiMaterialProperty();
             
             (*assimp_properties)[i]->mKey.Set(ugly_key(get_c_string(matlab_properties, i, "key", "property")));
+                        
             (*assimp_properties)[i]->mIndex = get_scalar(matlab_properties, i, "textureIndex", 0);
             (*assimp_properties)[i]->mSemantic = texture_type_code(get_c_string(matlab_properties, i, "textureSemantic", "unknown"));
             
@@ -496,7 +499,7 @@ namespace mexximp {
         
         (*assimp_node)->mParent = assimp_parent;
         get_string(matlab_node, index, "name", &(*assimp_node)->mName, "node");
-        (*assimp_node)->mTransformation = get_4x4(matlab_node, index, "transformation", 0)[0];
+        get_4x4_in_place(matlab_node, index, "transformation", &(*assimp_node)->mTransformation);
         (*assimp_node)->mMeshes = get_indices(matlab_node, index, "meshIndices", &(*assimp_node)->mNumMeshes);
         
         mxArray* matlab_children = mxGetField(matlab_node, index, "children");
