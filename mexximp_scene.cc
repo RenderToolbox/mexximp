@@ -293,7 +293,7 @@ namespace mexximp {
             (*assimp_properties)[i] = new aiMaterialProperty();
             
             (*assimp_properties)[i]->mKey.Set(ugly_key(get_c_string(matlab_properties, i, "key", "property")));
-                        
+            
             (*assimp_properties)[i]->mIndex = get_scalar(matlab_properties, i, "textureIndex", 0);
             (*assimp_properties)[i]->mSemantic = texture_type_code(get_c_string(matlab_properties, i, "textureSemantic", "unknown"));
             

@@ -115,7 +115,7 @@ classdef MexximpSceneTests < matlab.unittest.TestCase
                     'textureCoordinates5', rand(3, s), ...
                     'textureCoordinates6', rand(3, s), ...
                     'textureCoordinates7', rand(3, s));
-                testCase.doSceneRoundTrip(scene);
+                scenePrime = testCase.doSceneRoundTrip(scene);
             end
         end
         
