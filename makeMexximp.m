@@ -6,17 +6,23 @@ INC = '-I/usr/local/include';
 LINC = '-L/usr/local/lib';
 LIBS = '-lassimp';
 
+%% Set up build folder.
+buildFolder = fullfile(pwd(), 'build');
+if 7 ~= exist(buildFolder, 'dir')
+    mkdir(buildFolder);
+end
+
 %% Build a utility for getting string constants and default structs.
-source = 'mexximp_constants.cc';
-output = '-output mexximpConstants';
+source = 'src/mexximp_constants.cc';
+output = '-output build/mexximpConstants';
 
 mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
 %% Build a utility for testing mexximp internals.
-source = 'mexximp_test.cc mexximp_util.cc mexximp_scene.cc';
-output = '-output mexximpTest';
+source = 'src/mexximp_test.cc src/mexximp_util.cc src/mexximp_scene.cc';
+output = '-output build/mexximpTest';
 
 mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
 fprintf('%s\n', mexCmd);
@@ -27,8 +33,8 @@ runtests('MexximpUtilTests');
 runtests('MexximpSceneTests');
 
 %% Build the importer.
-source = 'mexximp_import.cc mexximp_util.cc mexximp_scene.cc';
-output = '-output mexximpImport';
+source = 'src/mexximp_import.cc src/mexximp_util.cc src/mexximp_scene.cc';
+output = '-output build/mexximpImport';
 
 mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
 fprintf('%s\n', mexCmd);
@@ -38,8 +44,8 @@ eval(mexCmd);
 runtests('MexximpImportTests');
 
 %% Build the exporter.
-source = 'mexximp_export.cc mexximp_util.cc mexximp_scene.cc';
-output = '-output mexximpExport';
+source = 'src/mexximp_export.cc src/mexximp_util.cc src/mexximp_scene.cc';
+output = '-output build/mexximpExport';
 
 mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
 fprintf('%s\n', mexCmd);
