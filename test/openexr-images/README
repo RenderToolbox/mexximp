@@ -1,0 +1,10 @@
+This directory contains one or more test images obtained from the OpenEXR open source image repository:
+  https://github.com/openexr/openexr-images
+
+The accompanying LICENSE file is included as required by the OpenEXR open source image repository license:
+  https://raw.githubusercontent.com/openexr/openexr-images/master/LICENSE
+
+The following images were copied from the repository:
+  BrightRings.exr
+  RgbRampsDiagonal.exr
+
