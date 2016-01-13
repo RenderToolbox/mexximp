@@ -152,12 +152,12 @@ rearLightNode.transformation = eye(4);
 backdropNode = mexximpConstants('node');
 backdropNode.name = 'backdrop';
 backdropNode.transformation = makeLookAt([0 0 10], [0 0 0], [0 1 0]);
-backdropNode.meshIndices = 0;
+backdropNode.meshIndices = uint32(0);
 
 objectNode = mexximpConstants('node');
 objectNode.name = 'object';
 objectNode.transformation = makeLookAt([0 0 5], [0 0 0], [0 1 0]);
-objectNode.meshIndices = 1;
+objectNode.meshIndices = uint32(1);
 
 rootNode.children = [cameraNode, ...
     topLightNode, ...
