@@ -16,8 +16,8 @@ scene = mexximpConstants('scene');
 %% Camera.
 camera = mexximpConstants('camera');
 camera.name = 'camera';
-camera.position = [0 0 -10];
-camera.lookAtDirection = [0 0 1];
+camera.position = [0 0 0];
+camera.lookAtDirection = [0 0 -1];
 camera.upDirection = [0 1 0];
 camera.aspectRatio = [1 1 1];
 camera.horizontalFov = pi()/4;
@@ -28,9 +28,9 @@ scene.cameras = camera;
 %% Lights.
 topLight = mexximpConstants('light');
 topLight.name = 'topLight';
-topLight.position = [0 10 0];
+topLight.position = [0 0 0];
 topLight.type = 'spot';
-topLight.lookAtDirection = [0 -1 0];
+topLight.lookAtDirection = [0 0 -1];
 topLight.innerConeAngle = pi()/6;
 topLight.outerConeAngle = pi()/3;
 topLight.constantAttenuation = 1;
@@ -42,17 +42,17 @@ topLight.specularColor = [1 .5 .5];
 
 rearLight = mexximpConstants('light');
 rearLight.name = 'rearlight';
-rearLight.position = [0 0 -20];
+rearLight.position = [0 0 0];
 rearLight.type = 'directional';
-rearLight.lookAtDirection = [0 0 1];
+rearLight.lookAtDirection = [0 0 -1];
 rearLight.innerConeAngle = 0;
 rearLight.outerConeAngle = 0;
 rearLight.constantAttenuation = 1;
 rearLight.linearAttenuation = 0;
 rearLight.quadraticAttenuation = 0;
 rearLight.ambientColor = [0 0 0];
-rearLight.diffuseColor = [.5 .5 1];
-rearLight.specularColor = [.5 .5 1];
+rearLight.diffuseColor = .001*[1 1 1];
+rearLight.specularColor = .001*[1 1 1];
 
 scene.lights = [topLight rearLight];
 
@@ -87,7 +87,7 @@ plane.vertices = [ ...
     +1 -1 0;
     +1 +1 0]';
 % normals perpendicular to plane, towards camera
-plane.normals = [ ...
+plane.normals = -[ ...
     0 0 -1;
     0 0 -1;
     0 0 -1;
@@ -97,7 +97,7 @@ plane.faces(2) = makeFace([1 2 3]);
 plane.primitiveTypes = mexximpConstants('meshPrimitive');
 plane.primitiveTypes.triangle = true;
 
-cube = makeMesh('cube', 1);
+cube = makeMesh('cube', 0);
 cube.vertices = [ ...
     -1 -1 -1;
     -1 -1 +1;
@@ -137,33 +137,40 @@ rootNode.transformation = eye(4);
 % node with same name as camera will contain the camera
 cameraNode = mexximpConstants('node');
 cameraNode.name = camera.name;
-cameraNode.transformation = eye(4);
+cameraNode.transformation = makeTranslation([0 0 5]);
 
 % node with same name as a light will contain the light
 topLightNode = mexximpConstants('node');
 topLightNode.name = topLight.name;
-topLightNode.transformation = eye(4);
+topLightNode.transformation = makeTranslation([2 2 10]);
 
 rearLightNode = mexximpConstants('node');
 rearLightNode.name = rearLight.name;
-rearLightNode.transformation = eye(4);
+rearLightNode.transformation = makeTranslation([0 0 1000]);
 
 % nodes instantiante meshes using indexes into scene.meshes
 backdropNode = mexximpConstants('node');
 backdropNode.name = 'backdrop';
-backdropNode.transformation = makeLookAt([0 0 10], [0 0 0], [0 1 0]);
+backdropNode.transformation = makeScale([10 10 1]) * makeTranslation([0 0 -10]);
 backdropNode.meshIndices = uint32(0);
 
 objectNode = mexximpConstants('node');
 objectNode.name = 'object';
-objectNode.transformation = makeLookAt([0 0 5], [0 0 0], [0 1 0]);
+objectNode.transformation = makeScale(-1*[1 1 1]) * makeTranslation([0 0 -5]);
 objectNode.meshIndices = uint32(1);
+
+% node with object to debug camera
+debugNode = mexximpConstants('node');
+debugNode.name = 'debug-me';
+debugNode.transformation = makeLookAt([3 3 3], [0 0 20], [0 1 0]);
+debugNode.meshIndices = uint32(1);
 
 rootNode.children = [cameraNode, ...
     topLightNode, ...
     rearLightNode, ...
     backdropNode, ...
-    objectNode];
+    objectNode, ...
+    debugNode];
 scene.rootNode = rootNode;
 
 %% Make a face struct with the given vertex indices.
@@ -172,20 +179,26 @@ face = mexximpConstants('face');
 face.nIndices = numel(indices);
 face.indices = uint32(indices);
 
+%% Some handy 4x4 transformations.
+function transformation = makeLookAt(from, to, up)
+zaxis = normalize(to - from);
+xaxis = normalize(cross(up, zaxis));
+yaxis = cross(zaxis, xaxis);
+rotation = eye(4);
+rotation(1:3, 1) = xaxis;
+rotation(1:3, 2) = yaxis;
+rotation(1:3, 3) = zaxis;
+transformation = rotation * makeTranslation(from);
 
-%% Make a right-handed lookat transformation.
-function transformation = makeLookAt(eye, target, up)
-z = normalize(eye - target);
-x = normalize(cross(up, z));
-y = cross(z, x);
+function transformation = makeTranslation(destination)
+transformation = makehgtform('translate', destination)';
 
-% mexximp will convert Matlab column-major to Assimp row-major
-transformation = [ ...
-    x(1), y(1), z(1), 0; ...
-    x(2), y(2), z(2), 0; ...
-    x(3), y(3), z(3), 0; ...
-    -dot(x, eye), -dot(y, eye), -dot(z, eye), 1];
+function transformation = makeScale(stretch)
+transformation = eye(4);
+transformation([1 6 11]) = stretch;
 
+function transformation = makeRotation(axis, radians)
+transformation = makehgtform('axisrotate', axis, radians)';
 
 %% Normalize a vector.
 function normalized = normalize(original)
