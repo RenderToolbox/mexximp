@@ -2,3 +2,4 @@
 *.mex*
 *~
 build/
+test-export.dae
