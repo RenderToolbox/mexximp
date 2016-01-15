@@ -17,7 +17,7 @@ scene = mexximpConstants('scene');
 camera = mexximpConstants('camera');
 camera.name = 'camera';
 camera.position = [0 0 0];
-camera.lookAtDirection = [0 0 -1];
+camera.lookAtDirection = [0 0 1];
 camera.upDirection = [0 1 0];
 camera.aspectRatio = [1 1 1];
 camera.horizontalFov = pi()/4;
@@ -26,61 +26,71 @@ camera.clipPlaneNear = 0.1;
 scene.cameras = camera;
 
 %% Lights.
-topLight = mexximpConstants('light');
-topLight.name = 'topLight';
-topLight.position = [0 0 0];
-topLight.type = 'spot';
-topLight.lookAtDirection = [0 0 -1];
-topLight.innerConeAngle = pi()/6;
-topLight.outerConeAngle = pi()/3;
-topLight.constantAttenuation = 1;
-topLight.linearAttenuation = 0;
-topLight.quadraticAttenuation = 1;
-topLight.ambientColor = [0 0 0];
-topLight.diffuseColor = [1 .5 .5];
-topLight.specularColor = [1 .5 .5];
+yellowLight = mexximpConstants('light');
+yellowLight.name = 'yellowLight';
+yellowLight.position = [0 0 0];
+yellowLight.type = 'spot';
+yellowLight.lookAtDirection = [0 0 1];
+yellowLight.innerConeAngle = pi()/6;
+yellowLight.outerConeAngle = pi()/6;
+yellowLight.constantAttenuation = 1;
+yellowLight.linearAttenuation = 0;
+yellowLight.quadraticAttenuation = 1;
+yellowLight.ambientColor = [0 0 0];
+yellowLight.diffuseColor = [1 1 0];
+yellowLight.specularColor = [1 1 0];
 
-rearLight = mexximpConstants('light');
-rearLight.name = 'rearlight';
-rearLight.position = [0 0 0];
-rearLight.type = 'directional';
-rearLight.lookAtDirection = [0 0 -1];
-rearLight.innerConeAngle = 0;
-rearLight.outerConeAngle = 0;
-rearLight.constantAttenuation = 1;
-rearLight.linearAttenuation = 0;
-rearLight.quadraticAttenuation = 0;
-rearLight.ambientColor = [0 0 0];
-rearLight.diffuseColor = .001*[1 1 1];
-rearLight.specularColor = .001*[1 1 1];
+redLight = yellowLight;
+redLight.name = 'redLight';
+redLight.diffuseColor = [1 0 0];
+redLight.specularColor = [1 0 0];
 
-scene.lights = [topLight rearLight];
+greenLight = yellowLight;
+greenLight.name = 'greenLight';
+greenLight.diffuseColor = [0 1 0];
+greenLight.specularColor = [0 1 0];
+
+distantLight = mexximpConstants('light');
+distantLight.name = 'distantLight';
+distantLight.position = [0 0 0];
+distantLight.type = 'directional';
+distantLight.lookAtDirection = [0 0 1];
+distantLight.innerConeAngle = 0;
+distantLight.outerConeAngle = 0;
+distantLight.constantAttenuation = 1;
+distantLight.linearAttenuation = 0;
+distantLight.quadraticAttenuation = 0;
+distantLight.ambientColor = [0 0 0];
+distantLight.diffuseColor = .001*[1 1 1];
+distantLight.specularColor = .001*[1 1 1];
+
+scene.lights = [yellowLight redLight greenLight distantLight];
 
 %% Materials.
-grayShiny = mexximpConstants('material');
-grayShiny.properties = makeUberMaterial('gray', ...
-    [0 0 0 1], ...
-    [.5 .5 .5 1], ...
-    [.5 .5 .5 1], ...
-    [0 0 0 1], ...
+whiteShiny = mexximpConstants('material');
+whiteShiny.properties = makeUberMaterial('whiteShiny', ...
     [0 0 0 0], ...
-    10, ...
-    1);
-
-redMatte = mexximpConstants('material');
-redMatte.properties = makeUberMaterial('red', ...
-    [0 0 0 1], ...
-    [1 0 0 1], ...
-    [0 0 0 1], ...
-    [0 0 0 1], ...
+    [1 1 1 1], ...
+    [1 1 1 1], ...
+    [0 0 0 0], ...
     [0 0 0 0], ...
     0, ...
     1);
 
-scene.materials = [grayShiny, redMatte];
+whiteMatte = mexximpConstants('material');
+whiteMatte.properties = makeUberMaterial('whiteMatte', ...
+    [0 0 0 0], ...
+    [1 1 1 1], ...
+    [0 0 0 0], ...
+    [0 0 0 0], ...
+    [0 0 0 0], ...
+    0, ...
+    1);
+
+scene.materials = [whiteShiny, whiteMatte];
 
 %% Meshes.
-plane = makeMesh('plane', 0);
+plane = makeMesh('plane', 1);
 plane.vertices = [ ...
     -1 -1 0;
     -1 +1 0;
@@ -97,34 +107,19 @@ plane.faces(2) = makeFace([1 2 3]);
 plane.primitiveTypes = mexximpConstants('meshPrimitive');
 plane.primitiveTypes.triangle = true;
 
-cube = makeMesh('cube', 0);
-cube.vertices = [ ...
-    -1 -1 -1;
-    -1 -1 +1;
-    -1 +1 -1;
-    -1 +1 +1;
-    +1 -1 -1;
-    +1 -1 +1;
-    +1 +1 -1;
-    +1 +1 +1]';
-% normals along cube diagonals, away from center
-cube.normals = sqrt(3) * cube.vertices;
-cube.faces(1) = makeFace([0 6 2]);
-cube.faces(2) = makeFace([0 4 6]);
-cube.faces(3) = makeFace([1 5 4]);
-cube.faces(4) = makeFace([1 4 0]);
-cube.faces(5) = makeFace([3 5 1]);
-cube.faces(6) = makeFace([3 7 5]);
-cube.faces(7) = makeFace([1 0 2]);
-cube.faces(8) = makeFace([1 2 3]);
-cube.faces(9) = makeFace([7 6 5]);
-cube.faces(10) = makeFace([6 4 5]);
-cube.faces(11) = makeFace([3 2 7]);
-cube.faces(12) = makeFace([2 6 7]);
-cube.primitiveTypes = mexximpConstants('meshPrimitive');
-cube.primitiveTypes.triangle = true;
+icomesh = icosphere(3);
+ball = makeMesh('ball', 0);
+ball.vertices = icomesh.Vertices';
+ball.normals = icomesh.VertexNormals';
+facesCell = cell(1, size(icomesh.Faces, 1));
+for ii = 1:size(icomesh.Faces, 1)
+    facesCell{ii} = makeFace(icomesh.Faces(ii,:)-1);
+end
+ball.faces = [facesCell{:}];
+ball.primitiveTypes = mexximpConstants('meshPrimitive');
+ball.primitiveTypes.triangle = true;
 
-scene.meshes = [plane, cube];
+scene.meshes = [plane, ball];
 
 %% Embedded Textures.
 % we don't need embedded textures
@@ -137,40 +132,45 @@ rootNode.transformation = eye(4);
 % node with same name as camera will contain the camera
 cameraNode = mexximpConstants('node');
 cameraNode.name = camera.name;
-cameraNode.transformation = makeTranslation([0 0 5]);
+cameraNode.transformation = makeRotation([1 0 0], -pi()/16) ...
+    * makeRotation([0 1 0], pi()/10) ...
+    * makeTranslation([5 3 10]);
 
 % node with same name as a light will contain the light
-topLightNode = mexximpConstants('node');
-topLightNode.name = topLight.name;
-topLightNode.transformation = makeTranslation([2 2 10]);
+xLightNode = mexximpConstants('node');
+xLightNode.name = redLight.name;
+xLightNode.transformation = makeRotation([0 1 0], pi()/2) * makeTranslation([25 0 0]);
 
-rearLightNode = mexximpConstants('node');
-rearLightNode.name = rearLight.name;
-rearLightNode.transformation = makeTranslation([0 0 1000]);
+yLightNode = mexximpConstants('node');
+yLightNode.name = yellowLight.name;
+yLightNode.transformation = makeRotation([1 0 0], -pi()/2) * makeTranslation([0 25 0]);
+
+zLightNode = mexximpConstants('node');
+zLightNode.name = greenLight.name;
+zLightNode.transformation = makeTranslation([0 0 25]);
+
+distantLightNode = mexximpConstants('node');
+distantLightNode.name = distantLight.name;
+distantLightNode.transformation = eye(4);
 
 % nodes instantiante meshes using indexes into scene.meshes
 backdropNode = mexximpConstants('node');
 backdropNode.name = 'backdrop';
-backdropNode.transformation = makeScale([10 10 1]) * makeTranslation([0 0 -10]);
+backdropNode.transformation = makeScale([100 100 1]) * makeTranslation([0 0 -10]);
 backdropNode.meshIndices = uint32(0);
 
-objectNode = mexximpConstants('node');
-objectNode.name = 'object';
-objectNode.transformation = makeScale(-1*[1 1 1]) * makeTranslation([0 0 -5]);
-objectNode.meshIndices = uint32(1);
-
-% node with object to debug camera
-debugNode = mexximpConstants('node');
-debugNode.name = 'debug-me';
-debugNode.transformation = makeLookAt([3 3 3], [0 0 20], [0 1 0]);
-debugNode.meshIndices = uint32(1);
+originNode = mexximpConstants('node');
+originNode.name = 'origin';
+originNode.transformation = makeRotation([1 0 -1], pi()/30);
+originNode.meshIndices = uint32(1);
 
 rootNode.children = [cameraNode, ...
-    topLightNode, ...
-    rearLightNode, ...
+    xLightNode, ...
+    yLightNode, ...
+    zLightNode, ...
+    distantLightNode, ...
     backdropNode, ...
-    objectNode, ...
-    debugNode];
+    originNode];
 scene.rootNode = rootNode;
 
 %% Make a face struct with the given vertex indices.
