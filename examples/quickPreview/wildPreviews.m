@@ -1,0 +1,29 @@
+% Sandbox to try a bunch of previews of wild scenes.
+
+clear;
+clc;
+
+%% Millenium Falcon
+%   http://tf3dm.com/3d-model/millenium-falcon-82947.html
+
+% textures that came with the model
+resources = { ...
+    '/home/ben/Downloads/4bw1cngyboxs-millenium-falcon/falcon.jpg', ...
+    '/home/ben/Downloads/4bw1cngyboxs-millenium-falcon/Map__6_Noise.tga', ...
+    };
+
+% .max is not supported by Assimp import
+%quickPreview('/home/ben/Downloads/4bw1cngyboxs-millenium-falcon/millenium-falcon.max');
+
+% PBRT ConvertGeometry>convertPolylist (line 236):
+%   Error computing the Delaunay triangulation. The points may be collinear.
+quickPreview('/home/ben/Downloads/4bw1cngyboxs-millenium-falcon/millenium-falcon.obj', ...
+    'resources', resources, ...
+    'renderers', {'Mitsuba'}, ...
+    'cameraPosition', [-86 -18 -1500]);
+
+quickPreview('/home/ben/Downloads/4bw1cngyboxs-millenium-falcon/millenium-falcon.3DS', ...
+    'resources', resources, ...
+    'renderers', {'Mitsuba'}, ...
+    'cameraPosition', [-86 2682 1049]);
+

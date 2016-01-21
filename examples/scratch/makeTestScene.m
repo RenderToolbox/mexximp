@@ -187,16 +187,6 @@ face.nIndices = numel(indices);
 face.indices = uint32(indices);
 
 %% Some handy 4x4 transformations.
-function transformation = makeLookAt(from, to, up)
-zaxis = normalize(to - from);
-xaxis = normalize(cross(up, zaxis));
-yaxis = cross(zaxis, xaxis);
-rotation = eye(4);
-rotation(1:3, 1) = xaxis;
-rotation(1:3, 2) = yaxis;
-rotation(1:3, 3) = zaxis;
-transformation = rotation * makeTranslation(from);
-
 function transformation = makeTranslation(destination)
 transformation = makehgtform('translate', destination)';
 

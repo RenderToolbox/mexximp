@@ -4,7 +4,7 @@
 clear;
 clc;
 
-pathHere = '/home/ben/render/mexximp';
+pathHere = fileparts(which('exportTestScene.m'));
 
 scene = makeTestScene();
 format = 'collada';
@@ -17,9 +17,9 @@ hints.imageHeight = 480;
 hints.recipeName = 'mexximpExportTest';
 ChangeToWorkingFolder(hints);
 
-setpref('Mitsuba', 'adjustments', fullfile(pathHere, 'mitsuba-adjustments.xml'));
-setpref('PBRT', 'adjustments', fullfile(pathHere, 'pbrt-adjustments.xml'));
-mappingsFile = 'empty-mappings.txt';
+setpref('Mitsuba', 'adjustments', which('scratch-mitsuba-adjustments.xml'));
+setpref('PBRT', 'adjustments', which('scratch-pbrt-adjustments.xml'));
+mappingsFile = 'scratch-mappings.txt';
 
 %% Render with Mitsuba and PBRT.
 toneMapFactor = 100;
