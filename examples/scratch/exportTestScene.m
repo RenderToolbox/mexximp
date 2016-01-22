@@ -19,7 +19,7 @@ ChangeToWorkingFolder(hints);
 
 setpref('Mitsuba', 'adjustments', which('scratch-mitsuba-adjustments.xml'));
 setpref('PBRT', 'adjustments', which('scratch-pbrt-adjustments.xml'));
-mappingsFile = 'scratch-mappings.txt';
+mappingsFile = which('scratch-mappings.txt');
 
 %% Render with Mitsuba and PBRT.
 toneMapFactor = 100;
