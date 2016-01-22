@@ -12,8 +12,8 @@ colladaFile = fullfile(pathHere, 'test-export.dae');
 status = mexximpExport(scene, format, colladaFile, []);
 
 %% Try to render with RenderToolbox3!
-hints.imageWidth = 640;
-hints.imageHeight = 480;
+hints.imageWidth = 320;
+hints.imageHeight = 240;
 hints.recipeName = 'mexximpExportTest';
 ChangeToWorkingFolder(hints);
 

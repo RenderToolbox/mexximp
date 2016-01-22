@@ -139,22 +139,20 @@ rootNode.transformation = eye(4);
 % node with same name as camera will contain the camera
 cameraNode = mexximpConstants('node');
 cameraNode.name = camera.name;
-cameraNode.transformation = makeRotation([1 0 0], -pi()/16) ...
-    * makeRotation([0 1 0], pi()/10) ...
-    * makeTranslation([5 3 10]);
+cameraNode.transformation = mexximpLookAt([3 5 10], [0 0 -5], [0 1 0]);
 
 % node with same name as a light will contain the light
 xLightNode = mexximpConstants('node');
 xLightNode.name = redLight.name;
-xLightNode.transformation = makeRotation([0 1 0], pi()/2) * makeTranslation([25 0 0]);
+xLightNode.transformation = mexximpRotate([0 1 0], pi()/2) * mexximpTranslate([25 0 0]);
 
 yLightNode = mexximpConstants('node');
 yLightNode.name = yellowLight.name;
-yLightNode.transformation = makeRotation([1 0 0], -pi()/2) * makeTranslation([0 25 0]);
+yLightNode.transformation = mexximpRotate([1 0 0], -pi()/2) * mexximpTranslate([0 25 0]);
 
 zLightNode = mexximpConstants('node');
 zLightNode.name = greenLight.name;
-zLightNode.transformation = makeTranslation([0 0 25]);
+zLightNode.transformation = mexximpTranslate([0 0 25]);
 
 distantLightNode = mexximpConstants('node');
 distantLightNode.name = distantLight.name;
@@ -163,12 +161,12 @@ distantLightNode.transformation = eye(4);
 % nodes instantiante meshes using indexes into scene.meshes
 backdropNode = mexximpConstants('node');
 backdropNode.name = 'backdrop';
-backdropNode.transformation = makeScale([20 20 1]) * makeTranslation([0 0 -10]);
+backdropNode.transformation = mexximpScale([20 20 1]) * mexximpTranslate([0 0 -10]);
 backdropNode.meshIndices = uint32(0);
 
 originNode = mexximpConstants('node');
 originNode.name = 'origin';
-originNode.transformation = makeRotation([1 0 -1], pi()/30);
+originNode.transformation = mexximpRotate([1 0 -1], pi()/30);
 originNode.meshIndices = uint32(1);
 
 rootNode.children = [cameraNode, ...
@@ -185,21 +183,6 @@ function face = makeFace(indices)
 face = mexximpConstants('face');
 face.nIndices = numel(indices);
 face.indices = uint32(indices);
-
-%% Some handy 4x4 transformations.
-function transformation = makeTranslation(destination)
-transformation = makehgtform('translate', destination)';
-
-function transformation = makeScale(stretch)
-transformation = eye(4);
-transformation([1 6 11]) = stretch;
-
-function transformation = makeRotation(axis, radians)
-transformation = makehgtform('axisrotate', axis, radians)';
-
-%% Normalize a vector.
-function normalized = normalize(original)
-normalized = original ./ norm(original);
 
 %% Pack up a mesh including some defaults.
 function mesh = makeMesh(name, materialIndex)

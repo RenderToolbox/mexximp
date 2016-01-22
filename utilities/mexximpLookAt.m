@@ -21,7 +21,7 @@ up = parser.Results.up;
 %   https://www.mitsuba-renderer.org/repos/mitsuba/files/2489fe4741b22b2bc835bcc8056384328e810256/src/libcore/transform.cpp
 
 % make some look-at axes
-dir = normStrict(to - from, 'to and from vecors must be different');
+dir = normStrict(from - to, 'to and from vecors must be different');
 left = normStrict(cross(up, dir), 'up vector must not fall along looking axis');
 newUp = cross(dir, left);
 
