@@ -126,6 +126,34 @@ else
     scene.rootNode.children = [scene.rootNode.children lanternNode];
 end
 
+%% Fix up material resource file names.
+
+% strip paths off of resources to facilitate matching
+nResources = numel(resources);
+noPathResources = cell(1, nResources);
+for ii = 1:nResources
+    [~, resourceBase, resourceExt] = fileparts(resources{ii});
+    noPathResources{ii} = [resourceBase resourceExt];
+end
+
+for mm = 1:numel(scene.materials)
+    for pp = 1:numel(scene.materials(mm).properties)
+        if strcmp('string', scene.materials(mm).properties(pp).dataType)
+            dataFile = scene.materials(mm).properties(pp).data;
+            
+            % match resources based on file name and extension
+            %   fileparts() fails on cross-platform file names!
+            for ii = 1:nResources
+                if ~isempty(strfind(dataFile, noPathResources{ii}))
+                    scene.materials(mm).properties(pp).data = resources{ii};
+                    disp([dataFile ' -> ' resources{ii}]);
+                    break;
+                end
+            end
+        end
+    end
+end
+
 %% Try to spit out the scene as Collada.
 format = 'collada';
 colladaFile = fullfile(GetWorkingFolder('resources', false, hints), 'quick-export.dae');
@@ -139,16 +167,6 @@ catch ex
     error('quickPreview:exportError', 'Could not export <%s>:\n%s\n', ...
         colladaFile, ex.message);
 end
-
-%% Copy resources like textures to the working folder.
-for ii = 1:numel(resources)
-    resourceFile = resources{ii};
-    if 2 ~= exist(resourceFile, 'file')
-        continue;
-    end
-    copyfile(resourceFile, GetWorkingFolder('', false, hints));
-end
-
 
 %% Render the scene with empty mappings and no conditions.
 toneMapFactor = 100;
