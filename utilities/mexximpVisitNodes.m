@@ -11,7 +11,7 @@ function result = mexximpVisitNodes(scene, visitFunction, varargin)
 % different computations, each implemented in a different visitFunction.
 %
 % visitFunction expect the following inputs:
-%   funciton result = myVisitFun(scene, node, childResult, workingTransformation, varargin)
+%   funciton result = myVisitFun(scene, node, childResults, workingTransformation, varargin)
 % These expected inputs may help the visitFunction do something
 % interesting at each node:
 %   scene -- the given scene
