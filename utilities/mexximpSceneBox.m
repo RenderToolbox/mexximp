@@ -41,22 +41,13 @@ meshBoxes = cell(1, nMeshes);
 for ii = 1:nMeshes
     meshIndex = node.meshIndices(ii);
     vertices = scene.meshes(meshIndex + 1).vertices;
-    transformed = applyTransform(vertices, workingTransformation);
+    transformed = mexximpApplyTransform(vertices, workingTransformation);
     meshBoxes = cat(2, min(transformed, [], 2), max(transformed, [], 2));
 end
 
 % combine with results from child nodes
 allMyBoxes = cat(2, meshBoxes, childResults);
 minBox = mergeBoxes(allMyBoxes{:});
-
-%% Apply a 4x4 transformation to a matrix of vertices.
-%   assumes the "w" component is 1, so don't try projections
-function transformed = applyTransform(vertices, transformation)
-nVertices = size(vertices, 2);
-paddedVertices = ones(4, nVertices);
-paddedVertices(1:3, :) = vertices;
-paddedTransformed = (paddedVertices' * transformation)';
-transformed = paddedTransformed(1:3, :);
 
 %% Merge multiple bounding boxes into one grand box.
 %   Each input should be [] or [xmin xmax; ymin ymax; zmin zmax]

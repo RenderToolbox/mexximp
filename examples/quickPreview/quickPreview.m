@@ -16,14 +16,12 @@ parser.addParameter('renderers', {'Mitsuba', 'PBRT'}, @iscellstr);
 parser.addParameter('imageHeight', 480, @isnumeric);
 parser.addParameter('imageWidth', 640, @isnumeric);
 parser.addParameter('resources', {}, @iscellstr);
-parser.addParameter('cameraPosition', [0 0 25], @(a) isnumeric(a) && 3 == numel(a));
 parser.parse(sceneFile, varargin{:});
 sceneFile = parser.Results.sceneFile;
 renderers = parser.Results.renderers;
 imageWidth = parser.Results.imageWidth;
 imageHeight = parser.Results.imageHeight;
 resources = parser.Results.resources;
-cameraPosition = parser.Results.cameraPosition;
 
 [~, sceneBase, sceneExt] = fileparts(sceneFile);
 
@@ -39,7 +37,11 @@ mappingsFile = which('quick-mappings.txt');
 
 %% Suck in the scene and try to export to Collada.
 try
-    scene = mexximpImport(sceneFile);
+    % some light cleanup?
+    importFlags = mexximpConstants('postprocessStep');
+    importFlags.joinIdenticalVertices = true;
+
+    scene = mexximpImport(sceneFile,importFlags);
     if isempty(scene)
         error('imported scene was empty');
     end
@@ -54,7 +56,7 @@ if isempty(scene.cameras)
     camera = mexximpConstants('camera');
     camera.name = 'Camera';
     camera.position = [0 0 0];
-    camera.lookAtDirection = [0 0 1];
+    camera.lookAtDirection = [0 0 -1];
     camera.upDirection = [0 1 0];
     camera.aspectRatio = [1 1 1];
     camera.horizontalFov = pi()/4;
@@ -62,9 +64,18 @@ if isempty(scene.cameras)
     camera.clipPlaneNear = 0.1;
     scene.cameras = camera;
     
+    % figure out where to place the camera
+    %   looking at geometry center
+    %   far enough away to fit everything in Fov
+    [sceneBox, middlePoint] = mexximpSceneBox(scene);
+    halfWidth = norm(sceneBox(:,1) - sceneBox(:,2)) / 2;
+    cameraDistance = 2 * halfWidth / tan(camera.horizontalFov);
+    cameraPostion = middlePoint' - [0 0 cameraDistance];
+    lookAt = mexximpLookAt(cameraPostion, middlePoint', [0 1 0]);
+    
     cameraNode = mexximpConstants('node');
     cameraNode.name = camera.name;
-    cameraNode.transformation = makehgtform('translate', cameraPosition)';
+    cameraNode.transformation = lookAt;
     
     if isempty(scene.rootNode.children)
         scene.rootNode.children = cameraNode;
@@ -107,7 +118,7 @@ end
 
 lanternNode = mexximpConstants('node');
 lanternNode.name = lantern.name;
-lanternNode.transformation = makehgtform('translate', -1*[1 1 1])' * cameraNode.transformation;
+lanternNode.transformation = mexximpTranslate([0 0 -1]) * cameraNode.transformation;
 
 if isempty(scene.rootNode.children)
     scene.rootNode.children = lanternNode;
