@@ -1,4 +1,4 @@
-function hints = quickPreview(sceneFile, varargin)
+function [scene, hints] = quickPreview(sceneFile, varargin)
 % Sandbox to quickly import and render a scene with mexximp and RTB3.
 %
 % Assumes RTB3 is on the Matlab path.  Imports the sceneFile with mexximp
@@ -13,21 +13,20 @@ parser.PartialMatching = false;
 parser.StructExpand = false;
 parser.addRequired('sceneFile', @(a) 2 == exist(a, 'file'));
 parser.addParameter('renderers', {'Mitsuba', 'PBRT'}, @iscellstr);
-parser.addParameter('imageHeight', 480, @isnumeric);
-parser.addParameter('imageWidth', 640, @isnumeric);
-parser.addParameter('resources', {}, @iscellstr);
+parser.addParameter('hints', GetDefaultHints(), @isstruct);
+parser.addParameter('cameraRelative', [0 0 -1], @(c) isnumeric(c) && 3 == numel(c));
 parser.parse(sceneFile, varargin{:});
 sceneFile = parser.Results.sceneFile;
 renderers = parser.Results.renderers;
-imageWidth = parser.Results.imageWidth;
-imageHeight = parser.Results.imageHeight;
-resources = parser.Results.resources;
+hints = parser.Results.hints;
+cameraRelative = parser.Results.cameraRelative;
 
-[~, sceneBase, sceneExt] = fileparts(sceneFile);
+[scenePath, sceneBase, sceneExt] = fileparts(sceneFile);
+if isempty(scenePath)
+    scenePath = pwd();
+end
 
 %% Set up Render Toolbox 3
-hints.imageWidth = imageWidth;
-hints.imageHeight = imageHeight;
 hints.recipeName = [sceneBase '-' sceneExt(2:end)];
 ChangeToWorkingFolder(hints);
 
@@ -59,8 +58,8 @@ if isempty(scene.cameras)
     camera.lookAtDirection = [0 0 -1];
     camera.upDirection = [0 1 0];
     camera.aspectRatio = [1 1 1];
-    camera.horizontalFov = pi()/4;
-    camera.clipPlaneFar = 1e6;
+    camera.horizontalFov = pi()/3;
+    camera.clipPlaneFar = 1e4;
     camera.clipPlaneNear = 0.1;
     scene.cameras = camera;
     
@@ -69,8 +68,18 @@ if isempty(scene.cameras)
     %   far enough away to fit everything in Fov
     [sceneBox, middlePoint] = mexximpSceneBox(scene);
     halfWidth = norm(sceneBox(:,1) - sceneBox(:,2)) / 2;
-    cameraDistance = 2 * halfWidth / tan(camera.horizontalFov);
-    cameraPostion = middlePoint' - [0 0 cameraDistance];
+    
+    % Want half of the camera's viewing angle, which corresponds to the
+    % halfWidth of the bounding box calculated above.  The Assimp docs say
+    % that camera horizontalFov *is* the half-angle.  But it is behaving
+    % like the full viewing angle.  So divide by 2.
+    %
+    % This seems to be a bug in the Assimp code or documentation.  It might
+    % be specific to the import or export file format!  Ahh!
+    halfAngle = camera.horizontalFov / 2;
+    
+    cameraDistance = halfWidth / tan(halfAngle);
+    cameraPostion = middlePoint' + cameraRelative .* cameraDistance;
     lookAt = mexximpLookAt(cameraPostion, middlePoint', [0 1 0]);
     
     cameraNode = mexximpConstants('node');
@@ -126,16 +135,13 @@ else
     scene.rootNode.children = [scene.rootNode.children lanternNode];
 end
 
-%% Fix up material resource file names.
-
-% strip paths off of resources to facilitate matching
+%% Gather resources located in the scene folder.
+sceneDir = dir(scenePath);
+isDir = [sceneDir.isdir];
+resources = {sceneDir(~isDir).name};
 nResources = numel(resources);
-noPathResources = cell(1, nResources);
-for ii = 1:nResources
-    [~, resourceBase, resourceExt] = fileparts(resources{ii});
-    noPathResources{ii} = [resourceBase resourceExt];
-end
 
+%% Fix up material resource files and file names.
 for mm = 1:numel(scene.materials)
     for pp = 1:numel(scene.materials(mm).properties)
         if strcmp('string', scene.materials(mm).properties(pp).dataType)
@@ -144,9 +150,36 @@ for mm = 1:numel(scene.materials)
             % match resources based on file name and extension
             %   fileparts() fails on cross-platform file names!
             for ii = 1:nResources
-                if ~isempty(strfind(dataFile, noPathResources{ii}))
-                    scene.materials(mm).properties(pp).data = resources{ii};
-                    disp([dataFile ' -> ' resources{ii}]);
+                resource = resources{ii};
+                fullResource = fullfile(scenePath, resource);
+
+                if ~isempty(strfind(dataFile, resource))
+                    
+                    % grrr: rename "-" to "_" to avoid utf8 transcoding
+                    isHyphen = '-' == resource;
+                    if any(isHyphen)
+                        withoutHyphen = resource;
+                        withoutHyphen(isHyphen) = '_';
+                        
+                        source = fullfile(scenePath, resource);
+                        destination = fullfile(scenePath, withoutHyphen);
+                        copyfile(source, destination, 'f');
+                        
+                        resource = withoutHyphen;
+                        fullResource = fullfile(scenePath, resource);
+                    end
+                    
+                    % grrr: reformat gif as png for Mitsuba
+                    [~, resourceBase, resourceExt] = fileparts(resource);
+                    if strcmp('.gif', resourceExt)
+                        [imageData, colorMap] = imread(fullResource);
+                        resource = [resourceBase '.png'];
+                        fullResource = fullfile(scenePath, resource);
+                        imwrite(imageData, colorMap, fullResource, 'png');
+                    end
+
+                    scene.materials(mm).properties(pp).data = fullResource;
+                    disp([dataFile ' -> ' fullResource]);
                     break;
                 end
             end

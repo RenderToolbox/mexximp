@@ -16,16 +16,22 @@ function ax = mexximpSceneScatter(scene, varargin)
 
 parser = rdtInputParser();
 parser.addRequired('scene', @isstruct);
-parser.addParameter('axes', axes(), @(ax)isa(ax, 'matlab.graphics.axis.Axes'));
+parser.addParameter('axes', []);
 parser.parse(scene, varargin{:});
 scene = parser.Results.scene;
 ax = parser.Results.axes;
+
+% use given axes, or open new figure
+if isempty(ax) || ~isa(ax, 'matlab.graphics.axis.Axes');
+    fig = figure();
+    ax = axes('Parent', fig);
+end
 
 %% Apply a visitFunction to each scene node.
 mexximpVisitNodes(scene, @scatterMeshes, ax);
 
 %% Node visitFunction to plot mesh into given axes.
-function ax = scatterMeshes(scene, node, childResults, workingTransformation, varargin)
+function ax = scatterMeshes(scene, node, ~, workingTransformation, varargin)
 
 % axes for plotting
 ax = varargin{1};

@@ -3,32 +3,32 @@
 clear;
 clc;
 
+hints.imageWidth = 320;
+hints.imageHeight = 240;
 commonArgs = { ...
-    'imageHeight', 240, ...
-    'imageWidth', 320, ...
-    'renderers', {'PBRT', 'Mitsuba'}};
+    'cameraRelative', [1 0 0], ...
+    'hints', hints, ...
+    'renderers', {'Mitsuba'}};
 
 %% Millenium Falcon
 %   http://tf3dm.com/3d-model/millenium-falcon-82947.html
 
-% textures that came with the model
-resources = { ...
-    '/home/ben/Downloads/4bw1cngyboxs_millenium_falcon/falcon.jpg', ...
-    '/home/ben/Downloads/4bw1cngyboxs_millenium_falcon/Map__6_Noise.tga', ...
-    };
-
-% .max is not supported by Assimp import
-%quickPreview('/home/ben/Downloads/4bw1cngyboxs_millenium_falcon/millenium-falcon.max');
-
-% PBRT can't read the jpg texture
-quickPreview('/home/ben/Downloads/4bw1cngyboxs_millenium_falcon/millenium-falcon.obj', ...
-    'resources', resources, ...
+% Basically works fine
+%   PBRT can't read the jpeg texture
+scene = quickPreview('/home/ben/Downloads/4bw1cngyboxs_millenium_falcon/millenium-falcon.obj', ...
     commonArgs{:});
+mexximpSceneScatter(scene);
 
-% Geometry in here looks messed up.  "assimp info" and mexximpSceneBox()
-% both show a really large bounding box.  mexximpSceneScatter() shows
-% geometry located in different areas, really far apart.
-quickPreview('/home/ben/Downloads/4bw1cngyboxs_millenium_falcon/millenium-falcon.3DS', ...
-    'resources', resources, ...
+% Geometry in here looks messed up:
+%   "assimp info" and mexximpSceneBox() both show a huge bounding box.
+%   mexximpSceneScatter() shows separate, distant clumps of vertices.
+scene = quickPreview('/home/ben/Downloads/4bw1cngyboxs_millenium_falcon/millenium-falcon.3DS', ...
     commonArgs{:});
+mexximpSceneScatter(scene);
 
+%% Bat Cave
+%   http://www.turbosquid.com/3d-models/free-bat-cave-3d-model/639123
+
+scene = quickPreview('/home/ben/Downloads/Batcave_MR_OBJ/batcave.obj', ...
+    commonArgs{:});
+mexximpSceneScatter(scene);
