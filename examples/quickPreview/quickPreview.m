@@ -14,12 +14,16 @@ parser.StructExpand = false;
 parser.addRequired('sceneFile', @(a) 2 == exist(a, 'file'));
 parser.addParameter('renderers', {'Mitsuba', 'PBRT'}, @iscellstr);
 parser.addParameter('hints', GetDefaultHints(), @isstruct);
-parser.addParameter('cameraRelative', [0 0 -1], @(c) isnumeric(c) && 3 == numel(c));
+parser.addParameter('lookToCenter', [0 0 -1], @(c) isnumeric(c) && 3 == numel(c));
+parser.addParameter('cameraInside', false, @islogical);
+parser.addParameter('ignoreNodes', {}, @iscellstr);
 parser.parse(sceneFile, varargin{:});
 sceneFile = parser.Results.sceneFile;
 renderers = parser.Results.renderers;
 hints = parser.Results.hints;
-cameraRelative = parser.Results.cameraRelative;
+lookToCenter = parser.Results.lookToCenter;
+cameraInside = parser.Results.cameraInside;
+ignoreNodes = parser.Results.ignoreNodes;
 
 [scenePath, sceneBase, sceneExt] = fileparts(sceneFile);
 if isempty(scenePath)
@@ -39,7 +43,7 @@ try
     % some light cleanup?
     importFlags = mexximpConstants('postprocessStep');
     importFlags.joinIdenticalVertices = true;
-
+    
     scene = mexximpImport(sceneFile,importFlags);
     if isempty(scene)
         error('imported scene was empty');
@@ -59,27 +63,35 @@ if isempty(scene.cameras)
     camera.upDirection = [0 1 0];
     camera.aspectRatio = [1 1 1];
     camera.horizontalFov = pi()/3;
-    camera.clipPlaneFar = 1e4;
+    camera.clipPlaneFar = 1e6;
     camera.clipPlaneNear = 0.1;
     scene.cameras = camera;
     
     % figure out where to place the camera
     %   looking at geometry center
     %   far enough away to fit everything in Fov
-    [sceneBox, middlePoint] = mexximpSceneBox(scene);
+    [sceneBox, middlePoint] = mexximpSceneBox(scene, ...
+        'ignoreNodes', ignoreNodes);
     halfWidth = norm(sceneBox(:,1) - sceneBox(:,2)) / 2;
     
-    % Want half of the camera's viewing angle, which corresponds to the
-    % halfWidth of the bounding box calculated above.  The Assimp docs say
-    % that camera horizontalFov *is* the half-angle.  But it is behaving
-    % like the full viewing angle.  So divide by 2.
-    %
-    % This seems to be a bug in the Assimp code or documentation.  It might
-    % be specific to the import or export file format!  Ahh!
-    halfAngle = camera.horizontalFov / 2;
+    if cameraInside
+        % position camera inside the bounding box
+        cameraScale = halfWidth;
+    else
+        % position camera far enough away to view all the vertices
+        
+        % Want half of the camera's viewing angle, which corresponds to the
+        % halfWidth of the bounding box calculated above.  The Assimp docs
+        % say that camera horizontalFov *is* the half-angle.  But it is
+        % behaving like the full viewing angle.  So divide by 2.
+        %
+        % This seems to be a bug in the Assimp code or documentation.  It
+        % might be specific to the import or export file format!  Ahh!
+        halfAngle = camera.horizontalFov / 2;
+        cameraScale = halfWidth / tan(halfAngle);
+    end
     
-    cameraDistance = halfWidth / tan(halfAngle);
-    cameraPostion = middlePoint' + cameraRelative .* cameraDistance;
+    cameraPostion = middlePoint' + lookToCenter .* cameraScale;
     lookAt = mexximpLookAt(cameraPostion, middlePoint', [0 1 0]);
     
     cameraNode = mexximpConstants('node');
@@ -92,16 +104,22 @@ if isempty(scene.cameras)
         scene.rootNode.children = [scene.rootNode.children cameraNode];
     end
 else
-    % rename camera to agree with adjustments file
+    % pick first camera and rename to agree with our adjustments
+    camera = scene.cameras(1);
+    
     newCameraName = 'Camera';
-    oldCameraName = scene.cameras(1).name;
+    oldCameraName = camera.name;
     nodeNames = {scene.rootNode.children.name};
     cameraNodeIndexes = find(strcmp(oldCameraName, nodeNames));
     for ii = cameraNodeIndexes
         scene.rootNode.children(ii).name = newCameraName;
         cameraNode = scene.rootNode.children(ii);
     end
-    scene.cameras(1).name = newCameraName;
+    camera.name = newCameraName;
+    camera.clipPlaneFar = 1e6;
+    camera.clipPlaneNear = 0.1;
+
+    scene.cameras = camera;
 end
 
 %% Add a "lantern" near the camera.
@@ -149,11 +167,13 @@ for mm = 1:numel(scene.materials)
             
             % match resources based on file name and extension
             %   fileparts() fails on cross-platform file names!
+            fileWasFound = false;
             for ii = 1:nResources
                 resource = resources{ii};
                 fullResource = fullfile(scenePath, resource);
-
-                if ~isempty(strfind(dataFile, resource))
+                
+                if fuzzyMatch(dataFile, resource)
+                    fileWasFound = true;
                     
                     % grrr: rename "-" to "_" to avoid utf8 transcoding
                     isHyphen = '-' == resource;
@@ -177,11 +197,15 @@ for mm = 1:numel(scene.materials)
                         fullResource = fullfile(scenePath, resource);
                         imwrite(imageData, colorMap, fullResource, 'png');
                     end
-
+                    
                     scene.materials(mm).properties(pp).data = fullResource;
                     disp([dataFile ' -> ' fullResource]);
                     break;
                 end
+            end
+            
+            if ~fileWasFound && any('.' == dataFile)
+                disp([dataFile ' ?']);
             end
         end
     end
@@ -219,3 +243,21 @@ for renderer = renderers
         disp(ex.message)
     end
 end
+
+%% Fuzzy matching for file names: is b probably a good substitute for a?
+%   case insensitive
+%   4851-nor.jpg matches 4851-normal.jpg
+%   C:\foo\bar\baz.jpg matches baz.jpg
+function isMatch = fuzzyMatch(a, b)
+a = lower(a);
+b = lower(b);
+
+[~, aBase, aExt] = fileparts(a);
+[~, bBase, bExt] = fileparts(b);
+
+% one extension is a substring of the other,
+%   and one file name is a substring of the other
+isMatch = ...
+    (~isempty(strfind(aExt, bExt)) || ~isempty(strfind(bExt, aExt))) ...
+    && ...
+    (~isempty(strfind(aBase, bBase)) || ~isempty(strfind(bBase, aBase)));

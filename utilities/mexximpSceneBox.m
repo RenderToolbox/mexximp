@@ -1,4 +1,4 @@
-function [sceneBox, middlePoint] = mexximpSceneBox(scene)
+function [sceneBox, middlePoint] = mexximpSceneBox(scene, varargin)
 %% Visit and nodes in a scene and calculate a minimim bounding box.
 %
 % sceneBox = mexximpSceneBox(scene) calculates a minimum bounding
@@ -25,24 +25,31 @@ function [sceneBox, middlePoint] = mexximpSceneBox(scene)
 
 parser = rdtInputParser();
 parser.addRequired('scene', @isstruct);
-parser.parse(scene);
+parser.addParameter('ignoreNodes', {}, @iscellstr);
+parser.parse(scene, varargin{:});
 scene = parser.Results.scene;
+ignoreNodes = parser.Results.ignoreNodes;
 
 %% Apply a visitFunction to each scene node.
-sceneBox = mexximpVisitNodes(scene, @minBoundingBox);
+sceneBox = mexximpVisitNodes(scene, @minBoundingBox, ignoreNodes);
 middlePoint = mean(sceneBox, 2);
 
 %% Node visitFunction to calculate min box around a node and its children.
-function minBox = minBoundingBox(scene, node, childResults, workingTransformation, varargin)
+function minBox = minBoundingBox(scene, node, childResults, workingTransformation, ignoreNodes)
 
-% transform and bound meshes at this node
-nMeshes = numel(node.meshIndices);
-meshBoxes = cell(1, nMeshes);
-for ii = 1:nMeshes
-    meshIndex = node.meshIndices(ii);
-    vertices = scene.meshes(meshIndex + 1).vertices;
-    transformed = mexximpApplyTransform(vertices, workingTransformation);
-    meshBoxes = cat(2, min(transformed, [], 2), max(transformed, [], 2));
+% ignore this node?
+if any(strcmp(node.name, ignoreNodes))
+    meshBoxes = {};
+else
+    % transform and bound meshes at this node
+    nMeshes = numel(node.meshIndices);
+    meshBoxes = cell(1, nMeshes);
+    for ii = 1:nMeshes
+        meshIndex = node.meshIndices(ii);
+        vertices = scene.meshes(meshIndex + 1).vertices;
+        transformed = mexximpApplyTransform(vertices, workingTransformation);
+        meshBoxes = cat(2, min(transformed, [], 2), max(transformed, [], 2));
+    end
 end
 
 % combine with results from child nodes
