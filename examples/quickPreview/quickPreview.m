@@ -14,16 +14,10 @@ parser.StructExpand = false;
 parser.addRequired('sceneFile', @(a) 2 == exist(a, 'file'));
 parser.addParameter('renderers', {'Mitsuba', 'PBRT'}, @iscellstr);
 parser.addParameter('hints', GetDefaultHints(), @isstruct);
-parser.addParameter('lookToCenter', [0 0 -1], @(c) isnumeric(c) && 3 == numel(c));
-parser.addParameter('cameraInside', false, @islogical);
-parser.addParameter('ignoreNodes', {}, @iscellstr);
 parser.parse(sceneFile, varargin{:});
 sceneFile = parser.Results.sceneFile;
 renderers = parser.Results.renderers;
 hints = parser.Results.hints;
-lookToCenter = parser.Results.lookToCenter;
-cameraInside = parser.Results.cameraInside;
-ignoreNodes = parser.Results.ignoreNodes;
 
 [scenePath, sceneBase, sceneExt] = fileparts(sceneFile);
 if isempty(scenePath)
@@ -38,7 +32,7 @@ setpref('Mitsuba', 'adjustments', which('quick-mitsuba-adjustments.xml'));
 setpref('PBRT', 'adjustments', which('quick-pbrt-adjustments.xml'));
 mappingsFile = which('quick-mappings.txt');
 
-%% Suck in the scene and try to export to Collada.
+%% Suck in the scene.
 try
     % some light cleanup?
     importFlags = mexximpConstants('postprocessStep');
@@ -53,74 +47,30 @@ catch ex
         sceneFile, ex.message);
 end
 
-%% Fix up the camera.
-if isempty(scene.cameras)
-    % no camera!
-    camera = mexximpConstants('camera');
-    camera.name = 'Camera';
-    camera.position = [0 0 0];
-    camera.lookAtDirection = [0 0 -1];
-    camera.upDirection = [0 1 0];
-    camera.aspectRatio = [1 1 1];
-    camera.horizontalFov = pi()/3;
-    camera.clipPlaneFar = 1e6;
-    camera.clipPlaneNear = 0.1;
-    scene.cameras = camera;
+%% Overwrite the camera with a known camera.
+camera = mexximpConstants('camera');
+camera.name = 'Camera';
+camera.position = [0 0 0];
+camera.lookAtDirection = [0 0 -1];
+camera.upDirection = [0 1 0];
+camera.aspectRatio = [1 1 1];
+camera.horizontalFov = pi()/3;
+camera.clipPlaneFar = 1e6;
+camera.clipPlaneNear = 0.1;
+scene.cameras = camera;
     
-    % figure out where to place the camera
-    %   looking at geometry center
-    %   far enough away to fit everything in Fov
-    [sceneBox, middlePoint] = mexximpSceneBox(scene, ...
-        'ignoreNodes', ignoreNodes);
-    halfWidth = norm(sceneBox(:,1) - sceneBox(:,2)) / 2;
-    
-    if cameraInside
-        % position camera inside the bounding box
-        cameraScale = halfWidth;
-    else
-        % position camera far enough away to view all the vertices
-        
-        % Want half of the camera's viewing angle, which corresponds to the
-        % halfWidth of the bounding box calculated above.  The Assimp docs
-        % say that camera horizontalFov *is* the half-angle.  But it is
-        % behaving like the full viewing angle.  So divide by 2.
-        %
-        % This seems to be a bug in the Assimp code or documentation.  It
-        % might be specific to the import or export file format!  Ahh!
-        halfAngle = camera.horizontalFov / 2;
-        cameraScale = halfWidth / tan(halfAngle);
-    end
-    
-    cameraPostion = middlePoint' + lookToCenter .* cameraScale;
-    lookAt = mexximpLookAt(cameraPostion, middlePoint', [0 1 0]);
-    
-    cameraNode = mexximpConstants('node');
-    cameraNode.name = camera.name;
-    cameraNode.transformation = lookAt;
-    
-    if isempty(scene.rootNode.children)
-        scene.rootNode.children = cameraNode;
-    else
-        scene.rootNode.children = [scene.rootNode.children cameraNode];
-    end
-else
-    % pick first camera and rename to agree with our adjustments
-    camera = scene.cameras(1);
-    
-    newCameraName = 'Camera';
-    oldCameraName = camera.name;
-    nodeNames = {scene.rootNode.children.name};
-    cameraNodeIndexes = find(strcmp(oldCameraName, nodeNames));
-    for ii = cameraNodeIndexes
-        scene.rootNode.children(ii).name = newCameraName;
-        cameraNode = scene.rootNode.children(ii);
-    end
-    camera.name = newCameraName;
-    camera.clipPlaneFar = 1e6;
-    camera.clipPlaneNear = 0.1;
+cameraNode = mexximpConstants('node');
+cameraNode.name = camera.name;
+cameraNode.transformation = eye(4);
 
-    scene.cameras = camera;
+if isempty(scene.rootNode.children)
+    scene.rootNode.children = cameraNode;
+else
+    scene.rootNode.children = [scene.rootNode.children cameraNode];
 end
+
+%% Make the camera look at or away from the middle point of vertices.
+[scene, camera, cameraNode] = mexximpCentralizeCamera(scene, varargin{:});
 
 %% Add a "lantern" near the camera.
 lantern = mexximpConstants('light');

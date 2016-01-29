@@ -2,7 +2,13 @@ function ax = mexximpSceneScatter(scene, varargin)
 %% Visit and nodes in a scene and make a quick scatter plot.
 %
 % ax = mexximpSceneScatter(scene) makes a quick scatter plot summarizing
-% all the meshes in a scene.
+% all the meshes that are instantiated in a scene.
+%
+% Each instantiated mesh will get a text label which includes the name of
+% the node that instantiated the mesh, the name of the mesh, and the index
+% of the mesh in scene.meshes.  Clicking on one of these labels will print
+% the same information to the command window.  This may be useful when
+% identifying nodes to focus on or ignore.
 %
 % mexximpSceneScatter( ...'axes', a) plots into the given axes.
 %
