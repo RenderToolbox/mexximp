@@ -29,23 +29,23 @@ function [scene, camera, cameraNode] = mexximpCentralizeCamera(scene, varargin)
 % viewUp to orient the camera about the viewAxis.  The default is [0 1 0],
 % let the positive-y direction be "up".
 %
-% mexximpCentralizeCamera( ... 'exterior', exterior) choose whether the
-% camera should view the exteror of the scene from the outside (true), or
-% view the interior of a scene from the inside (false).  The default is
-% true, look at the exterior from the outside.
+% mexximpCentralizeCamera( ... 'viewExterior', viewExterior) choose whether
+% the camera should view the exterior of the scene from the outside (true),
+% or view the interior of a scene from the inside (false).  The default is
+% true, look at the viewExterior from the outside.
 %
-% Setting exterior to true should be useful when viewing single objects or
-% "outdoor" scenes.  This will cause the camera to look *at* the middle
+% Setting viewExterior to true should be useful when viewing single objects
+% or "outdoor" scenes.  This will cause the camera to look *at* the middle
 % point of the  scene from a point along the viewAxis.  The viewing
 % distance will be calculated such that the camera's field of view
 % encompasses all of the vertices in the scene.  The distance calculation
-% assumes that the viewAxis is normalized.  Scaling applied to the viewAxis
-% will cause the camera to move closer to or farther from the middle point.
+% assumes that the viewAxis is normalized.  Scaling the viewAxis will cause
+% the camera to move closer to or farther from the middle point. 
 %
-% Setting exterior to false should be useful when viewing "indoor" scenes.
-% This will cause the viewing direction to be reversed.  The camera will
-% sit at the middle point and look *away from* there along the viewAxis.
-% In this case scaling the viewAxis will have no effect.
+% Setting viewExterior to false should be useful when viewing "indoor"
+% scenes. This will cause the viewing direction to be reversed.  The camera
+% will sit at the middle point and look *away from* there along the
+% viewAxis. In this case scaling the viewAxis will have no effect.
 %
 % mexximpCentralizeCamera( ... 'ignoreNodes', ignoreNodes) optionally
 % specify a cell array of node names, causing the named nodes to be ignored
@@ -58,7 +58,7 @@ function [scene, camera, cameraNode] = mexximpCentralizeCamera(scene, varargin)
 %
 % See also mexximpSceneBox mexximpSceneScatter
 %
-% scene = mexximpCentralizeCamera(scene, varargin)
+% [scene, camera, cameraNode] = mexximpCentralizeCamera(scene, varargin)
 %
 % Copyright (c) 2016 mexximp Teame
 
@@ -67,14 +67,14 @@ parser.addRequired('scene', @isstruct);
 parser.addParameter('viewAxis', [0 0 -1], @(v) isnumeric(v) && 3 == numel(v));
 parser.addParameter('viewOffset', [0 0 0], @(v) isnumeric(v) && 3 == numel(v));
 parser.addParameter('viewUp', [0 1 0], @(v) isnumeric(v) && 3 == numel(v));
-parser.addParameter('exterior', true, @islogical);
+parser.addParameter('viewExterior', true, @islogical);
 parser.addParameter('ignoreNodes', {}, @iscellstr);
 parser.parse(scene, varargin{:});
 scene = parser.Results.scene;
 viewAxis = parser.Results.viewAxis;
 viewOffset = parser.Results.viewOffset;
 viewUp = parser.Results.viewUp;
-exterior = parser.Results.exterior;
+viewExterior = parser.Results.viewExterior;
 ignoreNodes = parser.Results.ignoreNodes;
 
 %% Locate the first camera and the node that instantiates it.
@@ -99,7 +99,7 @@ end
 
 viewMiddlePoint = sceneMiddlePoint' + viewOffset;
 
-if exterior
+if viewExterior
     % construct a right triangle with the camera and the boinding box,
     % solve the "adjacent" side as the viewing distance.
     
