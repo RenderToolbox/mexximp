@@ -25,7 +25,7 @@ With mPath, we can express things like "the value of the "quack" field of the se
 p = {'baz', 2, 'quack'};
 ```
 
-Actually, it doesn't have to be `s`.  The path is independent of the variable it's applied to.  This makes mPath useful for defining data mappings and schemas:  You can discover the paths in existing variables, and you can express paths that don't yet exist in a variable.
+Actually, it doesn't have to be `s`.  The path is independent of the variable it's applied to.  This makes mPath useful for defining data mappings and schemas:  you can discover the paths in existing variables, and you can express paths that don't yet exist in a variable.
 
 We can get the value at a path:
 ```
