@@ -25,7 +25,7 @@ nested at different levels, by field and by array index:
 ```
 s.foo = 'bar';
 s.baz(1).quack = 42;
-s.baz(2).quack = exp(i()*pi());
+s.baz(2).quack = exp(i *pi);
 s.baz(3).quack = -999999999;
 s.baz(4).quack = 0;
 ```
