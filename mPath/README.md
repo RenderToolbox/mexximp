@@ -74,8 +74,8 @@ q = {'baz', {'quack', @abs}};
 Let's unpack this:
  * `p{1}` says to look in the "baz" field.
  * `p{2}` is a cell array, which means do a query over array elements.
- * `p{2}{1} says for each element, get the value of the "quack" field.
- * `p{2}{1} says pass each value to the @abs function.
+ * `p{2}{1}` says for each element, get the value of the "quack" field.
+ * `p{2}{1}` says pass each value to the @abs function.
 
 Finally, we collect all the values returned from @abs and find the index of 
 the first maximum.  We use this to return a path that answers our query:
@@ -115,15 +115,15 @@ s.baz(4).zoom = 'zero';
 Now we want to pick out a "zoom" value, by "looking around" at 
 corresponding "quack" values.  This gets harder to say in English:
 
->> What is the value of the "zoom" field 
->> of the ith element of the "baz" field
->> where i is the index of the element of the "baz" field
+>> What is the value of the "zoom" field, 
+>> of the ith element of the "baz" field, 
+>> where i is the index 
+>> of the element of the "baz" field 
 >> whose "quack" field has the greatest absolute value?
 
 Yuck!  And yet, this is a fair and useful king of question to ask.  
 Fortunately, the query path is not so cumbersome, and very similar to the
 query path we've already seen:
-```
 ```
 q = {'baz', {'quack', @abs}, 'zoom'};
 value = mPathGet(s, q)
