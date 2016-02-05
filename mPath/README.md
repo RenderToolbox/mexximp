@@ -40,7 +40,7 @@ p = {'baz', 2, 'quack'};
 Actually, it doesn't have to be `s`.  The path is independent of the 
 variable it's applied to.  This makes mPath useful for defining data 
 mappings and schemas:  You can discover the paths in existing variables, 
-and you can express paths that don't exist in a variable yet.
+and you can express paths that don't yet exist in a variable.
 
 We can get the value at a path:
 ```
@@ -75,7 +75,7 @@ Let's unpack this:
  * `p{1}` says to look in the "baz" field.
  * `p{2}` is a cell array, which means do a query over array elements.
  * `p{2}{1}` says for each element, get the value of the "quack" field.
- * `p{2}{1}` says pass each value to the @abs function.
+ * `p{2}{2}` says pass each value to the @abs function.
 
 Finally, we collect all the values returned from @abs and find the index of 
 the first maximum.  We use this to return a path that answers our query:
