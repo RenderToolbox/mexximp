@@ -45,7 +45,7 @@ ans =
 ### Query Example
 Inspired by XPath and JSONPath, mPath can also express queries.
 
-An mPath query iterates the elements of an array, applies a sub-path and a criterion function to each element of the array, and picks the element with the maximum criterion value.  It returns the array idex of this winning element.
+An mPath query iterates the elements of an array, applies a sub-path and a scoring function to each element of the array, and picks the element with the maximum score.  It returns the array idex of this winning element.
 
 Here's an example.  We want to know which element of the "baz" field of `s`  has the greatest absolute value under its "quack" field.  The path looks like this:
 ```
