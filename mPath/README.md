@@ -104,7 +104,7 @@ little more complicated and ask about two fields, "quack" and "zoom":
 s.foo = 'bar';
 s.baz(1).quack = 42;
 s.baz(1).zoom = 'forty-two';
-s.baz(2).quack = exp(i()*pi());
+s.baz(2).quack = exp(i*pi);
 s.baz(2).zoom = 'Half of Euler''s identity';
 s.baz(3).quack = -999999999;
 s.baz(3).zoom = 'negative ninety-ninety-ninety...';
