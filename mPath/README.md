@@ -75,7 +75,7 @@ value =
     -999999999
 ```
 
-### Look-around Query.
+### Look-Around Query Example
 In the query example above, we focused on "quack".  Let's make things a little more complicated and ask about two fields, "quack" and "zoom":
 ```
 s.foo = 'bar';
