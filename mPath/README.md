@@ -72,10 +72,10 @@ q = {'baz', {'quack', @abs}};
 ```
 
 Let's unpack this:
- * `p{1}` says to look in the "baz" field.
- * `p{2}` is a cell array, which means do a query over array elements.
- * `p{2}{1}` says for each element, get the value of the "quack" field.
- * `p{2}{2}` says pass each value to the @abs function.
+ * `q{1}` says to look in the "baz" field.
+ * `q{2}` is a cell array, which means do a query over array elements.
+ * `q{2}{1}` says for each element, get the value of the "quack" field.
+ * `q{2}{2}` says pass each value to the @abs function.
 
 Finally, we collect all the values returned from @abs and find the index of 
 the first maximum.  We use this to return a path that answers our query:
