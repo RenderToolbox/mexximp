@@ -86,7 +86,7 @@ p2 =
 ```
 
 So, it was the 3rd element of the "baz" array that had the highest absolute
-value of quack.
+value of "quack".
 
 What if we want to know the winning value itself?  We can include the query
 in a larger path and find out:
