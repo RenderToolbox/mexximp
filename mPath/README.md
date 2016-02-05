@@ -6,7 +6,7 @@ Identify Matlab variables by their location in an array or structure, not just b
 
 But Matlab doesn't provide explicit references, and wrapping data inside a handle is only an option when defining your own data.  What happens when we are working with an existing data model that doesn't use handles?
 
-mPath defines a way of representing the "path" from a given variable, down through various fields and elements nested within the variable.  It also provides utilites that operate on paths, for getting and setting the value at the end of the path.
+mPath defines a way of representing the "path" from a given variable, down through various fields and elements nested within the variable.  It also provides utilites for getting, setting, and querying the values at the ends of the paths.
 
 For now, mPath is part of the mexximp project.  That's where mPath came from.  But mPath doesn't depend on the rest of mexximp, and it could be broken out into its own project.
 
