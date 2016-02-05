@@ -1,7 +1,7 @@
 # mPath
 Matlab data path scheme inspired by XPath and JSONPath.
 
-### Intr
+### Intro
 Identify Matlab variables by their location in an array or structure, not just by their value.  The intuition is similar to a reference or a handle object.
 
 But Matlab doesn't provide explicit references, and wrapping data inside a handle is only an option when defining your own data.  What happens when we are working with an existing data model that doesn't use handles?
