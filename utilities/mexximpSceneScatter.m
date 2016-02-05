@@ -108,11 +108,12 @@ l = line(x, y, z, ...
     'Marker', '.', ...
     'LineStyle', 'none', ...
     'Color', meshColor);
+set(l, 'ButtonDownFcn', {@meshCallback, lineName, [x(1), y(1), z(1)], l});
 
 t = text(x(1), y(1), z(1), lineName, ...
     'Parent', ax, ...
     'Color', meshColor, ...
-    'ButtonDownFcn', {@meshCallback, lineName, [x(1), y(1), z(1)]}, ...
+    'ButtonDownFcn', {@meshCallback, lineName, [x(1), y(1), z(1)], l}, ...
     'Interpreter', 'none');
 
 if emphasis
@@ -123,5 +124,14 @@ if emphasis
 end
 
 % let the user click on the mesh label
-function meshCallback(text, eventData, lineName, position)
+function meshCallback(obj, eventData, lineName, position, l)
 disp([lineName ' @ [' num2str(position) ']']);
+
+lineStyle = get(l, 'LineStyle');
+if strcmp('none', lineStyle)
+    newLineStyle = '-';
+else
+    newLineStyle = 'none';
+end
+set(l, 'LineStyle', newLineStyle);
+
