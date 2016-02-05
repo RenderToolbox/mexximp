@@ -19,7 +19,7 @@ For now, mPath is part of the mexximp project.  That's where mPath came
 from.  But mPath doesn't depend on the rest of mexximp, and it could be 
 broken out into its own project.
 
-#### Simple Example
+### Simple Example
 Here's a quick example.  Start with the struct `s` which contains values
 nested at different levels, by field and by array index:
 ```
