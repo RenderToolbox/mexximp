@@ -26,25 +26,32 @@ end
 
 %% Recursive case: dig in one step.
 pNext = p{1};
+pRest = p(2:end);
 if ischar(pNext)
     % descend into struct field
     dataRest = data.(pNext);
-    
-elseif isnumeric(pNext)
+    value = mPathGet(dataRest, pRest);
+    return;
+end
+
+if isnumeric(pNext)
     % descend into array or cell array element
     if iscell(data)
         dataRest = data{pNext};
     else
         dataRest = data(pNext);
     end
-    
-elseif iscell(pNext)
-    % resolve this query
-    
-else
-    error('mPathGet:invalidPath', 'Invalid path element of type %s:\n%s', ...
-        class(next), details(pNext));
+    value = mPathGet(dataRest, pRest);
+    return;
 end
 
-pRest = p(2:end);
-value = mPathGet(dataRest, pRest);
+if iscell(pNext)
+    % resolve this query and try again
+    p{1} = mPathQuery(data, pNext);
+    value = mPathGet(data, p);
+    return;
+end
+
+% expect to return before we get here
+error('mPathGet:invalidPath', 'Invalid path element of type %s:\n%s', ...
+    class(next), details(pNext));

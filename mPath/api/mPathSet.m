@@ -43,14 +43,17 @@ if ischar(pNext)
         else
             dataRest = [];
         end
-
+        
         % let empty data to take on any type
         if isempty(data)
             clear data;
         end
         data.(pNext) = mPathSet(dataRest, pRest, value);
     end
-elseif isnumeric(pNext)
+    return;
+end
+
+if isnumeric(pNext)
     if isempty(pRest)
         % base case: assign value at the end
         if iscell(data)
@@ -81,10 +84,16 @@ elseif isnumeric(pNext)
             data(pNext) = mPathSet(dataRest, pRest, value);
         end
     end
-elseif iscell(pNext)
-    % resolve this query
-    
-else
-    error('mPathSet:invalidPath', 'Invalid path element of type %s:\n%s', ...
-        class(next), details(pNext));
+    return;
 end
+
+if iscell(pNext)
+    % resolve this query and try again
+    p{1} = mPathQuery(data, pNext);
+    data = mPathSet(data, p, value);
+    return;
+end
+
+% expect to return before we get here
+error('mPathSet:invalidPath', 'Invalid path element of type %s:\n%s', ...
+    class(next), details(pNext));
