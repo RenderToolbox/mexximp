@@ -7,8 +7,16 @@
 % 2016 Mexximp Team.
 
 %% Get the scene into Mexximp.
+clear;
+clc;
 
 thisFolder = fileparts(which('applyDragonMappings.m'));
 sceneFile = fullfile(thisFolder, 'Dragon.blend');
-
 scene = mexximpImport(sceneFile);
+mexximpSceneScatter(scene);
+
+% Flatten the node hierarchy, for sanity.
+flatScene = scene;
+flatScene.rootNode = mexximpFlattenNodes(flatScene);
+mexximpSceneScatter(flatScene);
+
