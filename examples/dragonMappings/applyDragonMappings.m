@@ -46,6 +46,36 @@ objects = MappingsToObjects(mappings);
 mappingsNames = {objects.id};
 
 %% For each name in the mappings, can we pick the correct scene name?
-%   use substring of?
-%   use edit distance?
-%   use mappings class/subclass as a hint?
+sceneNames = unique(sceneNames);
+mappingsNames = unique(mappingsNames);
+nSceneNames = numel(sceneNames);
+nMappingsNames = numel(mappingsNames);
+distances = zeros(nSceneNames, nMappingsNames);
+for ss = 1:nSceneNames
+    for mm = 1:nMappingsNames
+        distances(ss,mm) = EditDistance(sceneNames{ss}, mappingsNames{mm});
+    end
+end
+[matchMins, matchInds] = min(distances, [], 1);
+
+% plot(1:nSceneNames, distances, matchInds, matchMins, '*k', 'MarkerSize', 10);
+% set(gca(), ...
+%     'XTick', 1:nSceneNames, ...
+%     'XTickLabel', sceneNames, ...
+%     'XTickLabelRotation', 45, ...
+%     'XGrid', 'on');
+% legend(mappingsNames);
+
+% what did we get?
+sceneNameMatches = sceneNames(matchInds);
+disp([sceneNameMatches' mappingsNames'])
+
+%% How would we pack up the mappings for mexximp?
+
+% find the ELEMENT we want to adjust:
+%   block type, class, and subclass -> scene.field
+%   id -> query based on name
+
+% directive for what to do at the ELEMENT
+%   block type, class, and subclass -> directive for ELEMENT to set up
+%   properties -> specifics to set within the ELEMENT
