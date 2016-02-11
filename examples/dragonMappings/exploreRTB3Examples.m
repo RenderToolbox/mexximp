@@ -5,16 +5,16 @@ clc;
 
 examplesFolder = fullfile(RenderToolboxRoot(), 'ExampleScenes');
 
-%% Scan the Blender scenes.
-blenderFiles = FindFiles(examplesFolder, '\.dae$');
-nBlenderFiles = numel(blenderFiles);
+%% Scan the scene files.
+sceneFiles = FindFiles(examplesFolder, '\.dae$');
+nSceneFiles = numel(sceneFiles);
 
 % gather names of all elements in the scene
-for ii = 1:nBlenderFiles
+for ss = 1:nSceneFiles
     disp(' ')
-    disp(blenderFiles{ii})
+    disp(sceneFiles{ss})
     
-    scene = mexximpImport(blenderFiles{ii});
+    scene = mexximpImport(sceneFiles{ss});
     if ~isstruct(scene)
         disp('BWAR!')
         continue;
@@ -24,24 +24,43 @@ for ii = 1:nBlenderFiles
     elements = mexximpSceneElements(scene);
     nElements = numel(elements);
     
-    % look for duplicate element names and display
+    % look for duplicate element names
     names = {elements.name};
     types = {elements.type};
+    isDup = false(1, nElements);
     for ee = 1:nElements
-        nameInds = find(strcmp(names{ee}, names));
-        nAppearances = numel(nameInds);
-        if nAppearances > 1
-            dupNames = names(nameInds);
-            dupTypes = types(nameInds);
-            nNodes = sum(strcmp('node', dupTypes));
+        isName = strcmp(names{ee}, names);
+        nNodes = sum(strcmp('node', types(isName)));
+        if sum(isName) - nNodes > 1
+            isDup = isDup | isName;
+        end
+    end
+    dupNames = names(isDup);
+    dupTypes = types(isDup);
+    
+    %% Check each associated mappings file.
+    sceneFolder = fileparts(sceneFiles{ss});
+    mappingsFiles = FindFiles(sceneFolder, 'Mappings\.txt$');
+    nMappingsFiles = numel(mappingsFiles);
+    
+    % gather ids from all mapped elements of the scene
+    for mm = 1:nMappingsFiles
+        disp(' ')
+        disp(mappingsFiles{mm})
+        
+        mappings = parseMappings(mappingsFiles{mm});
+        objects = MappingsToObjects(mappings);
+        nObjects = numel(objects);
+        
+        % are we trying to adjust elements with dup names and no type hint?
+        if ~isempty(dupNames)
+            disp([dupNames' dupTypes'])
             
-            % don't count nodes as duplicates -- can probably handle them
-            if nAppearances - nNodes > 1
-                disp([dupNames' dupTypes']);
-            end
+            isClassless = strcmp('', {objects.class});
+            ids = {objects(isClassless).id};
+            classes = {objects(isClassless).class};
+            subclasses = {objects(isClassless).subclass};
+            disp([ids' classes' subclasses'])
         end
     end
 end
-
-%% Scan the Mappings files.
-mappingsFiles = FindFiles(examplesFolder, 'Mappings\.txt$');
