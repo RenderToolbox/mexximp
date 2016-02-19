@@ -13,69 +13,68 @@ clc;
 thisFolder = fileparts(which('applyDragonMappings.m'));
 sceneFile = fullfile(thisFolder, 'Dragon.blend');
 scene = mexximpImport(sceneFile);
-%mexximpSceneScatter(scene);
 
 % Flatten the node hierarchy, for sanity.
-flatScene = scene;
-flatScene.rootNode = mexximpFlattenNodes(flatScene);
-%mexximpSceneScatter(flatScene);
+scene.rootNode = mexximpFlattenNodes(scene);
 
-%% Dig out names of materials.
-%   want util to put materials in standard, "flat" form?
-nMaterials = numel(flatScene.materials);
-materialNames = cell(1, nMaterials);
-isName = @(s) strcmp(s, 'name');
-for ii = 1:nMaterials
-    q = {'key', isName};
-    p = {'materials', ii, 'properties', q, 'data'};
-    materialNames{ii} = mPathGet(flatScene, p);
+elements = mexximpSceneElements(scene);
+disp({elements.name}');
+disp(' ')
+
+%% Write the scene out as Collada.
+workingFolder = fullfile(tempdir(), 'mexximpDragonMappings');
+if 7 ~= exist(workingFolder, 'dir')
+    mkdir(workingFolder);
 end
+colladaFile = fullfile(workingFolder, 'dragon.dae');
 
-%% Get all the names of things in the scene.
-sceneNames = { ...
-    flatScene.cameras.name, ...
-    materialNames{:}, ...
-    flatScene.meshes.name, ...
-    flatScene.rootNode.name, ...
-    flatScene.rootNode.children.name};
+mexximpExport(scene, 'collada', colladaFile);
+
+%% Convert Collada to Mitsuba.
+hints.filmType = 'hdrfilm';
+hints.imageWidth = 640;
+hints.imageHeight = 480;
+
+mitsuba.importer = '/home/ben/render/mitsuba/mitsuba-spectral/mtsimport';
+
+mitsubaFile = colladaToMitsuba(colladaFile, workingFolder, mitsuba, hints);
+
+%% Get the Collada scene in memory.
+[docNode, idMap] = ReadSceneDOM(mitsubaFile);
+mitsubaIds = idMap.keys();
+disp(mitsubaIds')
+disp(' ')
 
 %% Get all the names of things subject to mappings.
 mappingsFile = fullfile(thisFolder, 'DragonMappings.txt');
-mappings = ParseMappings(mappingsFile);
-objects = MappingsToObjects(mappings);
-mappingsNames = {objects.id};
+mappings = parseMappings(mappingsFile);
+adjustments = mappingsToAdjustments(mappings);
+disp({adjustments.name}');
+disp(' ')
 
-%% For each name in the mappings, can we pick the correct scene name?
-sceneNames = unique(sceneNames);
-mappingsNames = unique(mappingsNames);
-nSceneNames = numel(sceneNames);
-nMappingsNames = numel(mappingsNames);
-distances = zeros(nSceneNames, nMappingsNames);
-for ss = 1:nSceneNames
-    for mm = 1:nMappingsNames
-        distances(ss,mm) = EditDistance(sceneNames{ss}, mappingsNames{mm});
-    end
-end
-[matchMins, matchInds] = min(distances, [], 1);
-
-% plot(1:nSceneNames, distances, matchInds, matchMins, '*k', 'MarkerSize', 10);
-% set(gca(), ...
-%     'XTick', 1:nSceneNames, ...
-%     'XTickLabel', sceneNames, ...
-%     'XTickLabelRotation', 45, ...
-%     'XGrid', 'on');
-% legend(mappingsNames);
-
-% what did we get?
-sceneNameMatches = sceneNames(matchInds);
-disp([sceneNameMatches' mappingsNames'])
-
-%% How would we pack up the mappings for mexximp?
-
-% find the ELEMENT we want to adjust:
-%   block type, class, and subclass -> scene.field
-%   id -> query based on name
-
-% directive for what to do at the ELEMENT
-%   block type, class, and subclass -> directive for ELEMENT to set up
-%   properties -> specifics to set within the ELEMENT
+% Here is a problem: Assimp exports Collada meshes by number, not by name!
+% So the shapes in the new Mitsuba file will have boring numerical ids.  We
+% do have a mapping from names to numbers, because we have
+% scene.meshes(i).name
+%
+% So we need to do this:
+%   adjustment name -> scene.meshes(i).name -> i -> mitsuba id
+%
+% How do we do the last bit?  Two hacks come to mind:
+%	- Look in Assimp's Collada exporter code and scrape the schema for
+%	constructing ids.  Construct similar ids ourselves, and happily match
+%	ids.  This will work but is brittle wrt assimp updates (how ids are
+%	constructed).
+%   - Look in the Mitsuba scene and get the shapeIndex of each shape.
+%   Assume that these indices are the same as in scene.meshes(i).  This is
+%   brittle wrt assimp updates (order of exported meshes) and Mitsuba
+%   updates (whether and how shapeIndex is used).
+%
+% Surprisingly, I like the first one better!
+%
+% For legacy mappings files and new mappings files, we want to use mesh
+% names and not indexes.  So this issue will stay with us.
+%
+% This should will not be an issue for PBRT because we will control the
+% whole process in Matlab.
+%

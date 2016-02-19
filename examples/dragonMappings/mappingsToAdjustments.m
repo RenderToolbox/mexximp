@@ -38,9 +38,7 @@ for ii = 1:nUniqueIds
     id = uniqueIds{ii};
     
     % collect all mappings under a top-level adjustment
-    topLevelAdjustment = newAdjustment(id, 'placeholder', 'placeholder', [], ...
-        'group', mapping.group, ...
-        'destination', mapping.blockType);
+    topLevelAdjustment = newAdjustment(id, 'placeholder', '', []);
     
     % look up all mappings that use this id
     mappingInds = find(strcmp(id, ids));
@@ -72,6 +70,8 @@ for ii = 1:nUniqueIds
             topLevelAdjustment.broadType = broadType;
             topLevelAdjustment.specificType = specificType;
             topLevelAdjustment.operator = 'declare';
+            topLevelAdjustment.group = mapping.group;
+            topLevelAdjustment.destination = mapping.blockType;
         else
             % nest property adjustments within the top-level adjustment
             nestedAdjustment = newAdjustment(id, broadType, specificType, mapping.right.value, ...
