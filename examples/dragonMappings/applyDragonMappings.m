@@ -1,3 +1,4 @@
+
 %% Try to apply a RenderToolbox3 Mappings file to an example scene.
 %
 % This is a proof of concept.  Can we process RenderToolbox3 mappings and
@@ -18,8 +19,6 @@ scene = mexximpImport(sceneFile);
 scene.rootNode = mexximpFlattenNodes(scene);
 
 elements = mexximpSceneElements(scene);
-disp({elements.name}');
-disp(' ')
 
 %% Write the scene out as Collada.
 workingFolder = fullfile(tempdir(), 'mexximpDragonMappings');
@@ -41,40 +40,50 @@ mitsubaFile = colladaToMitsuba(colladaFile, workingFolder, mitsuba, hints);
 
 %% Get the Collada scene in memory.
 [docNode, idMap] = ReadSceneDOM(mitsubaFile);
-mitsubaIds = idMap.keys();
-disp(mitsubaIds')
-disp(' ')
+mitsubaElements = struct( ...
+    'id', idMap.keys(), ...
+    'element', idMap.values());
 
 %% Get all the names of things subject to mappings.
 mappingsFile = fullfile(thisFolder, 'DragonMappings.txt');
 mappings = parseMappings(mappingsFile);
 adjustments = mappingsToAdjustments(mappings);
-disp({adjustments.name}');
-disp(' ')
 
-% Here is a problem: Assimp exports Collada meshes by number, not by name!
-% So the shapes in the new Mitsuba file will have boring numerical ids.  We
-% do have a mapping from names to numbers, because we have
-% scene.meshes(i).name
-%
-% So we need to do this:
-%   adjustment name -> scene.meshes(i).name -> i -> mitsuba id
-%
-% How do we do the last bit?  Two hacks come to mind:
-%	- Look in Assimp's Collada exporter code and scrape the schema for
-%	constructing ids.  Construct similar ids ourselves, and happily match
-%	ids.  This will work but is brittle wrt assimp updates (how ids are
-%	constructed).
-%   - Look in the Mitsuba scene and get the shapeIndex of each shape.
-%   Assume that these indices are the same as in scene.meshes(i).  This is
-%   brittle wrt assimp updates (order of exported meshes) and Mitsuba
-%   updates (whether and how shapeIndex is used).
-%
-% Surprisingly, I like the first one better!
-%
-% For legacy mappings files and new mappings files, we want to use mesh
-% names and not indexes.  So this issue will stay with us.
-%
-% This should will not be an issue for PBRT because we will control the
-% whole process in Matlab.
-%
+%% Figure out how to land the adjustments in mexximp scene and collada.
+for ii = 1:numel(adjustments)
+    destination = adjustments(ii).destination;
+    name = adjustments(ii).name;
+    broadType = adjustments(ii).broadType;
+    
+    if strcmp('Collada', destination)
+        disp([name ' (manual Collada to mPath)']);
+        continue;
+    end
+    
+    if ~isempty(strfind(destination, '-path'))
+        disp([name ' (manual path to literal)']);
+        continue;
+    end
+    
+    % map to mexximp scene element
+    q = {'name', mexximpStringMatcher(name)};
+    element = mPathGet(elements, {q});
+    elementIndex = element.path{end};
+    
+    % map to mitsuba element
+    if strcmp('mesh', element.type)
+        mistubaId = sprintf('meshId%d', elementIndex-1);
+    else
+        mistubaId = element.name;
+    end
+    q = {'id', mexximpStringMatcher(mistubaId)};
+    mitsubaElement = mPathGet(mitsubaElements, {q});
+    
+    % how did we do?
+    disp([
+        name ' (' broadType ')', ...
+        ' -> ', ...
+        element.name ' (' element.type ') [' num2str(elementIndex) ']', ...
+        ' -> ', ...
+        mitsubaElement.id]);
+end

@@ -1,4 +1,4 @@
-function index = mPathQuery(data, q)
+function [index, score] = mPathQuery(data, q)
 %% Run a query over a data array and return the index of the winner.
 %
 % index = mPathQuery(data, q) iterates elements of the given data
@@ -18,11 +18,12 @@ function index = mPathQuery(data, q)
 % This function will be used instead of the default scoring function.
 %
 % Returns the index into data of the element where the highest score
-% occurred, or the first such index if there is a tie.
+% occurred, or the first such index if there is a tie.  Also returns the
+% actual score of the winner.
 %
 % See also mPathSyntax mPathGet mPathSet
 %
-% index = mPathQuery(data, q)
+% [index, score] = mPathQuery(data, q)
 %
 % Copyright (c) 2016 mPath Team
 
@@ -59,7 +60,7 @@ for ii = 1:nElements
 end
 
 %% Choose the winner.
-[~, index] = max(scores);
+[score, index] = max(scores);
 
 %% Score by sum where possible, else number of elements.
 function score = sumOrNumel(value)
