@@ -29,7 +29,7 @@ function mappings = parseMappings(mappingsFile)
 
 % implementation taken from RenderToolbox3 ParseMappings().
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('mappingsFile', @ischar);
 parser.parse(mappingsFile);
 mappingsFile = parser.Results.mappingsFile;

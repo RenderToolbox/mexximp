@@ -62,10 +62,12 @@ for ss = 1:nSceneFiles
         mappings = parseMappings(mappingsFiles{mm});
         adjustments = mappingsToAdjustments(mappings);
         
-        % only care about Generaic and Mitsuba stuff right now
+        % only care about Generic and Mitsuba stuff right now
         isGeneric = strcmp({adjustments.destination}, 'Generic');
         isMitsuba = strcmp({adjustments.destination}, 'Mitsuba');
-        for aa = find(isMitsuba | isGeneric)
+        adjustments = adjustments(isMitsuba | isGeneric);
+        
+        for aa = 1:numel(adjustments)
             adj = adjustments(aa);
             
             if strcmp('mesh', adj.broadType) ...
@@ -96,6 +98,9 @@ for ss = 1:nSceneFiles
             [mitsubaIndex, mitsubaScore] = mPathQuery(mitsubaElements, idQuery);
             mitsubaId = mitsubaElements(mitsubaIndex).id;
             
+            % paste this into a spreadsheet and review
+            %   does mitsubaId look like a good match for idToMatch?
+            %   or, does elementScore or mitsubaScore indicate no match?
             TAB = sprintf('\t');
             disp([ ...
                 mappingsFiles{mm} TAB ...
@@ -110,5 +115,16 @@ for ss = 1:nSceneFiles
                 mitsubaId TAB ...
                 ]);
         end
+        
+        %% Continue the proof of concept.
+        
+        % convert adjustments and apply to the DOM
+        adjustments = genericAdjustmentsToMitsuba(adjustments);
+        adjustMitsubaDocument(idMap, adjustments, scene);
+        
+        % write out the adjusted scene
+        [mitsubaPath, mitsubaBase, mitsubaExt] = fileparts(mitsubaFile);
+        adjustedMitusbaFile = fullfile(mitsubaPath, ['adjusted-' mitsubaBase mitsubaExt]);
+        WriteSceneDOM(adjustedMitusbaFile, docNode);
     end
 end

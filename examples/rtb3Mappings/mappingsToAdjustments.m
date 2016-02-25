@@ -38,7 +38,8 @@ for ii = 1:nUniqueIds
     id = uniqueIds{ii};
     
     % collect all mappings under a top-level adjustment
-    topLevelAdjustment = newAdjustment(id, 'placeholder', '', []);
+    topLevelAdjustment = newAdjustment( ...
+        'name', id);
     
     % look up all mappings that use this id
     mappingInds = find(strcmp(id, ids));
@@ -54,27 +55,31 @@ for ii = 1:nUniqueIds
         end
         
         if pathLength >= 2
-            [~, broadType] = ScanPathPart(pathCell{2});
+            [~, partOne] = ScanPathPart(pathCell{2});
         else
-            broadType = 'unknown';
+            partOne = 'unknown';
         end
         
         if pathLength >= 3
-            [~, specificType] = ScanPathPart(pathCell{3});
+            [~, partTwo] = ScanPathPart(pathCell{3});
         else
-            specificType = 'unknown';
+            partTwo = 'unknown';
         end
         
         if isempty(mapping.operator)
             % fill in the top-level declaration
-            topLevelAdjustment.broadType = broadType;
-            topLevelAdjustment.specificType = specificType;
+            topLevelAdjustment.broadType = partOne;
+            topLevelAdjustment.specificType = partTwo;
             topLevelAdjustment.operator = 'declare';
             topLevelAdjustment.group = mapping.group;
             topLevelAdjustment.destination = mapping.blockType;
         else
             % nest property adjustments within the top-level adjustment
-            nestedAdjustment = newAdjustment(id, broadType, specificType, mapping.right.value, ...
+            nestedAdjustment = newAdjustment( ...
+                'name', partOne, ...
+                'broadType', 'parameter', ...
+                'specificType', partTwo, ...
+                'value', mapping.right.value, ...
                 'operator', mapping.operator, ...
                 'group', mapping.group, ...
                 'destination', mapping.blockType);
@@ -82,13 +87,8 @@ for ii = 1:nUniqueIds
         end
     end
     
-    if strcmp('placeholder', topLevelAdjustment.broadType)
-        % raw properties with no containing declaration
-        adjustmentCell{ii} = topLevelAdjustment.value;
-    else
-        % element declaration plus nested properties
-        adjustmentCell{ii} = topLevelAdjustment;
-    end
+    % element declaration plus nested properties
+    adjustmentCell{ii} = topLevelAdjustment;
     
 end
 adjustments = [adjustmentCell{:}];

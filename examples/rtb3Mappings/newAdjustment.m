@@ -1,4 +1,4 @@
-function adjustment = newAdjustment(name, broadType, specificType, value, varargin)
+function adjustment = newAdjustment(varargin)
 %% Pack up a scene element adjustment.
 %
 % The idea here is to make a consistent struct representation of an
@@ -9,14 +9,23 @@ function adjustment = newAdjustment(name, broadType, specificType, value, vararg
 % RenderToolbox3 "Generic" adjustments as well as renderer-specific
 % adjustments.
 %
-% adjustment = NewAdjustment(name, broadType, specificType, value) packs
-% up a new adjustment.  The name must be a unique idenifier for a scene
-% element.  The broadType must be the name of a broad class of scene
-% elements, like "mesh" or "parameter".  The specificType must be a
-% concrete type within the broadType, like "trianglemesh" or "float".  The
-% value may have many forms, but must agree with the specificType.  Values
-% may be an array, scalar, string, or even a struct array of nested
-% adjustments.
+% adjustment = NewAdjustment() creates a default adjustment struct.
+%
+% adjustment = NewAdjustment(... 'name', name) sets the name or id of the
+% element to be adjusted.  The default is ''.
+%
+% adjustment = NewAdjustment(... 'broadType', broadType) sets the general
+% category of the element to be adjusted.  For example, "mesh" or
+% "parameter". The default is ''.
+%
+% adjustment = NewAdjustment(... 'specificType', specificType) sets a more
+% specific type for the element to be adjusted.  For example,
+% "trianglemesh" or "float". The default is ''.
+%
+% adjustment = NewAdjustment(... 'value', value) sets the value of the
+% element to be adjusted.  The value may be a simple numeric or string
+% type, or a struct array of nested adjustments.  This allows building up
+% of complex scene elements.  The default is [].
 %
 % adjustment = NewAdjustment(... 'operator', operator) sets the operator to
 % use with the value.  The default is '=', assign the value to the scene
@@ -37,14 +46,14 @@ function adjustment = newAdjustment(name, broadType, specificType, value, vararg
 % Copyright (c) 2016 mexximp Team
 
 parser = rdtInputParser();
-parser.addRequired('name', @ischar);
-parser.addRequired('broadType', @ischar);
-parser.addRequired('specificType', @ischar);
-parser.addRequired('value');
+parser.addParameter('name', '', @ischar);
+parser.addParameter('broadType', '', @ischar);
+parser.addParameter('specificType', '', @ischar);
+parser.addParameter('value', []);
 parser.addParameter('operator', '=', @ischar);
 parser.addParameter('group', '', @ischar);
 parser.addParameter('destination', '', @ischar);
-parser.parse(name, broadType, specificType, value, varargin{:});
+parser.parse(varargin{:});
 
 %% Let the input parser build us a struct.
 adjustment = parser.Results;
