@@ -79,7 +79,7 @@ for ii = 1:numel(adjustments)
         textureName = queryAdjustmentValue(adj, 'textureID', 'value', '');
         textureId = chooseElementId(textureName, 'texture', '', mitsubaElements, scene);
         scaledId = [textureId '-scaled'];
-        declareElement(idMap, scaledId, 'texture', 'scale');
+        declareElement(idMap, scaledId, 'texture', 'scale', true);
         configureElement(idMap, scaledId, 'value', 'ref', textureId);
         scaleFactor = queryAdjustmentValue(adj, 'scale', 'value', '1');
         configureElement(idMap, scaledId, 'scale', 'float', scaleFactor);
@@ -96,9 +96,10 @@ for ii = 1:numel(adjustments)
         
         % make a new bump map material
         %   point it at the original material and the scale texture
-        declareElement(idMap, materialId, 'bsdf', 'bumpmap');
-        configureElement(idMap, materialId, 'texture', 'ref', scaledId);
-        configureElement(idMap, materialId, 'bsdf', 'ref', innerMaterialId);
+        bumpMapId = adj.name;
+        declareElement(idMap, bumpMapId, 'bsdf', 'bumpmap', true);
+        configureElement(idMap, bumpMapId, 'texture', 'ref', scaledId);
+        configureElement(idMap, bumpMapId, 'bsdf', 'ref', innerMaterialId);
         
         continue;
     end
@@ -150,23 +151,12 @@ if mitsubaScore < .7
 end
 elementId = mitsubaElements(mitsubaIndex).id;
 
-
-%% Make sure the DOM contains a node for the given object.
-function ensureDomNode(idMap, id, nodeName)
-if ~idMap.isKey(id)
-    docNode = idMap('document');
-    docRoot = docNode.getDocumentElement();
-    objectNode = CreateElementChild(docRoot, nodeName, id, 'first');
-    idMap(id) = objectNode;
-end
-
-
 % Apply a whole adjustment struct to the DOM.
 function applyAdjustment(idMap, adj)
 
 % need to declare element that doesn't exist yet?
 if strcmp(adj.operator, 'declare')
-    declareElement(idMap, adj.name, adj.broadType, adj.specificType);
+    declareElement(idMap, adj.name, adj.broadType, adj.specificType, false);
 end
 
 % nested properties for the declared/existing element
@@ -177,28 +167,58 @@ end
 
 
 %% Add an object declaration to the DOM.
-function declareElement(idMap, id, broadType, specificType)
+function declareElement(idMap, id, broadType, specificType, removeChildren)
 
-if isempty(broadType)
-    return;
+if nargin < 4 || isempty(specificType)
+    specificType = [];
+end
+
+if nargin < 5 || isempty(removeChildren)
+    removeChildren = false;
 end
 
 % make sure the DOM has a node for this object
-ensureDomNode(idMap, id, broadType);
+ensureDomNode(idMap, id, broadType, removeChildren);
 
 % set the node name
 path = {id, PrintPathPart('$')};
 SetSceneValue(idMap, path, broadType, true, '=');
 
-if nargin >= 4
+if ~isempty(specificType)
     % set the node type
     path = {id, PrintPathPart('.', 'type')};
     SetSceneValue(idMap, path, specificType, true, '=');
 end
 
+%% Make sure the DOM contains a node for the given object.
+function ensureDomNode(idMap, id, nodeName, removeChildren)
+if nargin < 4 || isempty(removeChildren)
+    removeChildren = false;
+end
+
+if ~idMap.isKey(id)
+    docNode = idMap('document');
+    docRoot = docNode.getDocumentElement();
+    objectNode = CreateElementChild(docRoot, nodeName, id, 'first');
+    idMap(id) = objectNode;
+end
+
+if removeChildren
+    objectNode = idMap(id);
+    [~, names] = GetElementChildren(objectNode);
+    for cc = 1:numel(names)
+        path = {id, PrintPathPart(':', names{cc})};
+        RemoveSceneNode(idMap, path);
+    end
+end
+
 
 %% Configure an existing element of the DOM.
 function configureElement(idMap, id, name, type, value)
+
+if isempty(value)
+    return;
+end
 
 if ~idMap.isKey(id)
     error('adjustMitsubaDocument:missingElement', ...

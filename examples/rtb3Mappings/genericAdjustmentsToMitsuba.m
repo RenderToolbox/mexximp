@@ -127,5 +127,4 @@ for aa = 1:numel(adjustments)
     
     % save the modified adjustment
     adjustments(aa) = adj;
-    adj
 end

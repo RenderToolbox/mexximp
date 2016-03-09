@@ -1,28 +1,29 @@
-function mitsubaFile = colladaToMitsuba(colladaFile, destinationFolder, mitsuba, hints)
+function mitsubaFile = colladaToMitsuba(colladaFile, mitsubaFile, mitsuba, hints)
 %% Convert a Collada file to a mistuba file using mtsimport.
 %
-% mitsubaFile = colladaToMitsuba(colladaFile, destinationFolder, mitsuba)
+% mitsubaFile = colladaToMitsuba(colladaFile, mitsubaFile, mitsuba)
 % uses the mtsimport executable from the given mitsuba.importer to convert
-% the given colladaFile to a Mitsuba scene file.  The new scene file and
-% any auxiliary files will be created in the given destinationFolder.
+% the given colladaFile to a Mitsuba scene file.  The new scene file will
+% be written at the given mitsubaFile.  Any auxiliary files will be created
+% in the same folder as mitsubaFile.
 %
 % The new scene will use the given hints.imageWidth, hints.imageHeight, and
 % hints.filmType.
 %
 % Returns the full path to the newly created Mitsuba scene file.
 %
-% mitsubaFile = colladaToMitsuba(colladaFile, destinationFolder, mitsuba)
+% mitsubaFile = colladaToMitsuba(colladaFile, mitsubaFile, mitsuba)
 %
 % Copyright (c) 2016 mexximp Team
 
 parser = rdtInputParser();
 parser.addRequired('colladaFile', @ischar);
-parser.addRequired('destinationFolder', @ischar);
+parser.addRequired('mitsubaFile', @ischar);
 parser.addRequired('mitsuba', @isstruct);
 parser.addRequired('hints', @isstruct);
-parser.parse(colladaFile, destinationFolder, mitsuba, hints);
+parser.parse(colladaFile, mitsubaFile, mitsuba, hints);
 colladaFile = parser.Results.colladaFile;
-destinationFolder = parser.Results.destinationFolder;
+mitsubaFile = parser.Results.mitsubaFile;
 mitsuba = parser.Results.mitsuba;
 hints = parser.Results.hints;
 
@@ -40,13 +41,10 @@ if isempty(hints.imageHeight)
 end
 
 %% Create destination folder if needed.
-if 7 ~= exist(destinationFolder, 'dir')
-    mkdir(destinationFolder);
+mitsubaFolder = fileparts(mitsubaFile);
+if 7 ~= exist(mitsubaFolder, 'dir')
+    mkdir(mitsubaFolder);
 end
-
-%% Choose the new file to create.
-[~, colladaBase] = fileparts(colladaFile);
-mitsubaFile = fullfile(destinationFolder, [colladaBase '.xml']);
 
 %% Choose the system's linrary path variable name.
 if isunix()
@@ -71,15 +69,15 @@ importCommand = sprintf('%s=%s %s -r %dx%d -l %s %s %s', ...
     mitsubaFile);
 
 %disp(importCommand);
-[status, result] = unixInFolder(importCommand, destinationFolder);
+[status, result] = unixInFolder(importCommand, mitsubaFolder);
 if status ~= 0
     error('colladaToMitsuba:conversionFailed', ...
         'Error converting Collada to Mitsuba:\n%s\n', result);
 end
 
 %% Execute in destination folder to collect all outputs there.
-function [status, result] = unixInFolder(command, destinationFolder)
+function [status, result] = unixInFolder(command, mitsubaFile)
 originalFolder = pwd();
-cd(destinationFolder);
+cd(mitsubaFile);
 [status, result] = unix(command);
 cd(originalFolder);

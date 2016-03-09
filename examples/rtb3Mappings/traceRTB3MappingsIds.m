@@ -8,6 +8,9 @@ clc;
 
 examplesFolder = fullfile(RenderToolboxRoot(), 'ExampleScenes');
 sceneFiles = FindFiles(examplesFolder, '\.dae$');
+
+sceneFiles = sceneFiles([3 8 13]);
+
 nSceneFiles = numel(sceneFiles);
 
 %% Explore mappings for each scene.
@@ -31,7 +34,7 @@ for ss = 1:nSceneFiles
     scene = mexximpResolveResources(scene, 'resourceFolder', scenePath);
     
     %% Write the scene out as Collada.
-    workingFolder = fullfile(tempdir(), 'collada', sceneBase);
+    workingFolder = fullfile(tempdir(), 'mitsuba-poc', sceneBase);
     if 7 ~= exist(workingFolder, 'dir')
         mkdir(workingFolder);
     end
@@ -40,23 +43,27 @@ for ss = 1:nSceneFiles
     
     %% Convert Collada to Mitsuba.
     hints.filmType = 'hdrfilm';
-    hints.imageWidth = 640;
-    hints.imageHeight = 480;
+    hints.imageWidth = 320;
+    hints.imageHeight = 240;
     
     mitsuba.importer = '/home/ben/render/mitsuba/mitsuba-spectral/mtsimport';
-    mitsubaFile = colladaToMitsuba(colladaFile, workingFolder, mitsuba, hints);
-    
-    %% Get the Collada scene in memory.
-    [docNode, idMap] = ReadSceneDOM(mitsubaFile);
-    mitsubaElements = struct( ...
-        'id', idMap.keys(), ...
-        'element', idMap.values());
+    mitsubaFile = fullfile(workingFolder, [sceneBase '.xml']);
+    colladaToMitsuba(colladaFile, mitsubaFile, mitsuba, hints);
     
     %% Check each associated mappings file.
     sceneFolder = fileparts(sceneFiles{ss});
     mappingsFiles = FindFiles(sceneFolder, 'Mappings\.txt$');
     nMappingsFiles = numel(mappingsFiles);
     for mm = 1:nMappingsFiles
+        
+        %% Get a fresh copy of the Mitsuba scene in memory.
+        %   Mitsuba nodes named "ref" have "id" attributes,
+        %   but they don't count as first-class "id nodes"
+        excludePattern = '^ref$';
+        [docNode, idMap] = ReadSceneDOM(mitsubaFile, excludePattern);
+        mitsubaElements = struct( ...
+            'id', idMap.keys(), ...
+            'element', idMap.values());
         
         %% Trace adjustment names/ids through mexximp and Collada.
         mappings = parseMappings(mappingsFiles{mm});
@@ -123,8 +130,8 @@ for ss = 1:nSceneFiles
         adjustMitsubaDocument(idMap, adjustments, scene);
         
         % write out the adjusted scene
-        [mitsubaPath, mitsubaBase, mitsubaExt] = fileparts(mitsubaFile);
-        adjustedMitusbaFile = fullfile(mitsubaPath, ['adjusted-' mitsubaBase mitsubaExt]);
+        [~, mappingsBase] = fileparts(mappingsFiles{mm});
+        adjustedMitusbaFile = fullfile(workingFolder, [mappingsBase '-adjusted.xml']);
         WriteSceneDOM(adjustedMitusbaFile, docNode);
     end
 end
