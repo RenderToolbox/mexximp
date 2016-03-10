@@ -1,7 +1,7 @@
 [
 	{
 		"index": 1,
-		"broadType": "rootNode",
+		"broadType": "nodes",
 		"operation": "update",
 		"properties": {
 			"name": "transformation",
@@ -84,5 +84,21 @@
 				"value": 33.567
 			}
 		]
+	},
+	{
+		"name": "dragon",
+		"broadType": "nodes",
+		"operation": "update",
+		"properties": {
+			"name": "transformation",
+			"valueType": "matrix",
+			"operation": "*=",
+			"value": [
+				[1,0,0,0],
+				[0,1,0,0],
+				[0,0,1,0],
+				[0,0,0,1]
+			]
+		}
 	}
 ]

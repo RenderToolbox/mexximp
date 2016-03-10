@@ -24,10 +24,10 @@ parser.parse(scene);
 scene = parser.Results.scene;
 
 %% Cameras.
-cameras = sceneElementsByName(scene.cameras, 'camera', {'cameras'});
+cameras = sceneElementsByName(scene.cameras, 'cameras', {'cameras'});
 
 %% Lights.
-lights = sceneElementsByName(scene.lights, 'light', {'lights'});
+lights = sceneElementsByName(scene.lights, 'lights', {'lights'});
 
 %% Materials.
 % tricky format, but materials also have names:
@@ -41,19 +41,19 @@ for mm = 1:nMaterials
     p = {'materials', mm, 'properties', q, 'data'};
     
     name = mPathGet(scene, p);
-    materials{mm} = sceneElement(name, 'material', {'materials', mm});
+    materials{mm} = sceneElement(name, 'materials', {'materials', mm});
 end
 
 %% Meshes.
-meshes = sceneElementsByName(scene.meshes, 'mesh', {'meshes'});
+meshes = sceneElementsByName(scene.meshes, 'meshes', {'meshes'});
 
 %% Embedded Textures.
-embeddedTextures = sceneElementsByName(scene.embeddedTextures, 'embeddedTexture', {'embeddedTextures'});
+embeddedTextures = sceneElementsByName(scene.embeddedTextures, 'embeddedTextures', {'embeddedTextures'});
 
 %% Nodes
 scene.rootNode = mexximpFlattenNodes(scene);
-rootNode = sceneElement(scene.rootNode.name, 'node', {'rootNode'});
-nodes = sceneElementsByName(scene.rootNode.children, 'node', {'rootNode', 'children'});
+rootNode = sceneElement(scene.rootNode.name, 'nodes', {'rootNode'});
+nodes = sceneElementsByName(scene.rootNode.children, 'nodes', {'rootNode', 'children'});
 
 %% Concatenate them all.
 elements = [cameras{:}, lights{:}, materials{:}, meshes{:}, embeddedTextures{:}, rootNode, nodes{:}];

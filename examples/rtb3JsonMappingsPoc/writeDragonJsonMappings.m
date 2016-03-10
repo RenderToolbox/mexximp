@@ -22,14 +22,14 @@
 %   properties when processing mappings now.  Let's just make this clear
 %   and explicit in the mappings syntax.
 %
-% - Instead of identifying elements by id matching, which is brittle,
-%   allow a few ways to identify elements: by name/id fuzzy matching, by
-%   type, and by index.  Specifying all three is overkill.  Sometimes it
-%   will make most sense to use an element's name, like when looking at a
-%   name specified in Blender.  Sometimes it will be good to provide the
-%   element's type as well, to narrow the search and eliminate false
-%   matches.  Sometimes it will be more natural to identify an element by
-%   tpye and index, like when looking at a mexximp scene struct.
+% - Instead of identifying elements by strict id matching, which is
+%   brittle, allow a few ways to identify elements: by name/id fuzzy
+%   matching, by type, and by index.  Specifying all three is overkill.
+%   Sometimes it will make most sense to use an element's name, like when
+%   looking at a name specified in Blender.  Sometimes it will be good to
+%   provide the element's type as well, to narrow the search and eliminate
+%   false matches.  Sometimes it will be more natural to identify an
+%   element by type and index, like when looking at a mexximp scene struct.
 %   Sometimes, just the type will do, like when referring to the single
 %   camera and we don't care what its name is.  So name, type, and index
 %   will proscribe a well-defined element *search*, rather than a
@@ -56,7 +56,7 @@ scene.rootNode = mexximpFlattenNodes(scene);
 
 % top-level structure to identify the scene element and operation
 flip.index = 1;
-flip.broadType = 'rootNode';
+flip.broadType = 'nodes';
 flip.operation = 'update';
 
 % zero or more nested properties of the element
@@ -148,6 +148,16 @@ dragonMaterial.properties(2).name = 'extraProperty';
 dragonMaterial.properties(2).valueType = 'float';
 dragonMaterial.properties(2).value = 33.567;
 
+%% For POC, modify a node that's not the root node.
+% This will let us see what happens when we have nested node adjustments.
+dragonNode.name = 'dragon';
+dragonNode.broadType = 'nodes';
+dragonNode.operation = 'update';
+dragonNode.properties(1).name = 'transformation';
+dragonNode.properties(1).valueType = 'matrix';
+dragonNode.properties(1).operation = '*=';
+dragonNode.properties(1).value = mexximpIdentity();
+
 
 %% Now we can write the mappings file.
 % Just pack up all the mappings as a struct array and dump out to JSON.
@@ -159,7 +169,8 @@ allMappings = { ...
     reflectorMaterial, ...
     wallMaterial, ...
     floorMaterial, ...
-    dragonMaterial};
+    dragonMaterial, ...
+    dragonNode};
 
 pathHere = fileparts(which('writeDragonJsonMappings'));
 mappingsFile = fullfile(pathHere, 'DragonMappings.json');
@@ -168,6 +179,18 @@ savejson('', allMappings, ...
     'ArrayIndent', 1, ...
     'ArrayToStrut', 0);
 
-%% And we can try reading it back.
+%% And we can read it back.
 % Do we get the same as we wrote out, plus filled in defaults?
 validatedMappings = parseJsonMappings(mappingsFile);
+
+%% And we can organize the mappings as scene element adjustments.
+adjustments = mexximpConstants('scene');
+nMappings = numel(validatedMappings);
+for mm = 1:nMappings
+    mapping = validatedMappings(mm);
+    element = findSceneElement(scene, ...
+        'name', mapping.name, ...
+        'broadType', mapping.broadType, ...
+        'index', mapping.index);
+    adjustments = mPathSet(adjustments, element.path, mapping);
+end
