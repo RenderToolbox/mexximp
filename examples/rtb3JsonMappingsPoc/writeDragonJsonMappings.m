@@ -9,8 +9,8 @@
 % also access mappings with other tools that understand JSON, if that ever
 % comes up.
 %
-% So here is a stab at some struct/JSON mappings.  I'll to reproduce
-% our original DragonMappings.txt, but in this new, shinier style.
+% So here is a stab at some struct/JSON mappings.  I'll try to reproduce
+% our original DragonMappings.txt in this new, shinier style.
 %
 % Here are some additional differences I want to introduce:
 %
@@ -55,9 +55,7 @@ scene.rootNode = mexximpFlattenNodes(scene);
 % What we can do now is edit the root node instead of the camera.
 
 % top-level structure to identify the scene element and operation
-flip.name = '';
 flip.index = 1;
-flip.specificType = '';
 flip.broadType = 'rootNode';
 flip.operation = 'update';
 
@@ -78,18 +76,14 @@ flip.properties(1).value = mexximpScale([-1 1 1]);
 % }
 
 blessX.name = 'LightX';
-blessX.index = 0;
 blessX.broadType = 'meshes';
-blessX.specificType = '';
 blessX.operation = 'blessThisMesh';
 blessX.properties(1).name = 'intensity';
 blessX.properties(1).valueType = 'spectrum';
 blessX.properties(1).value = 'D65.spd';
 
 blessY.name = 'LightY';
-blessY.index = 0;
 blessY.broadType = 'meshes';
-blessY.specificType = '';
 blessY.operation = 'blessThisMesh';
 blessY.properties(1).name = 'intensity';
 blessY.properties(1).valueType = 'spectrum';
@@ -115,50 +109,53 @@ blessY.properties(1).value = 'D65.spd';
 %     ...
 % }
 
-materials(1).name = 'ReflectorMaterial';
-materials(1).index = 0;
-materials(1).broadType = 'materials';
-materials(1).specificType = 'matte';
-materials(1).operation = 'update';
-materials(1).properties(1).name = 'diffuseReflectance';
-materials(1).properties(1).valueType = 'spectrum';
-materials(1).properties(1).value = '300:1.0 800:1.0';
+reflectorMaterial.name = 'ReflectorMaterial';
+reflectorMaterial.broadType = 'materials';
+reflectorMaterial.specificType = 'matte';
+reflectorMaterial.operation = 'update';
+reflectorMaterial.properties(1).name = 'diffuseReflectance';
+reflectorMaterial.properties(1).valueType = 'spectrum';
+reflectorMaterial.properties(1).value = '300:1.0 800:1.0';
 
-materials(2).name = 'WallMaterial';
-materials(2).index = 0;
-materials(2).broadType = 'materials';
-materials(2).specificType = 'matte';
-materials(2).operation = 'update';
-materials(2).properties(1).name = 'diffuseReflectance';
-materials(2).properties(1).valueType = 'spectrum';
-materials(2).properties(1).value = '300:0.75 800:0.75';
+wallMaterial.name = 'WallMaterial';
+wallMaterial.broadType = 'materials';
+wallMaterial.specificType = 'matte';
+wallMaterial.operation = 'update';
+wallMaterial.properties(1).name = 'diffuseReflectance';
+wallMaterial.properties(1).valueType = 'spectrum';
+wallMaterial.properties(1).value = '300:0.75 800:0.75';
 
-materials(3).name = 'FloorMaterial';
-materials(3).index = 0;
-materials(3).broadType = 'materials';
-materials(3).specificType = 'matte';
-materials(3).operation = 'update';
-materials(3).properties(1).name = 'diffuseReflectance';
-materials(3).properties(1).valueType = 'spectrum';
-materials(3).properties(1).value = '300:0.5 800:0.5';
+floorMaterial.name = 'FloorMaterial';
+floorMaterial.broadType = 'materials';
+floorMaterial.specificType = 'matte';
+floorMaterial.operation = 'update';
+floorMaterial.properties(1).name = 'diffuseReflectance';
+floorMaterial.properties(1).valueType = 'spectrum';
+floorMaterial.properties(1).value = '300:0.5 800:0.5';
 
-materials(4).name = 'DragonMaterial';
-materials(4).index = 0;
-materials(4).broadType = 'materials';
-materials(4).specificType = 'matte';
-materials(4).operation = 'update';
-materials(4).properties(1).name = 'diffuseReflectance';
-materials(4).properties(1).valueType = 'spectrum';
-materials(4).properties(1).value = 'mccBabel-1.spd';
+dragonMaterial.name = 'DragonMaterial';
+dragonMaterial.broadType = 'materials';
+dragonMaterial.specificType = 'matte';
+dragonMaterial.operation = 'update';
+dragonMaterial.properties(1).name = 'diffuseReflectance';
+dragonMaterial.properties(1).valueType = 'spectrum';
+dragonMaterial.properties(1).value = 'mccBabel-1.spd';
 
 
 %% Now we can write the mappings file.
 % Just pack up all the mappings as a struct array and dump out to JSON.
 % That's it!
-allMappings.Generic = cat(2, flip, blessX, blessY, materials);
+allMappings = { ...
+    flip, ...
+    blessX, ...
+    blessY, ...
+    reflectorMaterial, ...
+    wallMaterial, ...
+    floorMaterial, ...
+    dragonMaterial};
 
 pathHere = fileparts(which('writeDragonJsonMappings'));
-mappingsFile = fullfile(pathHere, 'DragonJsonMappings.json');
+mappingsFile = fullfile(pathHere, 'DragonMappings.json');
 savejson('', allMappings, ...
     'FileName', mappingsFile, ...
     'ArrayIndent', 1, ...
