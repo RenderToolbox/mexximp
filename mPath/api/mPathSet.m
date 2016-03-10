@@ -59,6 +59,10 @@ if isnumeric(pNext)
         if iscell(data)
             data{pNext} = value;
         else
+            % let empty data to take on any type
+            if isempty(data)
+                clear data;
+            end
             data(pNext) = value;
         end
     else
