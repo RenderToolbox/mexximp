@@ -154,5 +154,27 @@ classdef MPathReadWriteTests < matlab.unittest.TestCase
             t = mPathSet(t, {'foo', 'bar', 42, 'baz'}, 'quack');
             testCase.assertEqual(t.foo.bar(42).baz, 'quack');
         end
+        
+        function testNonexistentPath(testCase)
+            % some paths that do exist
+            [~, pathExists] = mPathGet(testCase.s, {});
+            testCase.assertTrue(pathExists);
+            
+            [~, pathExists] = mPathGet(testCase.c, {1, 'baz'});
+            testCase.assertTrue(pathExists);
+            
+            [~, pathExists] = mPathGet(testCase.a, {1, 'baz', 4, 'quack'});
+            testCase.assertTrue(pathExists);
+            
+            % some paths that do not exist
+            [~, pathExists] = mPathGet(testCase.s, {'not a field'});
+            testCase.assertFalse(pathExists);
+            
+            [~, pathExists] = mPathGet(testCase.c, {1e6, 'baz'});
+            testCase.assertFalse(pathExists);
+            
+            [~, pathExists] = mPathGet(testCase.a, {1, 'baz', 4444, 'quack'});
+            testCase.assertFalse(pathExists);
+        end
     end
 end

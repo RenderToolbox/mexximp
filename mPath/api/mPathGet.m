@@ -1,13 +1,18 @@
-function value = mPathGet(data, p)
+function [value, exists] = mPathGet(data, p)
 %% Get a value nested in the given data at the given path.
 %
 % value = mPathGet(data, p) digs out a value nested within the given
 % data variable.  p must be a cell array path specifying which fields
 % and array elements to dig into.
 %
+% Returns the value inside the given data, at the given path p.  If no such
+% value exists, returns [].  Also returns a flag indicating whether the
+% value existed, which allows callers to distinguish between exsiting empty
+% values, and nonexistent values.
+%
 % See also mPathSyntax mPathSet
 %
-% value = mPathGet(data, p)
+% [value, exists] = mPathGet(data, p)
 %
 % Copyright (c) 2016 mPath Team
 
@@ -21,6 +26,7 @@ p = parser.Results.p;
 %% Base case: empty path is the identity path.
 if isempty(p)
     value = data;
+    exists = true;
     return;
 end
 
@@ -28,27 +34,40 @@ end
 pNext = p{1};
 pRest = p(2:end);
 if ischar(pNext)
+    if ~isfield(data, pNext)
+        value = [];
+        exists = false;
+        return;
+    end
+    
     % descend into struct field
     dataRest = data.(pNext);
-    value = mPathGet(dataRest, pRest);
+    [value, exists] = mPathGet(dataRest, pRest);
     return;
 end
 
 if isnumeric(pNext)
+    if numel(data) < pNext
+        value = [];
+        exists = false;
+        return;
+    end
+    
+    
     % descend into array or cell array element
     if iscell(data)
         dataRest = data{pNext};
     else
         dataRest = data(pNext);
     end
-    value = mPathGet(dataRest, pRest);
+    [value, exists] = mPathGet(dataRest, pRest);
     return;
 end
 
 if iscell(pNext)
     % resolve this query and try again
     p{1} = mPathQuery(data, pNext);
-    value = mPathGet(data, p);
+    [value, exists] = mPathGet(data, p);
     return;
 end
 
