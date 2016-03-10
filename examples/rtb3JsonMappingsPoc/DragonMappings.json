@@ -105,71 +105,48 @@
 	},
 	{
 		"name": "integrator",
-		"broadType": "integrator",
+		"broadType": "SurfaceIntegrator",
 		"index": 1,
-		"specificType": "direct",
+		"specificType": "directlighting",
 		"operation": "create",
-		"destination": "Mitsuba",
-		"properties": {
-			"name": "shadingSamples",
-			"valueType": "integer",
-			"value": 32
-		}
+		"destination": "PBRT"
 	},
 	{
 		"name": "sampler",
-		"broadType": "sampler",
+		"broadType": "Sampler",
 		"index": 1,
-		"specificType": "hdrfilm",
+		"specificType": "lowdiscrepancy",
 		"operation": "create",
-		"destination": "Mitsuba",
+		"destination": "PBRT",
 		"properties": {
-			"name": "sampleCount",
+			"name": "pixelsamples",
 			"valueType": "integer",
 			"value": 8
 		}
 	},
 	{
-		"name": "film",
-		"broadType": "film",
-		"index": 1,
-		"specificType": "ldsampler",
-		"operation": "create",
-		"destination": "Mitsuba",
-		"properties": [
-			{
-				"name": "fileFormat",
-				"valueType": "string",
-				"value": "openexr"
-			},
-			{
-				"name": "pixelFormat",
-				"valueType": "string",
-				"value": "spectrum"
-			},
-			{
-				"name": "componentFormat",
-				"valueType": "string",
-				"value": "float16"
-			},
-			{
-				"name": "banner",
-				"valueType": "boolean",
-				"value": 0
-			}
-		]
-	},
-	{
-		"name": "film",
-		"broadType": "rfilter",
+		"name": "filter",
+		"broadType": "PixelFilter",
 		"index": 1,
 		"specificType": "gaussian",
 		"operation": "create",
-		"destination": "Mitsuba",
-		"properties": {
-			"name": "stddev",
-			"valueType": "float",
-			"value": 0.5
-		}
+		"destination": "PBRT",
+		"properties": [
+			{
+				"name": "alpha",
+				"valueType": "float",
+				"value": 2
+			},
+			{
+				"name": "xwidth",
+				"valueType": "float",
+				"value": 2
+			},
+			{
+				"name": "ywidth",
+				"valueType": "float",
+				"value": 2
+			}
+		]
 	}
 ]

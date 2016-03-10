@@ -11,8 +11,8 @@
 %
 % So here is a stab at some struct/JSON mappings.  I'll try to reproduce
 % our original DragonMappings.txt in this new, shinier style.  I'll also
-% include some Mitsuba defaults which come from our original
-% MitsubaDefaultAdjustments.xml.
+% include some PBRT defaults which come from our original
+% PBRTDefaultAdjustments.xml.
 %
 % Here are some additional differences I want to introduce:
 %
@@ -161,75 +161,52 @@ dragonNode.properties(1).valueType = 'matrix';
 dragonNode.properties(1).operation = '*=';
 dragonNode.properties(1).value = mexximpIdentity();
 
-%% Add some Mitsuba XML "default adjustments".
-%     <integrator id="integrator" type="direct">
-%         <integer name="shadingSamples" value="32"/>
-%     </integrator>
+%% Add some PBRT XML "default adjustments".
+%     <SurfaceIntegrator id="integrator" type="directlighting"/>
 %
-%     <sampler id="Camera-camera_sampler" type="ldsampler">
-%         <integer name="sampleCount" value="8"/>
-%     </sampler>
+%     <Sampler id="sampler" type="lowdiscrepancy">
+%         <parameter name="pixelsamples" type="integer">8</parameter>
+%     </Sampler>
 %
-%     <merge id="Camera-camera_film" type="hdrfilm">
-%         <string name="fileFormat" value="openexr"/>
-%         <string name="pixelFormat" value="spectrum"/>
-%         <string name="componentFormat" value="float16"/>
-%         <boolean name="banner" value="false"/>
-%         
-%         <rfilter type="gaussian">
-%             <float name="stddev" value="0.5"/>
-%         </rfilter>
-%     </merge>
+%     <PixelFilter id="filter" type="gaussian">
+%         <parameter name="alpha" type="float">2</parameter>
+%         <parameter name="xwidth" type="float">2</parameter>
+%         <parameter name="ywidth" type="float">2</parameter>
+%     </PixelFilter>
 %
 % These set up scene elements that mexximp won't know about.
 integrator.name = 'integrator';
-integrator.broadType = 'integrator';
+integrator.broadType = 'SurfaceIntegrator';
 integrator.index = 1;
-integrator.specificType = 'direct';
+integrator.specificType = 'directlighting';
 integrator.operation = 'create';
-integrator.destination = 'Mitsuba';
-integrator.properties(1).name = 'shadingSamples';
-integrator.properties(1).valueType = 'integer';
-integrator.properties(1).value = 32;
+integrator.destination = 'PBRT';
 
 sampler.name = 'sampler';
-sampler.broadType = 'sampler';
+sampler.broadType = 'Sampler';
 sampler.index = 1;
-sampler.specificType = 'hdrfilm';
+sampler.specificType = 'lowdiscrepancy';
 sampler.operation = 'create';
-sampler.destination = 'Mitsuba';
-sampler.properties(1).name = 'sampleCount';
+sampler.destination = 'PBRT';
+sampler.properties(1).name = 'pixelsamples';
 sampler.properties(1).valueType = 'integer';
 sampler.properties(1).value = 8;
 
-film.name = 'film';
-film.broadType = 'film';
-film.index = 1;
-film.specificType = 'ldsampler';
-film.operation = 'create';
-film.destination = 'Mitsuba';
-film.properties(1).name = 'fileFormat';
-film.properties(1).valueType = 'string';
-film.properties(1).value = 'openexr';
-film.properties(2).name = 'pixelFormat';
-film.properties(2).valueType = 'string';
-film.properties(2).value = 'spectrum';
-film.properties(3).name = 'componentFormat';
-film.properties(3).valueType = 'string';
-film.properties(3).value = 'float16';
-film.properties(4).name = 'banner';
-film.properties(4).valueType = 'boolean';
-film.properties(4).value = false;
-
-filter.name = 'film';
-filter.broadType = 'rfilter';
+filter.name = 'filter';
+filter.broadType = 'PixelFilter';
 filter.index = 1;
 filter.specificType = 'gaussian';
 filter.operation = 'create';
-filter.destination = 'Mitsuba';
-filter.properties(1).name = 'stddev';
+filter.destination = 'PBRT';
+filter.properties(1).name = 'alpha';
 filter.properties(1).valueType = 'float';
-filter.properties(1).value = 0.5;
+filter.properties(1).value = 2;
+filter.properties(2).name = 'xwidth';
+filter.properties(2).valueType = 'float';
+filter.properties(2).value = 2;
+filter.properties(3).name = 'ywidth';
+filter.properties(3).valueType = 'float';
+filter.properties(3).value = 2;
 
 %% Now we can write the mappings file.
 % Just pack up all the mappings as a struct array and dump out to JSON.
@@ -245,7 +222,6 @@ allMappings = { ...
     dragonNode, ...
     integrator, ...
     sampler, ...
-    film, ...
     filter};
 
 pathHere = fileparts(which('writeDragonJsonMappings'));
@@ -259,7 +235,12 @@ savejson('', allMappings, ...
 % Do we get the same as we wrote out, plus filled in defaults?
 validatedMappings = parseJsonMappings(mappingsFile);
 
-%% And we can organize the mappings as scene element adjustments.
+%% We can apply "mexximp" mappings directly to the scene.
+scene = applyMexximpMappings(scene, validatedMappings);
+
+%% We can convert Generic mappings to renderer-specific.
+
+%% And we can organize remaining mappings as scene element adjustments.
 adjustments = mexximpConstants('scene');
 nMappings = numel(validatedMappings);
 for mm = 1:nMappings
@@ -276,3 +257,19 @@ for mm = 1:nMappings
         adjustments = mPathSet(adjustments, element.path, mapping);
     end
 end
+
+%% Next we would want to write a PBRT scene.
+%   convert the mexximp struct to a PBRT struct
+%   apply the adjustments to the same PBRT struct
+%       CRUD based on element broadType and name,
+%       which should be unique by now
+%   PBRT scene should be "listy" and flexible:
+%       a list of top-level statements to write
+%       a list of world-level statements to write
+%       a flexible "statement" or "object" with types, name, properties
+%       a flexible "transformation" "line" with type followed by stuff
+%       a things can be nested in transform/attrib blocks
+%
+%   The game would be in two parts:
+%       construct the PBRT struct (clever)
+%       write the already-constructed struct to a file (mechanical)
