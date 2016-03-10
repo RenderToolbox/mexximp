@@ -10,7 +10,9 @@
 % comes up.
 %
 % So here is a stab at some struct/JSON mappings.  I'll try to reproduce
-% our original DragonMappings.txt in this new, shinier style.
+% our original DragonMappings.txt in this new, shinier style.  I'll also
+% include some Mitsuba defaults which come from our original
+% MitsubaDefaultAdjustments.xml.
 %
 % Here are some additional differences I want to introduce:
 %
@@ -45,7 +47,6 @@ originalScene = which('Dragon.blend');
 scene = mexximpImport(originalScene);
 scene.rootNode = mexximpFlattenNodes(scene);
 
-
 %% In the old Collada Mappings, we sometimes need to flip coordinates.
 % Collada {
 %     % swap camera handedness from Blender's Collada output
@@ -58,6 +59,7 @@ scene.rootNode = mexximpFlattenNodes(scene);
 flip.index = 1;
 flip.broadType = 'nodes';
 flip.operation = 'update';
+flip.destination = 'mexximp';
 
 % zero or more nested properties of the element
 flip.properties(1).name = 'transformation';
@@ -153,11 +155,81 @@ dragonMaterial.properties(2).value = 33.567;
 dragonNode.name = 'dragon';
 dragonNode.broadType = 'nodes';
 dragonNode.operation = 'update';
+dragonNode.destination = 'mexximp';
 dragonNode.properties(1).name = 'transformation';
 dragonNode.properties(1).valueType = 'matrix';
 dragonNode.properties(1).operation = '*=';
 dragonNode.properties(1).value = mexximpIdentity();
 
+%% Add some Mitsuba XML "default adjustments".
+%     <integrator id="integrator" type="direct">
+%         <integer name="shadingSamples" value="32"/>
+%     </integrator>
+%
+%     <sampler id="Camera-camera_sampler" type="ldsampler">
+%         <integer name="sampleCount" value="8"/>
+%     </sampler>
+%
+%     <merge id="Camera-camera_film" type="hdrfilm">
+%         <string name="fileFormat" value="openexr"/>
+%         <string name="pixelFormat" value="spectrum"/>
+%         <string name="componentFormat" value="float16"/>
+%         <boolean name="banner" value="false"/>
+%         
+%         <rfilter type="gaussian">
+%             <float name="stddev" value="0.5"/>
+%         </rfilter>
+%     </merge>
+%
+% These set up scene elements that mexximp won't know about.
+integrator.name = 'integrator';
+integrator.broadType = 'integrator';
+integrator.index = 1;
+integrator.specificType = 'direct';
+integrator.operation = 'create';
+integrator.destination = 'Mitsuba';
+integrator.properties(1).name = 'shadingSamples';
+integrator.properties(1).valueType = 'integer';
+integrator.properties(1).value = 32;
+
+sampler.name = 'sampler';
+sampler.broadType = 'sampler';
+sampler.index = 1;
+sampler.specificType = 'hdrfilm';
+sampler.operation = 'create';
+sampler.destination = 'Mitsuba';
+sampler.properties(1).name = 'sampleCount';
+sampler.properties(1).valueType = 'integer';
+sampler.properties(1).value = 8;
+
+film.name = 'film';
+film.broadType = 'film';
+film.index = 1;
+film.specificType = 'ldsampler';
+film.operation = 'create';
+film.destination = 'Mitsuba';
+film.properties(1).name = 'fileFormat';
+film.properties(1).valueType = 'string';
+film.properties(1).value = 'openexr';
+film.properties(2).name = 'pixelFormat';
+film.properties(2).valueType = 'string';
+film.properties(2).value = 'spectrum';
+film.properties(3).name = 'componentFormat';
+film.properties(3).valueType = 'string';
+film.properties(3).value = 'float16';
+film.properties(4).name = 'banner';
+film.properties(4).valueType = 'boolean';
+film.properties(4).value = false;
+
+filter.name = 'film';
+filter.broadType = 'rfilter';
+filter.index = 1;
+filter.specificType = 'gaussian';
+filter.operation = 'create';
+filter.destination = 'Mitsuba';
+filter.properties(1).name = 'stddev';
+filter.properties(1).valueType = 'float';
+filter.properties(1).value = 0.5;
 
 %% Now we can write the mappings file.
 % Just pack up all the mappings as a struct array and dump out to JSON.
@@ -170,7 +242,11 @@ allMappings = { ...
     wallMaterial, ...
     floorMaterial, ...
     dragonMaterial, ...
-    dragonNode};
+    dragonNode, ...
+    integrator, ...
+    sampler, ...
+    film, ...
+    filter};
 
 pathHere = fileparts(which('writeDragonJsonMappings'));
 mappingsFile = fullfile(pathHere, 'DragonMappings.json');
@@ -192,5 +268,11 @@ for mm = 1:nMappings
         'name', mapping.name, ...
         'broadType', mapping.broadType, ...
         'index', mapping.index);
-    adjustments = mPathSet(adjustments, element.path, mapping);
+    if isempty(element)
+        % not a mexximp element, add manually to the adjustments
+        adjustments.(mapping.broadType)(mapping.index) = mapping;
+    else
+        % add to adjustments at the same path in the scene struct
+        adjustments = mPathSet(adjustments, element.path, mapping);
+    end
 end

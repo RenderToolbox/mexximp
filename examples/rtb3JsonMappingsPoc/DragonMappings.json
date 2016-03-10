@@ -3,6 +3,7 @@
 		"index": 1,
 		"broadType": "nodes",
 		"operation": "update",
+		"destination": "mexximp",
 		"properties": {
 			"name": "transformation",
 			"valueType": "matrix",
@@ -89,6 +90,7 @@
 		"name": "dragon",
 		"broadType": "nodes",
 		"operation": "update",
+		"destination": "mexximp",
 		"properties": {
 			"name": "transformation",
 			"valueType": "matrix",
@@ -99,6 +101,75 @@
 				[0,0,1,0],
 				[0,0,0,1]
 			]
+		}
+	},
+	{
+		"name": "integrator",
+		"broadType": "integrator",
+		"index": 1,
+		"specificType": "direct",
+		"operation": "create",
+		"destination": "Mitsuba",
+		"properties": {
+			"name": "shadingSamples",
+			"valueType": "integer",
+			"value": 32
+		}
+	},
+	{
+		"name": "sampler",
+		"broadType": "sampler",
+		"index": 1,
+		"specificType": "hdrfilm",
+		"operation": "create",
+		"destination": "Mitsuba",
+		"properties": {
+			"name": "sampleCount",
+			"valueType": "integer",
+			"value": 8
+		}
+	},
+	{
+		"name": "film",
+		"broadType": "film",
+		"index": 1,
+		"specificType": "ldsampler",
+		"operation": "create",
+		"destination": "Mitsuba",
+		"properties": [
+			{
+				"name": "fileFormat",
+				"valueType": "string",
+				"value": "openexr"
+			},
+			{
+				"name": "pixelFormat",
+				"valueType": "string",
+				"value": "spectrum"
+			},
+			{
+				"name": "componentFormat",
+				"valueType": "string",
+				"value": "float16"
+			},
+			{
+				"name": "banner",
+				"valueType": "boolean",
+				"value": 0
+			}
+		]
+	},
+	{
+		"name": "film",
+		"broadType": "rfilter",
+		"index": 1,
+		"specificType": "gaussian",
+		"operation": "create",
+		"destination": "Mitsuba",
+		"properties": {
+			"name": "stddev",
+			"valueType": "float",
+			"value": 0.5
 		}
 	}
 ]
