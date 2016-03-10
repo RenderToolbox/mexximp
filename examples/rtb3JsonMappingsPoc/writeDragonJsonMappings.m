@@ -141,6 +141,13 @@ dragonMaterial.properties(1).name = 'diffuseReflectance';
 dragonMaterial.properties(1).valueType = 'spectrum';
 dragonMaterial.properties(1).value = 'mccBabel-1.spd';
 
+%% For POC, add an additional property to one of the mappings.
+% This will let us see what happens when we write a JSON array of
+% properties, as opposed to a single properties object.
+dragonMaterial.properties(2).name = 'extraProperty';
+dragonMaterial.properties(2).valueType = 'float';
+dragonMaterial.properties(2).value = 33.567;
+
 
 %% Now we can write the mappings file.
 % Just pack up all the mappings as a struct array and dump out to JSON.
@@ -160,3 +167,7 @@ savejson('', allMappings, ...
     'FileName', mappingsFile, ...
     'ArrayIndent', 1, ...
     'ArrayToStrut', 0);
+
+%% And we can try reading it back.
+% Do we get the same as we wrote out, plus filled in defaults?
+validatedMappings = parseJsonMappings(mappingsFile);
