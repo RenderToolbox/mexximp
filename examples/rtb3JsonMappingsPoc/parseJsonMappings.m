@@ -35,31 +35,23 @@ end
 %% Validate and fill in each mapping element.
 
 % standard fields for the top level of each element
-topLevelParser = inputParser();
-topLevelParser.StructExpand = true;
-topLevelParser.addParameter('name', '', @ischar);
-topLevelParser.addParameter('index', 0, @isnumeric);
-topLevelParser.addParameter('broadType', '', @ischar);
-topLevelParser.addParameter('specificType', '', @ischar);
-topLevelParser.addParameter('operation', 'create', @ischar);
-topLevelParser.addParameter('group', '', @ischar);
-topLevelParser.addParameter('destination', 'Generic', @ischar);
-topLevelParser.addParameter('properties', []);
-
-% standard fields for nested properties of each element
-propertyParser = inputParser();
-propertyParser.StructExpand = true;
-propertyParser.addParameter('name', '', @ischar);
-propertyParser.addParameter('valueType', '', @ischar);
-propertyParser.addParameter('value', []);
-propertyParser.addParameter('operation', '=', @(o)any(strcmp(o, {'=', '+=', '-=', '*=', '/='})));
+parser = inputParser();
+parser.StructExpand = true;
+parser.addParameter('name', '', @ischar);
+parser.addParameter('index', 0, @isnumeric);
+parser.addParameter('broadType', '', @ischar);
+parser.addParameter('specificType', '', @ischar);
+parser.addParameter('operation', 'create', @ischar);
+parser.addParameter('group', '', @ischar);
+parser.addParameter('destination', 'Generic', @ischar);
+parser.addParameter('properties', []);
 
 % check each element one at a time
 nMappings = numel(originalMappings);
 validatedMappings = cell(1, nMappings);
 for mm = 1:nMappings
-    topLevelParser.parse(originalMappings{mm});
-    mapping = topLevelParser.Results;
+    parser.parse(originalMappings{mm});
+    mapping = parser.Results;
     
     % convert single-element properties to cell, for processing convenience
     if isstruct(mapping.properties)
@@ -71,8 +63,7 @@ for mm = 1:nMappings
         nProperties = numel(mapping.properties);
         validatedProperties = cell(1, nProperties);
         for pp = 1:nProperties
-            propertyParser.parse(mapping.properties{pp});
-            validatedProperties{pp} = propertyParser.Results;
+            validatedProperties{pp} = mappingProperty(mapping.properties{pp});
         end
         mapping.properties = [validatedProperties{:}];
     end

@@ -258,7 +258,12 @@ for mm = 1:nMappings
     end
 end
 
-%% Next we would want to write a PBRT scene.
+%% Next we want to write a PBRT scene.
+
+% convert Generic mappings to native PBRT syntax
+[pbrtMappings, wasConverted] = genericMappingsToPBRT(validatedMappings);
+
+
 %   convert the mexximp struct to a PBRT struct
 %   apply the adjustments to the same PBRT struct
 %       CRUD based on element broadType and name,
