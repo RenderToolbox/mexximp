@@ -1,8 +1,8 @@
-function pbrtNode = mexximpCameralToMPbrt(scene, camera, varargin)
-%% Convert a mexximp camera to an mPbrt transformation and Camera elements.
+function pbrtNode = mexximpCameraToMPbrt(scene, camera, varargin)
+%% Convert a mexximp camera to mPbrt transformation and Camera elements.
 %
-% pbrtNode = mexximpMaterialToPbrt(scene, camera) converts the given
-% mexximp camera these to create an mPbrt scene Camera element and
+% pbrtNode = mexximpCameraToMPbrt(scene, camera) converts the given
+% mexximp camera to create an mPbrt scene Camera element and
 % associated transformations.
 %
 % The given camera should be an element with type "cameras" as
@@ -10,12 +10,12 @@ function pbrtNode = mexximpCameralToMPbrt(scene, camera, varargin)
 %
 % By default, the camera will have type "perspective".  This may be
 % overidden by passing a named parameter.  For example:
-%   mexximpCameralToMPbrt( ... 'type', 'orthographic');
+%   mexximpCameraToMPbrt( ... 'type', 'orthographic');
 %
 % Returns an MPbrtElement with identifier Camera and parameters
 % filled in based on the mexximp camera.
 %
-% pbrtNode = mexximpCameralToMPbrt(scene, camera, varargin)
+% pbrtNode = mexximpCameraToMPbrt(scene, camera, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
@@ -50,7 +50,7 @@ end
 nameQuery = {'name', mexximpStringMatcher(camera.name)};
 transformPath = cat(2, {'rootNode', 'children', nameQuery, 'transformation'});
 externalTransform = mPathGet(scene, transformPath);
-if 9 ~= numel(externalTransform)
+if isempty(externalTransform)
     externalTransform = mexximpIdentity();
 end
 

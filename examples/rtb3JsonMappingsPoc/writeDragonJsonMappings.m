@@ -43,7 +43,9 @@
 clear;
 clc;
 
-originalScene = which('Dragon.blend');
+%originalScene = which('Dragon.blend');
+originalScene = which('CoordinatesTest.blend');
+
 scene = mexximpImport(originalScene);
 scene.rootNode = mexximpFlattenNodes(scene);
 
@@ -266,21 +268,28 @@ pbrtScene = MPbrtScene();
 % convert cameras to mPbrt
 cameraInds = find(strcmp('cameras', elementTypes));
 for cc = cameraInds
-    pbrtElement = mexximpCameralToMPbrt(scene, elements(cc));
-    pbrtScene.overall.append(pbrtElement);
+    pbrtNode = mexximpCameraToMPbrt(scene, elements(cc));
+    pbrtScene.overall.append(pbrtNode);
 end
 
 % convert materials to mPbrt
 materialInds = find(strcmp('materials', elementTypes));
 for mm = materialInds
-    pbrtElement = mexximpMaterialToMPbrt(scene, elements(mm), ...
+    pbrtNode = mexximpMaterialToMPbrt(scene, elements(mm), ...
         'type', 'anisoward', ...
         'diffuse', 'Kd', ...
         'specular', 'Ks');
-    pbrtScene.overall.append(pbrtElement);
+    pbrtScene.overall.append(pbrtNode);
+end
+
+% convert lights to mPbrt
+lightInds = find(strcmp('lights', elementTypes));
+for ll = lightInds
+    pbrtNode = mexximpLightToMPbrt(scene, elements(ll));
+    pbrtScene.world.append(pbrtNode);
 end
 
 % dump pbrt to file
 pathHere = fileparts(which('writeDragonJsonMappings'));
-pbrtFile = fullfile(pathHere, 'dragon.pbrt');
+pbrtFile = fullfile(pathHere, 'poc.pbrt');
 pbrtScene.printToFile(pbrtFile);
