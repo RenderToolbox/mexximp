@@ -259,10 +259,20 @@ for mm = 1:nMappings
 end
 
 %% Next we want to write a PBRT scene.
+elements = mexximpSceneElements(scene);
+pbrtScene = MPbrtScene();
 
-% convert Generic mappings to native PBRT syntax
-[pbrtMappings, wasConverted] = genericMappingsToPBRT(validatedMappings);
+% convert materials to mPbrt
+materialInds = find(strcmp('materials', {elements.type}));
+for mm = materialInds
+    pbrtElement = mexximpMaterialToPbrt(scene, elements(mm));
+    pbrtScene.overall.append(pbrtElement);
+end
 
+% dump pbrt to file
+pathHere = fileparts(which('writeDragonJsonMappings'));
+pbrtFile = fullfile(pathHere, 'dragon.pbrt');
+pbrtScene.printToFile(pbrtFile);
 
 %   convert the mexximp struct to a PBRT struct
 %   apply the adjustments to the same PBRT struct
