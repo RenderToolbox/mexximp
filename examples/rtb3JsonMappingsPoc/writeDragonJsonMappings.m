@@ -260,12 +260,23 @@ end
 
 %% Next we want to write a PBRT scene.
 elements = mexximpSceneElements(scene);
+elementTypes = {elements.type};
 pbrtScene = MPbrtScene();
 
+% convert cameras to mPbrt
+cameraInds = find(strcmp('cameras', elementTypes));
+for cc = cameraInds
+    pbrtElement = mexximpCameralToMPbrt(scene, elements(cc));
+    pbrtScene.overall.append(pbrtElement);
+end
+
 % convert materials to mPbrt
-materialInds = find(strcmp('materials', {elements.type}));
+materialInds = find(strcmp('materials', elementTypes));
 for mm = materialInds
-    pbrtElement = mexximpMaterialToPbrt(scene, elements(mm));
+    pbrtElement = mexximpMaterialToMPbrt(scene, elements(mm), ...
+        'type', 'anisoward', ...
+        'diffuse', 'Kd', ...
+        'specular', 'Ks');
     pbrtScene.overall.append(pbrtElement);
 end
 
@@ -273,18 +284,3 @@ end
 pathHere = fileparts(which('writeDragonJsonMappings'));
 pbrtFile = fullfile(pathHere, 'dragon.pbrt');
 pbrtScene.printToFile(pbrtFile);
-
-%   convert the mexximp struct to a PBRT struct
-%   apply the adjustments to the same PBRT struct
-%       CRUD based on element broadType and name,
-%       which should be unique by now
-%   PBRT scene should be "listy" and flexible:
-%       a list of top-level statements to write
-%       a list of world-level statements to write
-%       a flexible "statement" or "object" with types, name, properties
-%       a flexible "transformation" "line" with type followed by stuff
-%       a things can be nested in transform/attrib blocks
-%
-%   The game would be in two parts:
-%       construct the PBRT struct (clever)
-%       write the already-constructed struct to a file (mechanical)

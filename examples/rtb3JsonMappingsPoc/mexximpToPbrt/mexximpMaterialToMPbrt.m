@@ -1,4 +1,4 @@
-function pbrtElement = mexximpMaterialToPbrt(scene, material, varargin)
+function pbrtElement = mexximpMaterialToMPbrt(scene, material, varargin)
 %% Convert a mexximp material to an mPbrt MakeNamedMaterial element.
 %
 % pbrtElement = mexximpMaterialToPbrt(scene, material) cherry picks
@@ -20,7 +20,7 @@ function pbrtElement = mexximpMaterialToPbrt(scene, material, varargin)
 % By default, the new pbrt material will have type "uber", diffuse
 % parameter "Kd" and specular parameter "Kr".  These may be overidden by
 % passing values for these named parameters.  For example:
-%   mexximpMaterialToPbrt( ...
+%   mexximpMaterialToMPbrt( ...
 %       'type', 'anisoward', ...
 %       'diffuse', 'Kd', ...
 %       'specular', 'Ks');
@@ -28,7 +28,7 @@ function pbrtElement = mexximpMaterialToPbrt(scene, material, varargin)
 % Returns an MPbrtElement with identifier MakeNamedMaterial and parameters
 % filled in based on mexximp material properties.
 %
-% pbrtElement = mexximpMaterialToPbrt(scene, material, varargin)
+% pbrtElement = mexximpMaterialToMPbrt(scene, material, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
@@ -51,8 +51,7 @@ materialIndex = material.path{end};
 pbrtName = sprintf('%d-%s', materialIndex, materialName);
 
 %% Dig out diffuse and specular rgb and texture values.
-material = mPathGet(scene, material.path);
-properties = material.properties;
+properties = mPathGet(scene, cat(2, material.path, {'properties'}));
 diffuseRgb = queryProperties(properties, 'key', 'diffuse', 'data', [0 0 0]);
 specularRgb = queryProperties(properties, 'key', 'specular', 'data', [0 0 0]);
 diffuseTexture = queryProperties(properties, 'textureSemantic', 'diffuse', 'data', '');
