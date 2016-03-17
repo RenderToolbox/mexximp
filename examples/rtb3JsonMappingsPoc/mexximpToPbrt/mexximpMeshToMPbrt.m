@@ -58,7 +58,7 @@ rewriteMeshData = parser.Results.rewriteMeshData;
 %% Dig out the name.
 meshName = mesh.name;
 meshIndex = mesh.path{end};
-pbrtName = sprintf('%d-%s', meshIndex, meshName);
+pbrtName = mexximpCleanName(meshName, meshIndex);
 
 % build the Include folder and file names
 includeRelativePath = fullfile(meshSubfolder, [pbrtName '.pbrt']);
@@ -100,7 +100,7 @@ materialData = scene.materials(materialIndex);
 nameQuery = {'key', mexximpStringMatcher('name')};
 namePath = {'properties', nameQuery, 'data'};
 nameData = mPathGet(materialData, namePath);
-materialName = sprintf('%d-%s', materialIndex, nameData);
+materialName = mexximpCleanName(nameData, materialIndex);
 
 %% Build the pbrt object declaration and associated material.
 pbrtNode = MPbrtContainer('Object', 'name', pbrtName);

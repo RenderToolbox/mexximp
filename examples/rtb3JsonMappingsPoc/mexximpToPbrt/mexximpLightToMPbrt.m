@@ -25,7 +25,7 @@ light = parser.Results.light;
 %% Dig out the name.
 lightName = light.name;
 lightIndex = light.path{end};
-pbrtName = sprintf('%d-%s', lightIndex, lightName);
+pbrtName = mexximpCleanName(lightName, lightIndex);
 
 %% Dig out and convert transformations.
 internal = mPathGet(scene, light.path);

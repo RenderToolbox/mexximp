@@ -48,7 +48,7 @@ specular = parser.Results.specular;
 %% Dig out the material name.
 materialName = material.name;
 materialIndex = material.path{end};
-pbrtName = sprintf('%d-%s', materialIndex, materialName);
+pbrtName = mexximpCleanName(materialName, materialIndex);
 
 %% Dig out diffuse and specular rgb and texture values.
 properties = mPathGet(scene, cat(2, material.path, {'properties'}));

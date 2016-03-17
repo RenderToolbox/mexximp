@@ -31,7 +31,7 @@ type = parser.Results.type;
 %% Dig out the name.
 cameraName = camera.name;
 cameraIndex = camera.path{end};
-pbrtName = sprintf('%d-%s', cameraIndex, cameraName);
+pbrtName = mexximpCleanName(cameraName, cameraIndex);
 
 %% Dig out and convert parameter values.
 internal = mPathGet(scene, camera.path);

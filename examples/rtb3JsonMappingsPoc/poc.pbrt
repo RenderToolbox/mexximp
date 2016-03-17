@@ -2,27 +2,27 @@
 LookAt 0 0 0 0 0 -1 0 1 0 
 # camera scene position
 ConcatTransform 0.754406 0.633022 -0.173648 1.566349 -0.656122 0.735024 -0.171010 4.117449 0.019382 0.242945 0.969846 -24.770812 0.000000 0.000000 -0.000000 1.000000 
-# 1-Camera
+# 1_Camera
 Camera "perspective" 
   "float fov" [45.000001] 
 
-# 1-ZBlue
-MakeNamedMaterial "1-ZBlue" "string type" "anisoward" 
+# 1_ZBlue
+MakeNamedMaterial "1_ZBlue" "string type" "anisoward" 
   "rgb Kd" [0.111755 0.079625 0.800000] 
   "rgb Ks" [1 1 1] 
-# 2-YGreen
-MakeNamedMaterial "2-YGreen" "string type" "anisoward" 
+# 2_YGreen
+MakeNamedMaterial "2_YGreen" "string type" "anisoward" 
   "rgb Kd" [0.219097 0.800000 0.140303] 
   "rgb Ks" [1 1 1] 
-# 3-XRed
-MakeNamedMaterial "3-XRed" "string type" "anisoward" 
+# 3_XRed
+MakeNamedMaterial "3_XRed" "string type" "anisoward" 
   "rgb Kd" [0.800000 0.026023 0.117933] 
   "rgb Ks" [1 1 1] 
 
 WorldBegin
 AttributeBegin
   ConcatTransform 1 0 0 5 0 1 0 5 0 0 1 -5 0 0 0 1   
-  # 1-Point.007
+  # 1_Point_007
   LightSource "point"   
     "rgb I" [10 10 10] 
     "point from" [0 0 0] 
@@ -30,7 +30,7 @@ AttributeEnd
 
 AttributeBegin
   ConcatTransform 1 0 0 -5 0 1 0 5 0 0 1 -5 0 0 0 1   
-  # 2-Point.006
+  # 2_Point_006
   LightSource "point"   
     "rgb I" [10 10 10] 
     "point from" [0 0 0] 
@@ -38,7 +38,7 @@ AttributeEnd
 
 AttributeBegin
   ConcatTransform 1 0 0 -5 0 1 0 -5 0 0 1 -5 0 0 0 1   
-  # 3-Point.005
+  # 3_Point_005
   LightSource "point"   
     "rgb I" [10 10 10] 
     "point from" [0 0 0] 
@@ -46,7 +46,7 @@ AttributeEnd
 
 AttributeBegin
   ConcatTransform 1 0 0 5 0 1 0 -5 0 0 1 -5 0 0 0 1   
-  # 4-Point.004
+  # 4_Point_004
   LightSource "point"   
     "rgb I" [10 10 10] 
     "point from" [0 0 0] 
@@ -54,7 +54,7 @@ AttributeEnd
 
 AttributeBegin
   ConcatTransform 1 0 0 5 0 1 0 -5 0 0 1 5 0 0 0 1   
-  # 5-Point.003
+  # 5_Point_003
   LightSource "point"   
     "rgb I" [10 10 10] 
     "point from" [0 0 0] 
@@ -62,7 +62,7 @@ AttributeEnd
 
 AttributeBegin
   ConcatTransform 1 0 0 -5 0 1 0 -5 0 0 1 5 0 0 0 1   
-  # 6-Point.002
+  # 6_Point_002
   LightSource "point"   
     "rgb I" [10 10 10] 
     "point from" [0 0 0] 
@@ -70,7 +70,7 @@ AttributeEnd
 
 AttributeBegin
   ConcatTransform 1 0 0 5 0 1 0 5 0 0 1 5 0 0 0 1   
-  # 7-Point.001
+  # 7_Point_001
   LightSource "point"   
     "rgb I" [10 10 10] 
     "point from" [0 0 0] 
@@ -78,46 +78,46 @@ AttributeEnd
 
 AttributeBegin
   ConcatTransform 1 0 0 -5 0 1 0 5 0 0 1 5 0 0 0 1   
-  # 8-Point
+  # 8_Point
   LightSource "point"   
     "rgb I" [10 10 10] 
     "point from" [0 0 0] 
 AttributeEnd
 
-# 1-Cube.005
-ObjectBegin "1-Cube.005"
-  NamedMaterial "1-ZBlue"   
-  Include "pbrt-geometry/1-Cube.005.pbrt"   
+# 1_Cube_005
+ObjectBegin "1_Cube_005"
+  NamedMaterial "1_ZBlue"   
+  Include "pbrt-geometry/1_Cube_005.pbrt"   
 ObjectEnd
 
-# 2-Cube.004
-ObjectBegin "2-Cube.004"
-  NamedMaterial "2-YGreen"   
-  Include "pbrt-geometry/2-Cube.004.pbrt"   
+# 2_Cube_004
+ObjectBegin "2_Cube_004"
+  NamedMaterial "2_YGreen"   
+  Include "pbrt-geometry/2_Cube_004.pbrt"   
 ObjectEnd
 
-# 3-Cube.003
-ObjectBegin "3-Cube.003"
-  NamedMaterial "3-XRed"   
-  Include "pbrt-geometry/3-Cube.003.pbrt"   
+# 3_Cube_003
+ObjectBegin "3_Cube_003"
+  NamedMaterial "3_XRed"   
+  Include "pbrt-geometry/3_Cube_003.pbrt"   
 ObjectEnd
 
-# 4-Icosphere.004
-ObjectBegin "4-Icosphere.004"
-  NamedMaterial "1-ZBlue"   
-  Include "pbrt-geometry/4-Icosphere.004.pbrt"   
+# 4_Icosphere_004
+ObjectBegin "4_Icosphere_004"
+  NamedMaterial "1_ZBlue"   
+  Include "pbrt-geometry/4_Icosphere_004.pbrt"   
 ObjectEnd
 
-# 5-Icosphere.003
-ObjectBegin "5-Icosphere.003"
-  NamedMaterial "2-YGreen"   
-  Include "pbrt-geometry/5-Icosphere.003.pbrt"   
+# 5_Icosphere_003
+ObjectBegin "5_Icosphere_003"
+  NamedMaterial "2_YGreen"   
+  Include "pbrt-geometry/5_Icosphere_003.pbrt"   
 ObjectEnd
 
-# 6-Icosphere.002
-ObjectBegin "6-Icosphere.002"
-  NamedMaterial "3-XRed"   
-  Include "pbrt-geometry/6-Icosphere.002.pbrt"   
+# 6_Icosphere_002
+ObjectBegin "6_Icosphere_002"
+  NamedMaterial "3_XRed"   
+  Include "pbrt-geometry/6_Icosphere_002.pbrt"   
 ObjectEnd
 
 WorldEnd
