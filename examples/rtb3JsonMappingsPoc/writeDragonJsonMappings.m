@@ -46,7 +46,18 @@ clc;
 %originalScene = which('Dragon.blend');
 originalScene = which('CoordinatesTest.blend');
 
-scene = mexximpImport(originalScene);
+% Assimp to the max!  Clean up the scene.
+importFlags = mexximpConstants('postprocessStep');
+importFlags.calculateTangentSpace = true;
+importFlags.joinIdenticalVertices = true;
+importFlags.triangulate = true;
+importFlags.generateNormals = true;
+importFlags.validateDataStructure = true;
+importFlags.fixInfacingNormals = true;
+importFlags.findInvalidData = true;
+importFlags.generateUVCoordinates = true;
+
+scene = mexximpImport(originalScene, importFlags);
 scene.rootNode = mexximpFlattenNodes(scene);
 
 %% In the old Collada Mappings, we sometimes need to flip coordinates.
@@ -265,6 +276,8 @@ elements = mexximpSceneElements(scene);
 elementTypes = {elements.type};
 pbrtScene = MPbrtScene();
 
+pathHere = fileparts(which('writeDragonJsonMappings'));
+
 % convert cameras to mPbrt
 cameraInds = find(strcmp('cameras', elementTypes));
 for cc = cameraInds
@@ -289,7 +302,23 @@ for ll = lightInds
     pbrtScene.world.append(pbrtNode);
 end
 
+% convert meshes to mPbrt object declarations
+meshInds = find(strcmp('meshes', elementTypes));
+for mm = meshInds
+    pbrtNode = mexximpMeshToMPbrt(scene, elements(mm), ...
+        'workingFolder', pathHere, ...
+        'meshSubfolder', 'pbrt-geometry', ...
+        'rewriteMeshData', true);
+    pbrtScene.world.append(pbrtNode);
+end
+
+% % convert nodes to mPbrt object instances
+% nodeInds = find(strcmp('nodes', elementTypes));
+% for nn = nodeInds
+%     pbrtNode = mexximpNodeToMPbrt(scene, elements(n));
+%     pbrtScene.world.append(pbrtNode);
+% end
+
 % dump pbrt to file
-pathHere = fileparts(which('writeDragonJsonMappings'));
 pbrtFile = fullfile(pathHere, 'poc.pbrt');
 pbrtScene.printToFile(pbrtFile);

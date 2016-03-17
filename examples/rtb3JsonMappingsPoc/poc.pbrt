@@ -84,5 +84,41 @@ AttributeBegin
     "point from" [0 0 0] 
 AttributeEnd
 
+# 1-Cube.005
+ObjectBegin "1-Cube.005"
+  NamedMaterial "1-ZBlue"   
+  Include "pbrt-geometry/1-Cube.005.pbrt"   
+ObjectEnd
+
+# 2-Cube.004
+ObjectBegin "2-Cube.004"
+  NamedMaterial "2-YGreen"   
+  Include "pbrt-geometry/2-Cube.004.pbrt"   
+ObjectEnd
+
+# 3-Cube.003
+ObjectBegin "3-Cube.003"
+  NamedMaterial "3-XRed"   
+  Include "pbrt-geometry/3-Cube.003.pbrt"   
+ObjectEnd
+
+# 4-Icosphere.004
+ObjectBegin "4-Icosphere.004"
+  NamedMaterial "1-ZBlue"   
+  Include "pbrt-geometry/4-Icosphere.004.pbrt"   
+ObjectEnd
+
+# 5-Icosphere.003
+ObjectBegin "5-Icosphere.003"
+  NamedMaterial "2-YGreen"   
+  Include "pbrt-geometry/5-Icosphere.003.pbrt"   
+ObjectEnd
+
+# 6-Icosphere.002
+ObjectBegin "6-Icosphere.002"
+  NamedMaterial "3-XRed"   
+  Include "pbrt-geometry/6-Icosphere.002.pbrt"   
+ObjectEnd
+
 WorldEnd
 
