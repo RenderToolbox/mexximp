@@ -38,7 +38,7 @@ end
 parser = inputParser();
 parser.StructExpand = true;
 parser.addParameter('name', '', @ischar);
-parser.addParameter('index', 0, @isnumeric);
+parser.addParameter('index', [], @isnumeric);
 parser.addParameter('broadType', '', @ischar);
 parser.addParameter('specificType', '', @ischar);
 parser.addParameter('operation', 'create', @ischar);

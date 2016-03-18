@@ -1,6 +1,6 @@
 [
 	{
-		"index": 1,
+		"name": "Camera",
 		"broadType": "nodes",
 		"operation": "update",
 		"destination": "mexximp",
@@ -12,7 +12,8 @@
 				[0,1,0,0],
 				[0,0,1,0],
 				[0,0,0,1]
-			]
+			],
+			"operation": "value * oldValue"
 		}
 	},
 	{
@@ -73,18 +74,11 @@
 		"broadType": "materials",
 		"specificType": "matte",
 		"operation": "update",
-		"properties": [
-			{
-				"name": "diffuseReflectance",
-				"valueType": "spectrum",
-				"value": "mccBabel-1.spd"
-			},
-			{
-				"name": "extraProperty",
-				"valueType": "float",
-				"value": 33.567
-			}
-		]
+		"properties": {
+			"name": "diffuseReflectance",
+			"valueType": "spectrum",
+			"value": "mccBabel-1.spd"
+		}
 	},
 	{
 		"name": "dragon",
@@ -94,7 +88,6 @@
 		"properties": {
 			"name": "transformation",
 			"valueType": "matrix",
-			"operation": "*=",
 			"value": [
 				[1,0,0,0],
 				[0,1,0,0],
@@ -106,7 +99,11 @@
 	{
 		"name": "integrator",
 		"broadType": "SurfaceIntegrator",
-		"index": 1,
+		"index": {
+			"_ArrayType_": "double",
+			"_ArraySize_": [0,0],
+			"_ArrayData_": null
+		},
 		"specificType": "directlighting",
 		"operation": "create",
 		"destination": "PBRT"
@@ -114,7 +111,11 @@
 	{
 		"name": "sampler",
 		"broadType": "Sampler",
-		"index": 1,
+		"index": {
+			"_ArrayType_": "double",
+			"_ArraySize_": [0,0],
+			"_ArrayData_": null
+		},
 		"specificType": "lowdiscrepancy",
 		"operation": "create",
 		"destination": "PBRT",
@@ -127,7 +128,11 @@
 	{
 		"name": "filter",
 		"broadType": "PixelFilter",
-		"index": 1,
+		"index": {
+			"_ArrayType_": "double",
+			"_ArraySize_": [0,0],
+			"_ArrayData_": null
+		},
 		"specificType": "gaussian",
 		"operation": "create",
 		"destination": "PBRT",
@@ -146,6 +151,48 @@
 				"name": "ywidth",
 				"valueType": "float",
 				"value": 2
+			}
+		]
+	},
+	{
+		"name": "Camera",
+		"broadType": "cameras",
+		"operation": "update",
+		"destination": "mexximp",
+		"properties": [
+			{
+				"name": "horizontalFov",
+				"valueType": "float",
+				"value": 1.349481945
+			},
+			{
+				"name": "aspectRatio",
+				"valueType": "float",
+				"value": 1.333333333
+			}
+		]
+	},
+	{
+		"name": "film",
+		"broadType": "Film",
+		"specificType": "image",
+		"operation": "create",
+		"destination": "PBRT",
+		"properties": [
+			{
+				"name": "filename",
+				"valueType": "string",
+				"value": "/tmp/mappings-poc/poc.dat"
+			},
+			{
+				"name": "xresolution",
+				"valueType": "integer",
+				"value": 320
+			},
+			{
+				"name": "yresolution",
+				"valueType": "integer",
+				"value": 240
 			}
 		]
 	}

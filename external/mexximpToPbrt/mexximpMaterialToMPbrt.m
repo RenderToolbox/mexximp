@@ -33,6 +33,7 @@ function pbrtElement = mexximpMaterialToMPbrt(scene, material, varargin)
 % Copyright (c) 2016 mexximp Team
 
 parser = inputParser();
+parser.KeepUnmatched = true;
 parser.addRequired('scene', @isstruct);
 parser.addRequired('material', @isstruct);
 parser.addParameter('materialType', 'uber', @ischar);
@@ -60,16 +61,20 @@ specularTexture = queryProperties(properties, 'textureSemantic', 'specular', 'da
 %% Build the pbrt material.
 pbrtElement = MPbrtElement.makeNamedMaterial(pbrtName, materialType);
 
-if isempty(diffuseTexture)
-    pbrtElement.setParameter(materialDiffuse, 'rgb', diffuseRgb(1:3));
-else
-    pbrtElement.setParameter(materialDiffuse, 'texture', diffuseTexture);
+if ~isempty(materialDiffuse)
+    if isempty(diffuseTexture)
+        pbrtElement.setParameter(materialDiffuse, 'rgb', diffuseRgb(1:3));
+    else
+        pbrtElement.setParameter(materialDiffuse, 'texture', diffuseTexture);
+    end
 end
 
-if isempty(specularTexture)
-    pbrtElement.setParameter(materialSpecular, 'rgb', specularRgb(1:3));
-else
-    pbrtElement.setParameter(materialSpecular, 'texture', specularTexture);
+if ~isempty(materialSpecular)
+    if isempty(specularTexture)
+        pbrtElement.setParameter(materialSpecular, 'rgb', specularRgb(1:3));
+    else
+        pbrtElement.setParameter(materialSpecular, 'texture', specularTexture);
+    end
 end
 
 %% Query a material property, return default if no good match.

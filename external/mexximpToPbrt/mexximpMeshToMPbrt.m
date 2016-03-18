@@ -43,6 +43,7 @@ function [pbrtNode, includeFile] = mexximpMeshToMPbrt(scene, mesh, varargin)
 % Copyright (c) 2016 mexximp Team
 
 parser = inputParser();
+parser.KeepUnmatched = true;
 parser.addRequired('scene', @isstruct);
 parser.addRequired('mesh', @isstruct);
 parser.addParameter('workingFolder', pwd(), @ischar);

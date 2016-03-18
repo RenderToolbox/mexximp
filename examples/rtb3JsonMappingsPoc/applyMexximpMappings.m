@@ -36,31 +36,12 @@ for mm = 1:nMexximpMappings
         continue;
     end
     
-    % update its properties
+    % update its property values
     for pp = 1:numel(mapping.properties)
         property = mapping.properties(pp);
         propertyPath = cat(2, element.path, {property.name});
         oldValue = mPathGet(scene, propertyPath);
-        
-        % we allow a few property operations to set or modify
-        switch property.operation
-            case '='
-                newValue = property.value;
-            case '+='
-                newValue = oldValue + property.value;
-            case '-='
-                newValue = oldValue - property.value;
-            case '*='
-                newValue = oldValue * property.value;
-            case '/='
-                newValue = oldValue / property.value;
-            case '.*='
-                newValue = oldValue .* property.value;
-            case './='
-                newValue = oldValue ./ property.value;
-            otherwise
-                newValue = property.value;
-        end
+        newValue = applyPropertyOperation(property, oldValue);
         scene = mPathSet(scene, propertyPath, newValue);
     end
 end

@@ -34,86 +34,20 @@
 %   element by type and index, like when looking at a mexximp scene struct.
 %   Sometimes, just the type will do, like when referring to the single
 %   camera and we don't care what its name is.  So name, type, and index
-%   will proscribe a well-defined element *search*, rather than a
+%   will prescribe a well-defined element *search*, rather than a
 %   brittle id match.
 %
 
 
-%% For reference, I want to look at the original Dragon scene.
+%% Setup.
 clear;
 clc;
+
+outputFolder = fullfile(tempdir(), 'mappings-poc');
 
 %originalScene = which('Dragon.blend');
 originalScene = which('CoordinatesTest.blend');
 
-% Assimp to the max!  Clean up the scene.
-importFlags = mexximpConstants('postprocessStep');
-importFlags.calculateTangentSpace = true;
-importFlags.joinIdenticalVertices = true;
-importFlags.triangulate = true;
-importFlags.generateNormals = true;
-importFlags.validateDataStructure = true;
-importFlags.fixInfacingNormals = true;
-importFlags.findInvalidData = true;
-importFlags.generateUVCoordinates = true;
-
-scene = mexximpImport(originalScene, importFlags);
-scene.rootNode = mexximpFlattenNodes(scene);
-
-elements = mexximpSceneElements(scene);
-
-%% Next we want to write a PBRT scene.
-
-% fill in camera aspect ratio
-imageHeight = 240;
-imageWidth = 320;
-[scene.cameras.aspectRatio] = deal(imageWidth ./ imageHeight);
-
-% seem to be getting default fov from Blender importer.
-%   TODO fix with mappings instead of cheating here?
-[scene.cameras.horizontalFov] = 1.3495;
-
-outputFolder = fullfile(tempdir(), 'mappings-poc');
-pbrtScene = mexximpToMPbrt(scene, ...
-    'materialType', 'anisoward', ...
-    'materialDiffuse', 'Kd', ...
-    'materialSpecular', 'Ks', ...
-    'workingFolder', outputFolder, ...
-    'meshSubfolder', 'pbrt-geometry', ...
-    'rewriteMeshData', true);
-
-% add some overall defaults
-filter = MPbrtElement('PixelFilter', 'type', 'gaussian');
-filter.setParameter('xwidth', 'float', 2);
-filter.setParameter('ywidth', 'float', 2);
-pbrtScene.overall.append(filter);
-
-sampler = MPbrtElement('Sampler', 'type', 'lowdiscrepancy');
-sampler.setParameter('pixelsamples', 'integer', 8);
-pbrtScene.overall.append(sampler);
-
-datFile = fullfile(outputFolder, 'poc.dat');
-film = MPbrtElement('Film', 'type', 'image');
-film.setParameter('filename', 'string', datFile);
-film.setParameter('xresolution', 'integer', imageWidth);
-film.setParameter('yresolution', 'integer', imageHeight);
-pbrtScene.overall.append(film);
-
-% dump pbrt to file
-pbrtFile = fullfile(outputFolder, 'poc.pbrt');
-pbrtScene.printToFile(pbrtFile);
-
-%% Try to render the converted scene.
-pbrt = '/home/ben/render/pbrt/pbrt-v2-spectral/src/bin/pbrt';
-command = sprintf('%s --outfile %s %s', pbrt, datFile, pbrtFile);
-[status, result] = unix(command);
-disp(result);
-
-imageData = ReadDAT(datFile);
-srgb = MultispectralToSRGB(imageData, getpref('PBRT', 'S'), 100, true);
-ShowXYZAndSRGB([], srgb, originalScene);
-
-return;
 
 %% In the old Collada Mappings, we sometimes need to flip coordinates.
 % Collada {
@@ -121,18 +55,17 @@ return;
 %     Camera:scale|sid=scale = -1 1 1
 % }
 %
-% What we can do now is edit the root node instead of the camera.
+% What we can do now is edit the mexximp camera node.
 
-% top-level structure to identify the scene element and operation
-flip.index = 1;
-flip.broadType = 'nodes';
-flip.operation = 'update';
-flip.destination = 'mexximp';
-
-% zero or more nested properties of the element
-flip.properties(1).name = 'transformation';
-flip.properties(1).valueType = 'matrix';
-flip.properties(1).value = mexximpScale([-1 1 1]);
+mm = 1;
+mappings{mm}.name = 'Camera';
+mappings{mm}.broadType = 'nodes';
+mappings{mm}.operation = 'update';
+mappings{mm}.destination = 'mexximp';
+mappings{mm}.properties(1).name = 'transformation';
+mappings{mm}.properties(1).valueType = 'matrix';
+mappings{mm}.properties(1).value = mexximpScale([-1 1 1]);
+mappings{mm}.properties(1).operation = 'value * oldValue';
 
 
 %% We need to "bless" two existing meshes to make them area lights.
@@ -145,19 +78,21 @@ flip.properties(1).value = mexximpScale([-1 1 1]);
 %     ...
 % }
 
-blessX.name = 'LightX';
-blessX.broadType = 'meshes';
-blessX.operation = 'blessThisMesh';
-blessX.properties(1).name = 'intensity';
-blessX.properties(1).valueType = 'spectrum';
-blessX.properties(1).value = 'D65.spd';
+mm = mm + 1;
+mappings{mm}.name = 'LightX';
+mappings{mm}.broadType = 'meshes';
+mappings{mm}.operation = 'blessThisMesh';
+mappings{mm}.properties(1).name = 'intensity';
+mappings{mm}.properties(1).valueType = 'spectrum';
+mappings{mm}.properties(1).value = 'D65.spd';
 
-blessY.name = 'LightY';
-blessY.broadType = 'meshes';
-blessY.operation = 'blessThisMesh';
-blessY.properties(1).name = 'intensity';
-blessY.properties(1).valueType = 'spectrum';
-blessY.properties(1).value = 'D65.spd';
+mm = mm + 1;
+mappings{mm}.name = 'LightY';
+mappings{mm}.broadType = 'meshes';
+mappings{mm}.operation = 'blessThisMesh';
+mappings{mm}.properties(1).name = 'intensity';
+mappings{mm}.properties(1).valueType = 'spectrum';
+mappings{mm}.properties(1).value = 'D65.spd';
 
 
 %% We need set the type and spectrum for two materials.
@@ -179,55 +114,54 @@ blessY.properties(1).value = 'D65.spd';
 %     ...
 % }
 
-reflectorMaterial.name = 'ReflectorMaterial';
-reflectorMaterial.broadType = 'materials';
-reflectorMaterial.specificType = 'matte';
-reflectorMaterial.operation = 'update';
-reflectorMaterial.properties(1).name = 'diffuseReflectance';
-reflectorMaterial.properties(1).valueType = 'spectrum';
-reflectorMaterial.properties(1).value = '300:1.0 800:1.0';
+mm = mm + 1;
+mappings{mm}.name = 'ReflectorMaterial';
+mappings{mm}.broadType = 'materials';
+mappings{mm}.specificType = 'matte';
+mappings{mm}.operation = 'update';
+mappings{mm}.properties(1).name = 'diffuseReflectance';
+mappings{mm}.properties(1).valueType = 'spectrum';
+mappings{mm}.properties(1).value = '300:1.0 800:1.0';
 
-wallMaterial.name = 'WallMaterial';
-wallMaterial.broadType = 'materials';
-wallMaterial.specificType = 'matte';
-wallMaterial.operation = 'update';
-wallMaterial.properties(1).name = 'diffuseReflectance';
-wallMaterial.properties(1).valueType = 'spectrum';
-wallMaterial.properties(1).value = '300:0.75 800:0.75';
+mm = mm + 1;
+mappings{mm}.name = 'WallMaterial';
+mappings{mm}.broadType = 'materials';
+mappings{mm}.specificType = 'matte';
+mappings{mm}.operation = 'update';
+mappings{mm}.properties(1).name = 'diffuseReflectance';
+mappings{mm}.properties(1).valueType = 'spectrum';
+mappings{mm}.properties(1).value = '300:0.75 800:0.75';
 
-floorMaterial.name = 'FloorMaterial';
-floorMaterial.broadType = 'materials';
-floorMaterial.specificType = 'matte';
-floorMaterial.operation = 'update';
-floorMaterial.properties(1).name = 'diffuseReflectance';
-floorMaterial.properties(1).valueType = 'spectrum';
-floorMaterial.properties(1).value = '300:0.5 800:0.5';
+mm = mm + 1;
+mappings{mm}.name = 'FloorMaterial';
+mappings{mm}.broadType = 'materials';
+mappings{mm}.specificType = 'matte';
+mappings{mm}.operation = 'update';
+mappings{mm}.properties(1).name = 'diffuseReflectance';
+mappings{mm}.properties(1).valueType = 'spectrum';
+mappings{mm}.properties(1).value = '300:0.5 800:0.5';
 
-dragonMaterial.name = 'DragonMaterial';
-dragonMaterial.broadType = 'materials';
-dragonMaterial.specificType = 'matte';
-dragonMaterial.operation = 'update';
-dragonMaterial.properties(1).name = 'diffuseReflectance';
-dragonMaterial.properties(1).valueType = 'spectrum';
-dragonMaterial.properties(1).value = 'mccBabel-1.spd';
+mm = mm + 1;
+mappings{mm}.name = 'DragonMaterial';
+mappings{mm}.broadType = 'materials';
+mappings{mm}.specificType = 'matte';
+mappings{mm}.operation = 'update';
+mappings{mm}.properties(1).name = 'diffuseReflectance';
+mappings{mm}.properties(1).valueType = 'spectrum';
+mappings{mm}.properties(1).value = 'mccBabel-1.spd';
 
-%% For POC, add an additional property to one of the mappings.
-% This will let us see what happens when we write a JSON array of
-% properties, as opposed to a single properties object.
-dragonMaterial.properties(2).name = 'extraProperty';
-dragonMaterial.properties(2).valueType = 'float';
-dragonMaterial.properties(2).value = 33.567;
 
 %% For POC, modify a node that's not the root node.
 % This will let us see what happens when we have nested node adjustments.
-dragonNode.name = 'dragon';
-dragonNode.broadType = 'nodes';
-dragonNode.operation = 'update';
-dragonNode.destination = 'mexximp';
-dragonNode.properties(1).name = 'transformation';
-dragonNode.properties(1).valueType = 'matrix';
-dragonNode.properties(1).operation = '*=';
-dragonNode.properties(1).value = mexximpIdentity();
+mm = mm + 1;
+mappings{mm}.name = 'dragon';
+mappings{mm}.broadType = 'nodes';
+mappings{mm}.operation = 'update';
+mappings{mm}.destination = 'mexximp';
+mappings{mm}.properties(1).name = 'transformation';
+mappings{mm}.properties(1).valueType = 'matrix';
+mappings{mm}.properties(1).value = mexximpIdentity();
+
 
 %% Add some PBRT XML "default adjustments".
 %     <SurfaceIntegrator id="integrator" type="directlighting"/>
@@ -243,85 +177,121 @@ dragonNode.properties(1).value = mexximpIdentity();
 %     </PixelFilter>
 %
 % These set up scene elements that mexximp won't know about.
-integrator.name = 'integrator';
-integrator.broadType = 'SurfaceIntegrator';
-integrator.index = 1;
-integrator.specificType = 'directlighting';
-integrator.operation = 'create';
-integrator.destination = 'PBRT';
+mm = mm + 1;
+mappings{mm}.name = 'integrator';
+mappings{mm}.broadType = 'SurfaceIntegrator';
+mappings{mm}.index = [];
+mappings{mm}.specificType = 'directlighting';
+mappings{mm}.operation = 'create';
+mappings{mm}.destination = 'PBRT';
 
-sampler.name = 'sampler';
-sampler.broadType = 'Sampler';
-sampler.index = 1;
-sampler.specificType = 'lowdiscrepancy';
-sampler.operation = 'create';
-sampler.destination = 'PBRT';
-sampler.properties(1).name = 'pixelsamples';
-sampler.properties(1).valueType = 'integer';
-sampler.properties(1).value = 8;
+mm = mm + 1;
+mappings{mm}.name = 'sampler';
+mappings{mm}.broadType = 'Sampler';
+mappings{mm}.index = [];
+mappings{mm}.specificType = 'lowdiscrepancy';
+mappings{mm}.operation = 'create';
+mappings{mm}.destination = 'PBRT';
+mappings{mm}.properties(1).name = 'pixelsamples';
+mappings{mm}.properties(1).valueType = 'integer';
+mappings{mm}.properties(1).value = 8;
 
-filter.name = 'filter';
-filter.broadType = 'PixelFilter';
-filter.index = 1;
-filter.specificType = 'gaussian';
-filter.operation = 'create';
-filter.destination = 'PBRT';
-filter.properties(1).name = 'alpha';
-filter.properties(1).valueType = 'float';
-filter.properties(1).value = 2;
-filter.properties(2).name = 'xwidth';
-filter.properties(2).valueType = 'float';
-filter.properties(2).value = 2;
-filter.properties(3).name = 'ywidth';
-filter.properties(3).valueType = 'float';
-filter.properties(3).value = 2;
+mm = mm + 1;
+mappings{mm}.name = 'filter';
+mappings{mm}.broadType = 'PixelFilter';
+mappings{mm}.index = [];
+mappings{mm}.specificType = 'gaussian';
+mappings{mm}.operation = 'create';
+mappings{mm}.destination = 'PBRT';
+mappings{mm}.properties(1).name = 'alpha';
+mappings{mm}.properties(1).valueType = 'float';
+mappings{mm}.properties(1).value = 2;
+mappings{mm}.properties(2).name = 'xwidth';
+mappings{mm}.properties(2).valueType = 'float';
+mappings{mm}.properties(2).value = 2;
+mappings{mm}.properties(3).name = 'ywidth';
+mappings{mm}.properties(3).valueType = 'float';
+mappings{mm}.properties(3).value = 2;
 
-%% Now we can write the mappings file.
-% Just pack up all the mappings as a struct array and dump out to JSON.
-% That's it!
-allMappings = { ...
-    flip, ...
-    blessX, ...
-    blessY, ...
-    reflectorMaterial, ...
-    wallMaterial, ...
-    floorMaterial, ...
-    dragonMaterial, ...
-    dragonNode, ...
-    integrator, ...
-    sampler, ...
-    filter};
 
+%% A little fix-up for the camera fov and image size.
+imageHeight = 240;
+imageWidth = 320;
+datFile = fullfile(outputFolder, 'poc.dat');
+
+mm = mm + 1;
+mappings{mm}.name = 'Camera';
+mappings{mm}.broadType = 'cameras';
+mappings{mm}.operation = 'update';
+mappings{mm}.destination = 'mexximp';
+mappings{mm}.properties(1).name = 'horizontalFov';
+mappings{mm}.properties(1).valueType = 'float';
+mappings{mm}.properties(1).value = 77.31962 * pi() / 180;
+mappings{mm}.properties(2).name = 'aspectRatio';
+mappings{mm}.properties(2).valueType = 'float';
+mappings{mm}.properties(2).value = imageWidth / imageHeight;
+
+mm = mm + 1;
+mappings{mm}.name = 'film';
+mappings{mm}.broadType = 'Film';
+mappings{mm}.specificType = 'image';
+mappings{mm}.operation = 'create';
+mappings{mm}.destination = 'PBRT';
+mappings{mm}.properties(1).name = 'filename';
+mappings{mm}.properties(1).valueType = 'string';
+mappings{mm}.properties(1).value = datFile;
+mappings{mm}.properties(2).name = 'xresolution';
+mappings{mm}.properties(2).valueType = 'integer';
+mappings{mm}.properties(2).value = imageWidth;
+mappings{mm}.properties(3).name = 'yresolution';
+mappings{mm}.properties(3).valueType = 'integer';
+mappings{mm}.properties(3).value = imageHeight;
+
+
+%% Dump mappings out to JSON.
 pathHere = fileparts(which('writeDragonJsonMappings'));
 mappingsFile = fullfile(pathHere, 'DragonMappings.json');
-savejson('', allMappings, ...
+savejson('', mappings, ...
     'FileName', mappingsFile, ...
     'ArrayIndent', 1, ...
     'ArrayToStrut', 0);
 
-%% And we can read it back.
-% Do we get the same as we wrote out, plus filled in defaults?
+
+%% And we can read it back with defaults filled in.
 validatedMappings = parseJsonMappings(mappingsFile);
 
-%% We can apply "mexximp" mappings directly to the scene.
+
+%% Get the scene and apply mappings to it.
+[scene, ~, postFlags] = mexximpCleanImport(originalScene);
+
+% modify the mexximp scene struct
 scene = applyMexximpMappings(scene, validatedMappings);
 
-%% We can convert Generic mappings to renderer-specific.
+% convert to an mPbrt scene
+pbrtScene = mexximpToMPbrt(scene, ...
+    'materialType', 'anisoward', ...
+    'materialDiffuse', 'Kd', ...
+    'materialSpecular', 'Ks', ...
+    'workingFolder', outputFolder, ...
+    'meshSubfolder', 'pbrt-geometry', ...
+    'rewriteMeshData', true);
 
-%% And we can organize remaining mappings as scene element adjustments.
-adjustments = mexximpConstants('scene');
-nMappings = numel(validatedMappings);
-for mm = 1:nMappings
-    mapping = validatedMappings(mm);
-    element = findSceneElement(scene, ...
-        'name', mapping.name, ...
-        'broadType', mapping.broadType, ...
-        'index', mapping.index);
-    if isempty(element)
-        % not a mexximp element, add manually to the adjustments
-        adjustments.(mapping.broadType)(mapping.index) = mapping;
-    else
-        % add to adjustments at the same path in the scene struct
-        adjustments = mPathSet(adjustments, element.path, mapping);
-    end
-end
+pbrtScene = applyMPbrtMappings(pbrtScene, validatedMappings);
+%pbrtScene = applyMPbrtGenericMappings(pbrtScene, validatedMappings);
+
+
+%% Try to render the PBRT scene.
+pbrtFile = fullfile(outputFolder, 'poc.pbrt');
+pbrtScene.printToFile(pbrtFile);
+
+pbrt = '/home/ben/render/pbrt/pbrt-v2-spectral/src/bin/pbrt';
+command = sprintf('%s --outfile %s %s', pbrt, datFile, pbrtFile);
+[status, result] = unix(command);
+disp(result);
+
+imageData = ReadDAT(datFile);
+srgb = MultispectralToSRGB(imageData, getpref('PBRT', 'S'), 100, true);
+
+[~, sceneBase, sceneExt] = fileparts(originalScene);
+ShowXYZAndSRGB([], srgb, [sceneBase sceneExt]);
+

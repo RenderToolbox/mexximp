@@ -16,6 +16,7 @@ function pbrtNode = mexximpLightToMPbrt(scene, light, varargin)
 % Copyright (c) 2016 mexximp Team
 
 parser = inputParser();
+parser.KeepUnmatched = true;
 parser.addRequired('scene', @isstruct);
 parser.addRequired('light', @isstruct);
 parser.parse(scene, light, varargin{:});

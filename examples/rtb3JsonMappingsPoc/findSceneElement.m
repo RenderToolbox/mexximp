@@ -81,7 +81,7 @@ end
 
 nameMatcher = mexximpStringMatcher(name);
 q = {'name', nameMatcher};
-element = mPathGet(elements, {q});
+element = mPathGet(elements(isBroadType), {q});
 
 
 %% Grab and element by type and index.

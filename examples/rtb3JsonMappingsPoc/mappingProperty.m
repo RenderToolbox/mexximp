@@ -21,7 +21,7 @@ parser.KeepUnmatched = true;
 parser.addParameter('name', '', @ischar);
 parser.addParameter('valueType', '', @ischar);
 parser.addParameter('value', []);
-parser.addParameter('operation', '=', @(o)any(strcmp(o, {'=', '+=', '-=', '*=', '/='})));
+parser.addParameter('operation', '=', @ischar);
 parser.parse(varargin{:});
 
 %% Let the input parser do all the work!

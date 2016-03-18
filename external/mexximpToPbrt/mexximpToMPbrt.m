@@ -26,12 +26,13 @@ function pbrtScene = mexximpToMPbrt(mexximpScene, varargin)
 parser = inputParser();
 parser.addRequired('mexximpScene', @isstruct);
 parser.parse(mexximpScene);
-mexximpScene = parser.Results.scene;
+mexximpScene = parser.Results.mexximpScene;
 
 %% Fresh scene to add to.
 pbrtScene = MPbrtScene();
 
 %% Camera and POV transformations.
+elements = mexximpSceneElements(mexximpScene);
 elementTypes = {elements.type};
 cameraInds = find(strcmp('cameras', elementTypes));
 for cc = cameraInds
