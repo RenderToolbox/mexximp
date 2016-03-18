@@ -28,7 +28,7 @@ function [scene, info] = mexximpRecodeImages(scene, varargin)
 %
 % Copyright (c) 2016 mexximp Teame
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addParameter('toReplace', {'gif'}, @iscellstr);
 parser.addParameter('targetFormat', 'png', @ischar);

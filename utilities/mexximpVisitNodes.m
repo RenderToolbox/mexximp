@@ -32,7 +32,7 @@ function result = mexximpVisitNodes(scene, visitFunction, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addRequired('visitFunction', @(f) isa(f, 'function_handle'));
 parser.parse(scene, visitFunction);

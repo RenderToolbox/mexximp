@@ -8,7 +8,7 @@ function transformation = mexximpTranslate(destination)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('destination', @(d) isnumeric(d) && 3 == numel(d));
 parser.parse(destination);
 destination = parser.Results.destination;

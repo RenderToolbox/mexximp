@@ -8,7 +8,7 @@ function name = mexximpCleanName(originalName, index)
 % characters and underscores.
 %
 % For example, mexximpCleanName('Cube.005', 2) will produce the name
-% 'Cube_005_2'. 
+% 'Cube_005_2'.
 %
 % Returns a formatted name based on the given originalName and index.
 %
@@ -16,9 +16,9 @@ function name = mexximpCleanName(originalName, index)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('originalName', @ischar);
-parser.addRequired('index', @isnumeric);
+parser.addRequired('index');
 parser.parse(originalName, index);
 originalName = parser.Results.originalName;
 index = parser.Results.index;
@@ -31,4 +31,8 @@ isUnderscore = ~isUpper & ~isLower & ~isNumeric;
 originalName(isUnderscore) = '_';
 
 %% Build the new name.
-name = sprintf('%d_%s', index, originalName);
+if isempty(index) || ~isnumeric(index)
+    name = originalName;
+else
+    name = sprintf('%d_%s', index, originalName);
+end

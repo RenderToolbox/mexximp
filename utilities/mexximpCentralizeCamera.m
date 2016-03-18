@@ -62,7 +62,7 @@ function [scene, camera, cameraNode] = mexximpCentralizeCamera(scene, varargin)
 %
 % Copyright (c) 2016 mexximp Teame
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addParameter('viewAxis', [0 0 -1], @(v) isnumeric(v) && 3 == numel(v));
 parser.addParameter('viewOffset', [0 0 0], @(v) isnumeric(v) && 3 == numel(v));

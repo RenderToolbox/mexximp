@@ -18,7 +18,7 @@ function matcher = mexximpStringMatcher(string, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('string', @ischar);
 parser.addParameter('caseSensitive', true, @islogical);
 parser.parse(string, varargin{:});

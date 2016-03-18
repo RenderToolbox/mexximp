@@ -8,7 +8,7 @@ function transformation = mexximpLookAt(from, to, up)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('from', @(f) isnumeric(f) && 3 == numel(f));
 parser.addRequired('to', @(t) isnumeric(t) && 3 == numel(t));
 parser.addRequired('up', @(u) isnumeric(u) && 3 == numel(u));

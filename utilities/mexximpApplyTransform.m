@@ -13,7 +13,7 @@ function transformed = mexximpApplyTransform(vertices, transformation)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('vertices', @(v) isnumeric(v) && 3 == size(v, 1));
 parser.addRequired('transformation', @(t) isnumeric(t) && all([4 4] == size(t)));
 parser.parse(vertices, transformation);

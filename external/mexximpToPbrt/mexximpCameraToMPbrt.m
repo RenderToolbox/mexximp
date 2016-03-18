@@ -9,8 +9,8 @@ function pbrtNode = mexximpCameraToMPbrt(scene, camera, varargin)
 % returned from mexximpSceneElements().
 %
 % By default, the camera will have type "perspective".  This may be
-% overidden by passing a named parameter.  For example:
-%   mexximpCameraToMPbrt( ... 'type', 'orthographic');
+% overidden by passing the 'cameraType' parameter.  For example:
+%   mexximpCameraToMPbrt( ... 'cameraType', 'orthographic');
 %
 % Returns an MPbrtElement with identifier Camera and parameters
 % filled in based on the mexximp camera.
@@ -19,14 +19,14 @@ function pbrtNode = mexximpCameraToMPbrt(scene, camera, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addRequired('camera', @isstruct);
-parser.addParameter('type', 'perspective', @ischar);
+parser.addParameter('cameraType', 'perspective', @ischar);
 parser.parse(scene, camera, varargin{:});
 scene = parser.Results.scene;
 camera = parser.Results.camera;
-type = parser.Results.type;
+cameraType = parser.Results.cameraType;
 
 %% Dig out the name.
 cameraName = camera.name;
@@ -36,8 +36,20 @@ pbrtName = mexximpCleanName(cameraName, cameraIndex);
 %% Dig out and convert parameter values.
 internal = mPathGet(scene, camera.path);
 
-% field of view in degrees
-fov = internal.horizontalFov * 180 / pi();
+% x-field of view in degrees
+%   nominally, Assimp camera horizontalFov is the half-field-of-view
+%   but it seems to behave like the full field of view.  Assimp bug?
+xFov = internal.horizontalFov * 180 / pi();
+
+% PBRT "fov" refers to the shorter image dimension
+if internal.aspectRatio < 1
+    % fov is xfov
+    fov = xFov;
+else
+    % fov is yfov, scale opposite leg of a right triangle by aspect ratio
+    fov = 2 * atand(tand(xFov ./ 2) ./ internal.aspectRatio);
+end
+
 
 % default camera orientation
 internalTarget = internal.position + internal.lookAtDirection;
@@ -49,18 +61,18 @@ end
 % camera position in the scene
 nameQuery = {'name', mexximpStringMatcher(camera.name)};
 transformPath = cat(2, {'rootNode', 'children', nameQuery, 'transformation'});
-externalTransform = mPathGet(scene, transformPath);
+externalTransform = mPathGet(scene, transformPath)';
 if isempty(externalTransform)
     externalTransform = mexximpIdentity();
 end
 
-% invert the scene transformation to get point of view
+% invert the camera transformation to get point of view
 externalTransform = inv(externalTransform);
 
 %% Build the pbrt camera and associated transforms.
 pbrtCamera = MPbrtElement('Camera', ...
     'name', pbrtName, ...
-    'type', type);
+    'type', cameraType);
 pbrtCamera.setParameter('fov', 'float', fov);
 
 pbrtInternalLookAt = MPbrtElement.transformation('LookAt', internalLookAt, ...

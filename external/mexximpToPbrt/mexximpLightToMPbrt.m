@@ -15,7 +15,7 @@ function pbrtNode = mexximpLightToMPbrt(scene, light, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addRequired('light', @isstruct);
 parser.parse(scene, light, varargin{:});
@@ -33,17 +33,17 @@ internal = mPathGet(scene, light.path);
 % light position in the scene
 nameQuery = {'name', mexximpStringMatcher(light.name)};
 transformPath = cat(2, {'rootNode', 'children', nameQuery, 'transformation'});
-externalTransform = mPathGet(scene, transformPath);
+externalTransform = mPathGet(scene, transformPath)';
 if isempty(externalTransform)
     externalTransform = mexximpIdentity();
 end
 
 %% Build the pbrt light and associated transform.
-pbrtLight = MPbrtElement('LightSource', 'name', pbrtName);
+pbrtLight = MPbrtElement('LightSource');
 
 pbrtSceneTransform = MPbrtElement.transformation('ConcatTransform', externalTransform);
 
-pbrtNode = MPbrtContainer('Attribute');
+pbrtNode = MPbrtContainer('Attribute', 'comment', pbrtName);
 pbrtNode.append(pbrtSceneTransform);
 pbrtNode.append(pbrtLight);
 

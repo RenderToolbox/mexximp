@@ -22,7 +22,7 @@ function [scene, lanterns, lanternNodes] = mexximpAddLanterns(scene, varargin)
 %
 % Copyright (c) 2016 mexximp Teame
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addParameter('lanternDistance', 1, @isscalar);
 parser.parse(scene, varargin{:});

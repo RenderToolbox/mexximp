@@ -19,7 +19,7 @@ function nestedValue = queryAdjustmentValue(adjustment, valueName, propertyName,
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('adjustment', @isstruct);
 parser.addRequired('valueName', @ischar);
 parser.addRequired('propertyName', @ischar);

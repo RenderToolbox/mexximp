@@ -18,7 +18,7 @@ function elements = mexximpSceneElements(scene)
 %
 % Copyright (c) 2016 mexximp Teame
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.parse(scene);
 scene = parser.Results.scene;

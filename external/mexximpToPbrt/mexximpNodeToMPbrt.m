@@ -14,7 +14,7 @@ function [pbrtNode, nObjects] = mexximpNodeToMPbrt(scene, node, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addRequired('node', @isstruct);
 parser.parse(scene, node, varargin{:});

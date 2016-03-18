@@ -26,7 +26,7 @@ function adjustment = editAdjustmentValue(adjustment, valueName, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('adjustment', @isstruct);
 parser.addRequired('valueName', @ischar);
 parser.addParameter('create', true, @islogical);

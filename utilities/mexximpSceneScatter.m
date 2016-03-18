@@ -20,7 +20,7 @@ function ax = mexximpSceneScatter(scene, varargin)
 %
 % Copyright (c) 2016 mexximp Teame
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addParameter('axes', []);
 parser.addParameter('ignoreNodes', {}, @iscellstr);

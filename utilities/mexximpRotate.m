@@ -8,7 +8,7 @@ function transformation = mexximpRotate(about, radians)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('about', @(d) isnumeric(d) && 3 == numel(d));
 parser.addRequired('radians', @(r) isnumeric(r) && isscalar(r));
 parser.parse(about, radians);

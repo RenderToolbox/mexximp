@@ -24,7 +24,7 @@ function mapping = setMappingProperty(mapping, name, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('mapping', @isstruct);
 parser.addRequired('name', @ischar);
 parser.addParameter('create', true, @islogical);

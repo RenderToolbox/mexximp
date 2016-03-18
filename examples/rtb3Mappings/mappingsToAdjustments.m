@@ -12,7 +12,7 @@ function adjustments = mappingsToAdjustments(mappings)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('mappings', @isstruct);
 parser.parse(mappings);
 mappings = parser.Results.mappings;

@@ -15,7 +15,7 @@ function adjustments = genericAdjustmentsToMitsuba(adjustments)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('adjustments', @isstruct);
 parser.parse(adjustments);
 adjustments = parser.Results.adjustments;

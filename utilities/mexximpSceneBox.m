@@ -23,7 +23,7 @@ function [sceneBox, middlePoint] = mexximpSceneBox(scene, varargin)
 %
 % Copyright (c) 2016 mexximp Teame
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addParameter('ignoreNodes', {}, @iscellstr);
 parser.parse(scene, varargin{:});

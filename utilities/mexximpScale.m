@@ -8,7 +8,7 @@ function transformation = mexximpScale(stretch)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('stretch', @(s) isnumeric(s));
 parser.parse(stretch);
 stretch = parser.Results.stretch;

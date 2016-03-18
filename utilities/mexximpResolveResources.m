@@ -48,7 +48,7 @@ function [scene, info] = mexximpResolveResources(scene, varargin)
 %
 % Copyright (c) 2016 mexximp Teame
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addParameter('resourceFolder', pwd(), @ischar);
 parser.addParameter('writeFullPaths', true, @logical);

@@ -16,7 +16,7 @@ function mitsubaFile = colladaToMitsuba(colladaFile, mitsubaFile, mitsuba, hints
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('colladaFile', @ischar);
 parser.addRequired('mitsubaFile', @ischar);
 parser.addRequired('mitsuba', @isstruct);

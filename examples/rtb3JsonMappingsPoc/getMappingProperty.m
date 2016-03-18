@@ -10,7 +10,7 @@ function value = getMappingProperty(mapping, name, defaultValue)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('mapping', @isstruct);
 parser.addRequired('name', @ischar);
 parser.addParameter('defaultValue', true, @islogical);

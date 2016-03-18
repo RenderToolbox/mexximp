@@ -28,7 +28,7 @@ function [element, matchScore] = mexximpFindElement(scene, name, varargin)
 %
 % Copyright (c) 2016 mexximp Teame
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addRequired('name', @ischar);
 parser.addParameter('type', '', @(t)any(strcmp(t, ...

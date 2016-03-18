@@ -60,6 +60,61 @@ importFlags.generateUVCoordinates = true;
 scene = mexximpImport(originalScene, importFlags);
 scene.rootNode = mexximpFlattenNodes(scene);
 
+elements = mexximpSceneElements(scene);
+
+%% Next we want to write a PBRT scene.
+
+% fill in camera aspect ratio
+imageHeight = 240;
+imageWidth = 320;
+[scene.cameras.aspectRatio] = deal(imageWidth ./ imageHeight);
+
+% seem to be getting default fov from Blender importer.
+%   TODO fix with mappings instead of cheating here?
+[scene.cameras.horizontalFov] = 1.3495;
+
+outputFolder = fullfile(tempdir(), 'mappings-poc');
+pbrtScene = mexximpToMPbrt(scene, ...
+    'materialType', 'anisoward', ...
+    'materialDiffuse', 'Kd', ...
+    'materialSpecular', 'Ks', ...
+    'workingFolder', outputFolder, ...
+    'meshSubfolder', 'pbrt-geometry', ...
+    'rewriteMeshData', true);
+
+% add some overall defaults
+filter = MPbrtElement('PixelFilter', 'type', 'gaussian');
+filter.setParameter('xwidth', 'float', 2);
+filter.setParameter('ywidth', 'float', 2);
+pbrtScene.overall.append(filter);
+
+sampler = MPbrtElement('Sampler', 'type', 'lowdiscrepancy');
+sampler.setParameter('pixelsamples', 'integer', 8);
+pbrtScene.overall.append(sampler);
+
+datFile = fullfile(outputFolder, 'poc.dat');
+film = MPbrtElement('Film', 'type', 'image');
+film.setParameter('filename', 'string', datFile);
+film.setParameter('xresolution', 'integer', imageWidth);
+film.setParameter('yresolution', 'integer', imageHeight);
+pbrtScene.overall.append(film);
+
+% dump pbrt to file
+pbrtFile = fullfile(outputFolder, 'poc.pbrt');
+pbrtScene.printToFile(pbrtFile);
+
+%% Try to render the converted scene.
+pbrt = '/home/ben/render/pbrt/pbrt-v2-spectral/src/bin/pbrt';
+command = sprintf('%s --outfile %s %s', pbrt, datFile, pbrtFile);
+[status, result] = unix(command);
+disp(result);
+
+imageData = ReadDAT(datFile);
+srgb = MultispectralToSRGB(imageData, getpref('PBRT', 'S'), 100, true);
+ShowXYZAndSRGB([], srgb, originalScene);
+
+return;
+
 %% In the old Collada Mappings, we sometimes need to flip coordinates.
 % Collada {
 %     % swap camera handedness from Blender's Collada output
@@ -270,55 +325,3 @@ for mm = 1:nMappings
         adjustments = mPathSet(adjustments, element.path, mapping);
     end
 end
-
-%% Next we want to write a PBRT scene.
-elements = mexximpSceneElements(scene);
-elementTypes = {elements.type};
-pbrtScene = MPbrtScene();
-
-pathHere = fileparts(which('writeDragonJsonMappings'));
-
-% convert cameras to mPbrt
-cameraInds = find(strcmp('cameras', elementTypes));
-for cc = cameraInds
-    pbrtNode = mexximpCameraToMPbrt(scene, elements(cc));
-    pbrtScene.overall.append(pbrtNode);
-end
-
-% convert materials to mPbrt
-materialInds = find(strcmp('materials', elementTypes));
-for mm = materialInds
-    pbrtNode = mexximpMaterialToMPbrt(scene, elements(mm), ...
-        'type', 'anisoward', ...
-        'diffuse', 'Kd', ...
-        'specular', 'Ks');
-    pbrtScene.overall.append(pbrtNode);
-end
-
-% convert lights to mPbrt
-lightInds = find(strcmp('lights', elementTypes));
-for ll = lightInds
-    pbrtNode = mexximpLightToMPbrt(scene, elements(ll));
-    pbrtScene.world.append(pbrtNode);
-end
-
-% convert meshes to mPbrt object declarations
-meshInds = find(strcmp('meshes', elementTypes));
-for mm = meshInds
-    pbrtNode = mexximpMeshToMPbrt(scene, elements(mm), ...
-        'workingFolder', pathHere, ...
-        'meshSubfolder', 'pbrt-geometry', ...
-        'rewriteMeshData', true);
-    pbrtScene.world.append(pbrtNode);
-end
-
-% % convert nodes to mPbrt object instances
-% nodeInds = find(strcmp('nodes', elementTypes));
-% for nn = nodeInds
-%     pbrtNode = mexximpNodeToMPbrt(scene, elements(n));
-%     pbrtScene.world.append(pbrtNode);
-% end
-
-% dump pbrt to file
-pbrtFile = fullfile(pathHere, 'poc.pbrt');
-pbrtScene.printToFile(pbrtFile);

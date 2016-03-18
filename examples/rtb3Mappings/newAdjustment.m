@@ -45,7 +45,7 @@ function adjustment = newAdjustment(varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
-parser = rdtInputParser();
+parser = inputParser();
 parser.addParameter('name', '', @ischar);
 parser.addParameter('broadType', '', @ischar);
 parser.addParameter('specificType', '', @ischar);
