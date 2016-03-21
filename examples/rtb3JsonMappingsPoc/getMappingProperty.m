@@ -13,7 +13,7 @@ function value = getMappingProperty(mapping, name, defaultValue)
 parser = inputParser();
 parser.addRequired('mapping', @isstruct);
 parser.addRequired('name', @ischar);
-parser.addParameter('defaultValue', true, @islogical);
+parser.addRequired('defaultValue');
 parser.parse(mapping, name, defaultValue);
 mapping = parser.Results.mapping;
 name = parser.Results.name;

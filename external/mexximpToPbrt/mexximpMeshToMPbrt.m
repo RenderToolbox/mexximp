@@ -104,7 +104,9 @@ nameData = mPathGet(materialData, namePath);
 materialName = mexximpCleanName(nameData, materialIndex);
 
 %% Build the pbrt object declaration and associated material.
-pbrtNode = MPbrtContainer('Object', 'name', pbrtName);
+pbrtNode = MPbrtContainer('Object', ...
+    'name', pbrtName, ...
+    'beginWithName', true);
 
 pbrtMaterial = MPbrtElement.namedMaterial(materialName);
 pbrtNode.append(pbrtMaterial);

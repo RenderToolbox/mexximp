@@ -30,7 +30,7 @@ pbrtName = mexximpCleanName(nodeName, nodeIndex);
 %% Add the node transformation to an Attribute.
 data = mPathGet(scene, node.path);
 
-pbrtNode = MPbrtContainer('Attribute', 'comment', pbrtName);
+pbrtNode = MPbrtContainer('Attribute', 'name', pbrtName);
 pbrtTransformation = MPbrtElement.transformation('ConcatTransform', data.transformation');
 pbrtNode.append(pbrtTransformation);
 

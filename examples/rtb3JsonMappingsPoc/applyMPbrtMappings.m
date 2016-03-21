@@ -25,50 +25,17 @@ nPbrtMappings = numel(pbrtMappings);
 
 %% Update the scene, one mapping at a time.
 for mm = 1:nPbrtMappings
+    %% Create/find/delete a scene element.
     mapping = pbrtMappings(mm);
-    
-    %% Locate the element.
-    pbrtName = mexximpCleanName(mapping.name, mapping.index);
-    switch mapping.operation
-        case 'delete'
-            % remove the node, if it can be found
-            pbrtScene.find(mapping.broadType, ...
-                'name', pbrtName, ...
-                'remove', true);
-            continue;
-            
-        case 'update'
-            % need an existing element to update
-            element = pbrtScene.find(mapping.broadType, 'name', pbrtName);
-            if isempty(element)
-                warning('applyMPbrtMappings:nodeNotFound', ...
-                    'No node found with identifier <%s> and name <%s>', ...
-                    mapping.broadType, pbrtName);
-                continue;
-            end
-            
-        case 'create'
-            % append a brand new element regardless of any existing
-            element = MPbrtElement(mapping.broadType, ...
-                'name', pbrtName, ...
-                'type', mapping.specificType);
-            pbrtScene.append(element);
-            
-        otherwise
-            warning('applyMPbrtMappings:unknownOperation', ...
-                'Unsupported mapping operation: %s', mapping.operation);
-            continue;
+    element = applyMPbrtMappingOperation(pbrtScene, mapping);
+    if isempty(element)
+        continue;
     end
     
     %% Update element properties.
     for pp = 1:numel(mapping.properties)
         property = mapping.properties(pp);
-        elementParameter = element.getParameter(property.name);
-        if isempty(elementParameter)
-            oldValue = [];
-        else
-            oldValue = elementParameter.value;
-        end
+        oldValue = element.getParameter(property.name);
         newValue = applyPropertyOperation(property, oldValue);
         element.setParameter(property.name, property.valueType, newValue);
     end

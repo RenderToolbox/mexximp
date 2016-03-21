@@ -19,21 +19,21 @@
 	{
 		"name": "LightX",
 		"broadType": "meshes",
-		"operation": "blessThisMesh",
+		"operation": "blessAsAreaLight",
 		"properties": {
 			"name": "intensity",
 			"valueType": "spectrum",
-			"value": "D65.spd"
+			"value": "/home/ben/render/RenderToolbox3/RenderData/D65.spd"
 		}
 	},
 	{
 		"name": "LightY",
 		"broadType": "meshes",
-		"operation": "blessThisMesh",
+		"operation": "blessAsAreaLight",
 		"properties": {
 			"name": "intensity",
 			"valueType": "spectrum",
-			"value": "D65.spd"
+			"value": "/home/ben/render/RenderToolbox3/RenderData/D65.spd"
 		}
 	},
 	{
@@ -77,7 +77,7 @@
 		"properties": {
 			"name": "diffuseReflectance",
 			"valueType": "spectrum",
-			"value": "mccBabel-1.spd"
+			"value": "/home/ben/render/RenderToolbox3/RenderData/Macbeth-ColorChecker/mccBabel-1.spd"
 		}
 	},
 	{
@@ -93,7 +93,8 @@
 				[0,1,0,0],
 				[0,0,1,0],
 				[0,0,0,1]
-			]
+			],
+			"operation": "value * oldValue"
 		}
 	},
 	{
@@ -163,7 +164,7 @@
 			{
 				"name": "horizontalFov",
 				"valueType": "float",
-				"value": 1.349481945
+				"value": 0.8575560088
 			},
 			{
 				"name": "aspectRatio",

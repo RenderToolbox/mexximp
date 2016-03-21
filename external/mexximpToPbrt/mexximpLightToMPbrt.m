@@ -40,11 +40,11 @@ if isempty(externalTransform)
 end
 
 %% Build the pbrt light and associated transform.
-pbrtLight = MPbrtElement('LightSource');
+pbrtLight = MPbrtElement('LightSource', 'name', pbrtName);
 
 pbrtSceneTransform = MPbrtElement.transformation('ConcatTransform', externalTransform);
 
-pbrtNode = MPbrtContainer('Attribute', 'comment', pbrtName);
+pbrtNode = MPbrtContainer('Attribute');
 pbrtNode.append(pbrtSceneTransform);
 pbrtNode.append(pbrtLight);
 

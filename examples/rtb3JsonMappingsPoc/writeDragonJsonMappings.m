@@ -45,8 +45,8 @@ clc;
 
 outputFolder = fullfile(tempdir(), 'mappings-poc');
 
-%originalScene = which('Dragon.blend');
-originalScene = which('CoordinatesTest.blend');
+originalScene = which('Dragon.blend');
+%originalScene = which('CoordinatesTest.blend');
 
 
 %% In the old Collada Mappings, we sometimes need to flip coordinates.
@@ -81,18 +81,18 @@ mappings{mm}.properties(1).operation = 'value * oldValue';
 mm = mm + 1;
 mappings{mm}.name = 'LightX';
 mappings{mm}.broadType = 'meshes';
-mappings{mm}.operation = 'blessThisMesh';
+mappings{mm}.operation = 'blessAsAreaLight';
 mappings{mm}.properties(1).name = 'intensity';
 mappings{mm}.properties(1).valueType = 'spectrum';
-mappings{mm}.properties(1).value = 'D65.spd';
+mappings{mm}.properties(1).value = which('D65.spd');
 
 mm = mm + 1;
 mappings{mm}.name = 'LightY';
 mappings{mm}.broadType = 'meshes';
-mappings{mm}.operation = 'blessThisMesh';
+mappings{mm}.operation = 'blessAsAreaLight';
 mappings{mm}.properties(1).name = 'intensity';
 mappings{mm}.properties(1).valueType = 'spectrum';
-mappings{mm}.properties(1).value = 'D65.spd';
+mappings{mm}.properties(1).value = which('D65.spd');
 
 
 %% We need set the type and spectrum for two materials.
@@ -148,7 +148,7 @@ mappings{mm}.specificType = 'matte';
 mappings{mm}.operation = 'update';
 mappings{mm}.properties(1).name = 'diffuseReflectance';
 mappings{mm}.properties(1).valueType = 'spectrum';
-mappings{mm}.properties(1).value = 'mccBabel-1.spd';
+mappings{mm}.properties(1).value = which('mccBabel-1.spd');
 
 
 %% For POC, modify a node that's not the root node.
@@ -161,6 +161,7 @@ mappings{mm}.destination = 'mexximp';
 mappings{mm}.properties(1).name = 'transformation';
 mappings{mm}.properties(1).valueType = 'matrix';
 mappings{mm}.properties(1).value = mexximpIdentity();
+mappings{mm}.properties(1).operation = 'value * oldValue';
 
 
 %% Add some PBRT XML "default adjustments".
@@ -226,7 +227,7 @@ mappings{mm}.operation = 'update';
 mappings{mm}.destination = 'mexximp';
 mappings{mm}.properties(1).name = 'horizontalFov';
 mappings{mm}.properties(1).valueType = 'float';
-mappings{mm}.properties(1).value = 77.31962 * pi() / 180;
+mappings{mm}.properties(1).value = 49.13434 * pi() / 180;
 mappings{mm}.properties(2).name = 'aspectRatio';
 mappings{mm}.properties(2).valueType = 'float';
 mappings{mm}.properties(2).value = imageWidth / imageHeight;
@@ -268,16 +269,18 @@ validatedMappings = parseJsonMappings(mappingsFile);
 scene = applyMexximpMappings(scene, validatedMappings);
 
 % convert to an mPbrt scene
+materialDefault = MPbrtElement.makeNamedMaterial('', 'matte');
+materialDefault.setParameter('Kd', 'spectrum', '300:0 800:0');
 pbrtScene = mexximpToMPbrt(scene, ...
-    'materialType', 'anisoward', ...
-    'materialDiffuse', 'Kd', ...
-    'materialSpecular', 'Ks', ...
+    'materialDefault', materialDefault, ...
+    'materialDiffuseParameter', 'Kd', ...
+    'materialSpecularParameter', 'Ks', ...
     'workingFolder', outputFolder, ...
     'meshSubfolder', 'pbrt-geometry', ...
     'rewriteMeshData', true);
 
 pbrtScene = applyMPbrtMappings(pbrtScene, validatedMappings);
-%pbrtScene = applyMPbrtGenericMappings(pbrtScene, validatedMappings);
+pbrtScene = applyMPbrtGenericMappings(pbrtScene, validatedMappings);
 
 
 %% Try to render the PBRT scene.
