@@ -66,10 +66,10 @@ end
 %% Objects and world transformations with AttributeBegin/End.
 nodeInds = find(strcmp('nodes', elementTypes));
 for nn = nodeInds
-    [pbrtNode, nObjects] = mexximpNodeToMPbrt(mexximpScene, elements(nn), varargin{:});
+    objects = mexximpNodeToMPbrt(mexximpScene, elements(nn), varargin{:});
     
     % skip nodes that don't invoke any mesh objects
-    if 0 < nObjects
-        pbrtScene.world.append(pbrtNode);
+    for oo = 1:numel(objects)
+        pbrtScene.world.append(objects{oo});
     end
 end

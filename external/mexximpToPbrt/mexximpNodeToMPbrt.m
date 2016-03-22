@@ -1,16 +1,15 @@
-function [pbrtNode, nObjects] = mexximpNodeToMPbrt(scene, node, varargin)
-%% Convert a mexximp node to an mPbrt ObjectInstance and transformation.
+function pbrtNodes = mexximpNodeToMPbrt(scene, node, varargin)
+%% Convert a mexximp node to mPbrt ObjectInstances and transformations.
 %
-% pbrtNode = mexximpNodeToMPbrt(scene, node, varargin) converts the given
-% mexximp node to an mPbrt Attribute container which includes the
-% node's transformation and one ObjectInstance for each of the node's
-% meshIndices.
+% pbrtNodes = mexximpNodeToMPbrt(scene, node, varargin) converts the given
+% mexximp node to zero or more mPbrt Attribute containers, each of which
+% includes the node's transformation and an ObjectInstance for one of the
+% node's meshIndices.
 %
-% Returns an Attribute MPbrtContainer that includes the node's
-% transformation and zero or more ObjectInstance elements.  Also returns
-% the number of object instance elements.
+% Returns a cell array of Attribute MPbrtContainers, each of which contains
+% the node's transformation and one an ObjectInstance elements.
 %
-% [pbrtNode, nObjects] = mexximpNodeToMPbrt(scene, node, varargin)
+% pbrtNodes = mexximpNodeToMPbrt(scene, node, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
@@ -30,22 +29,22 @@ pbrtName = mexximpCleanName(nodeName, nodeIndex);
 %% Add the node transformation to an Attribute.
 data = mPathGet(scene, node.path);
 
-pbrtNode = MPbrtContainer('Attribute', 'name', pbrtName);
-pbrtTransformation = MPbrtElement.transformation('ConcatTransform', data.transformation');
-pbrtNode.append(pbrtTransformation);
-
 %% Follow 0-based indices to instantiated meshes.
 nObjects = numel(data.meshIndices);
-
-if 0 == nObjects
-    % no objects to instantiate!
-    return;
-end
-
+pbrtNodes = cell(1, nObjects);
 meshIndices = data.meshIndices + 1;
 for oo = 1:nObjects
     meshIndex = meshIndices(oo);
     meshName = mexximpCleanName(scene.meshes(meshIndex).name, meshIndex);
-    pbrtObjectInstance = MPbrtElement('ObjectInstance', 'value', meshName);
-    pbrtNode.append(pbrtObjectInstance);
+    
+    attribute = MPbrtContainer('Attribute', ...
+        'name', meshName, ...
+        'comment', ['from node ' pbrtName]);
+    transformation = MPbrtElement.transformation('ConcatTransform', data.transformation');
+    attribute.append(transformation);
+    
+    objectInstance = MPbrtElement('ObjectInstance', 'value', meshName);
+    attribute.append(objectInstance);
+    
+    pbrtNodes{oo} = attribute;
 end
