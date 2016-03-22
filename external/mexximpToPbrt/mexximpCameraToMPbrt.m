@@ -54,7 +54,7 @@ end
 
 % default camera orientation
 internalTarget = internal.position + internal.lookAtDirection;
-internalLookAt = [internal.position internalTarget internal.upDirection];
+internalLookAt = [internal.position; internalTarget; internal.upDirection];
 if 9 ~= numel(internalLookAt)
     internalLookAt = [0 0 0 0 0 -1 0 1 0];
 end

@@ -26,10 +26,15 @@
 clear;
 clc;
 
-outputFolder = fullfile(tempdir(), 'mappings-poc');
-
 originalScene = which('CoordinatesTest.blend');
+[~, sceneBase, sceneExt] = fileparts(originalScene);
 
+outputFolder = fullfile(tempdir(), 'mappings-poc');
+datFile = fullfile(outputFolder, [sceneBase '.dat']);
+pbrtFile = fullfile(outputFolder, [sceneBase '.pbrt']);
+
+imageWidth = 640;
+imageHeight = 480;
 
 %% In the old Collada Mappings, we sometimes need to flip coordinates.
 % Collada {
@@ -52,6 +57,34 @@ mappings{mm}.properties(1).value = mexximpScale([-1 1 1]);
 % existing oldValue and the new value from the mappings
 % (or just use the default, which is to replace the old with the new)
 mappings{mm}.properties(1).operation = 'value * oldValue';
+
+
+%% Camera default orientation depends on scene file format.
+if strcmp('.dae', sceneExt)
+    lookAtDirection = [0 1 0]';
+    upDirection = [0 0 1]';
+else
+    lookAtDirection = [0 0 -1]';
+    upDirection = [0 1 0]';
+end
+
+mm = mm + 1;
+mappings{mm}.name = 'Camera';
+mappings{mm}.broadType = 'cameras';
+mappings{mm}.operation = 'update';
+mappings{mm}.destination = 'mexximp';
+mappings{mm}.properties(1).name = 'lookAtDirection';
+mappings{mm}.properties(1).valueType = 'lookAt';
+mappings{mm}.properties(1).value = lookAtDirection;
+
+mm = mm + 1;
+mappings{mm}.name = 'Camera';
+mappings{mm}.broadType = 'cameras';
+mappings{mm}.operation = 'update';
+mappings{mm}.destination = 'mexximp';
+mappings{mm}.properties(1).name = 'upDirection';
+mappings{mm}.properties(1).valueType = 'lookAt';
+mappings{mm}.properties(1).value = upDirection;
 
 
 %% Add some PBRT XML "default adjustments".
@@ -106,10 +139,6 @@ mappings{mm}.properties(3).value = 2;
 
 
 %% A little fix-up for the camera fov and image size.
-imageHeight = 240;
-imageWidth = 320;
-datFile = fullfile(outputFolder, 'poc.dat');
-
 mm = mm + 1;
 mappings{mm}.name = 'Camera';
 mappings{mm}.broadType = 'cameras';
@@ -128,15 +157,12 @@ mappings{mm}.broadType = 'Film';
 mappings{mm}.specificType = 'image';
 mappings{mm}.operation = 'create';
 mappings{mm}.destination = 'PBRT';
-mappings{mm}.properties(1).name = 'filename';
-mappings{mm}.properties(1).valueType = 'string';
-mappings{mm}.properties(1).value = datFile;
-mappings{mm}.properties(2).name = 'xresolution';
+mappings{mm}.properties(1).name = 'xresolution';
+mappings{mm}.properties(1).valueType = 'integer';
+mappings{mm}.properties(1).value = imageWidth;
+mappings{mm}.properties(2).name = 'yresolution';
 mappings{mm}.properties(2).valueType = 'integer';
-mappings{mm}.properties(2).value = imageWidth;
-mappings{mm}.properties(3).name = 'yresolution';
-mappings{mm}.properties(3).valueType = 'integer';
-mappings{mm}.properties(3).value = imageHeight;
+mappings{mm}.properties(2).value = imageHeight;
 
 
 %% Dump mappings out to JSON.
@@ -175,7 +201,6 @@ pbrtScene = applyMPbrtGenericMappings(pbrtScene, validatedMappings);
 
 
 %% Try to render the PBRT scene.
-pbrtFile = fullfile(outputFolder, 'coordinatesTest.pbrt');
 pbrtScene.printToFile(pbrtFile);
 
 pbrt = '/home/ben/render/pbrt/pbrt-v2-spectral/src/bin/pbrt';
@@ -186,6 +211,5 @@ disp(result);
 imageData = ReadDAT(datFile);
 srgb = MultispectralToSRGB(imageData, getpref('PBRT', 'S'), 100, true);
 
-[~, sceneBase, sceneExt] = fileparts(originalScene);
 ShowXYZAndSRGB([], srgb, [sceneBase sceneExt]);
 
