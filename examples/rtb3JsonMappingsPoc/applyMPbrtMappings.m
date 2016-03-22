@@ -33,6 +33,7 @@ for mm = 1:nPbrtMappings
     end
     
     %% Update element properties.
+    element.type = mapping.specificType;
     for pp = 1:numel(mapping.properties)
         property = mapping.properties(pp);
         oldValue = element.getParameter(property.name);

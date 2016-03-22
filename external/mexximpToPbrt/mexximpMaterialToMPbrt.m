@@ -62,7 +62,7 @@ specularTexture = queryProperties(properties, 'textureSemantic', 'specular', 'da
 pbrtElement = MPbrtElement.makeNamedMaterial(pbrtName, materialDefault.type);
 pbrtElement.parameters = materialDefault.parameters;
 
-if ~isempty(pbrtElement.getParameter(materialDiffuseParameter))
+if ~isempty(materialDiffuseParameter) && ~isempty(pbrtElement.getParameter(materialDiffuseParameter))
     if ~isempty(diffuseTexture)
         pbrtElement.setParameter(materialDiffuseParameter, 'texture', diffuseTexture);
     elseif ~isempty(diffuseRgb)
@@ -70,7 +70,7 @@ if ~isempty(pbrtElement.getParameter(materialDiffuseParameter))
     end
 end
 
-if ~isempty(pbrtElement.getParameter(materialSpecularParameter))
+if ~isempty(materialSpecularParameter) && ~isempty(pbrtElement.getParameter(materialSpecularParameter))
     if ~isempty(specularTexture)
         pbrtElement.setParameter(materialSpecularParameter, 'texture', specularTexture);
     elseif ~isempty(specularRgb)

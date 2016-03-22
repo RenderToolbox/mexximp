@@ -1,43 +1,23 @@
-%% Sandbox.  Dragon scene mappings as Matlab struct -> JSON file.
+%% Proof of concept for the Dragon scene with JSON mappings and Mexximp.
 %
-% I am thinking about a new way to do rtb mappings, in the world of
-% Mexximp.
+%   This script is an attempt to reproduce our original RenderToolbox3
+%   Dragon example scene, using some new infrastructure:
+%       - our new Assimp/mexximp scene import er
+%       - JSON mappings syntax and processing
+%       - mappings with eval()able expressions as operators
+%       - mPbrt object-oriented model for building and writing PBRT scenes
 %
-% I think we should no longer do our own text parsing.  Instead,
-% we should use JSON.  This way we can delete parsing code and use jsonlab
-% instead.  We can also convert JSON <-> struct in both directions.  We can
-% also access mappings with other tools that understand JSON, if that ever
-% comes up.
+%   This won't reproduce all of our existing infrastructure.  For example,
+%   it won't do any Conditions File processing.  But it should tell whether
+%   the new stuff will work.
 %
-% So here is a stab at some struct/JSON mappings.  I'll try to reproduce
-% our original DragonMappings.txt in this new, shinier style.  I'll also
-% include some PBRT defaults which come from our original
-% PBRTDefaultAdjustments.xml.
+%   Unresolved limitations so far:
+%       - Blender scene import loses the camera fov.  So we have to supply
+%       it explicitly with mappings.
 %
-% Here are some additional differences I want to introduce:
+%   Compare the output to the PBRT output from MakeDragon.m
 %
-% - Instead of treating mappings line by line, add some structure: some
-%   top-level structure to identify the scene element of interest and what
-%   to do with it (create it fresh, find it and update it, delete it,
-%   others?).  Then some nested structure to specify zero or more
-%   properties of that element.  We already gropu delcarations and
-%   properties when processing mappings now.  Let's just make this clear
-%   and explicit in the mappings syntax.
-%
-% - Instead of identifying elements by strict id matching, which is
-%   brittle, allow a few ways to identify elements: by name/id fuzzy
-%   matching, by type, and by index.  Specifying all three is overkill.
-%   Sometimes it will make most sense to use an element's name, like when
-%   looking at a name specified in Blender.  Sometimes it will be good to
-%   provide the element's type as well, to narrow the search and eliminate
-%   false matches.  Sometimes it will be more natural to identify an
-%   element by type and index, like when looking at a mexximp scene struct.
-%   Sometimes, just the type will do, like when referring to the single
-%   camera and we don't care what its name is.  So name, type, and index
-%   will prescribe a well-defined element *search*, rather than a
-%   brittle id match.
-%
-
+% BSH
 
 %% Setup.
 clear;
@@ -46,7 +26,6 @@ clc;
 outputFolder = fullfile(tempdir(), 'mappings-poc');
 
 originalScene = which('Dragon.blend');
-%originalScene = which('CoordinatesTest.blend');
 
 
 %% In the old Collada Mappings, we sometimes need to flip coordinates.
@@ -65,6 +44,10 @@ mappings{mm}.destination = 'mexximp';
 mappings{mm}.properties(1).name = 'transformation';
 mappings{mm}.properties(1).valueType = 'matrix';
 mappings{mm}.properties(1).value = mexximpScale([-1 1 1]);
+
+% let users supply an arbitrary operation for combining the
+% existing oldValue and the new value from the mappings
+% (or just use the default, which is to replace the old with the new)
 mappings{mm}.properties(1).operation = 'value * oldValue';
 
 
@@ -149,19 +132,6 @@ mappings{mm}.operation = 'update';
 mappings{mm}.properties(1).name = 'diffuseReflectance';
 mappings{mm}.properties(1).valueType = 'spectrum';
 mappings{mm}.properties(1).value = which('mccBabel-1.spd');
-
-
-%% For POC, modify a node that's not the root node.
-% This will let us see what happens when we have nested node adjustments.
-mm = mm + 1;
-mappings{mm}.name = 'dragon';
-mappings{mm}.broadType = 'nodes';
-mappings{mm}.operation = 'update';
-mappings{mm}.destination = 'mexximp';
-mappings{mm}.properties(1).name = 'transformation';
-mappings{mm}.properties(1).valueType = 'matrix';
-mappings{mm}.properties(1).value = mexximpIdentity();
-mappings{mm}.properties(1).operation = 'value * oldValue';
 
 
 %% Add some PBRT XML "default adjustments".
@@ -250,8 +220,7 @@ mappings{mm}.properties(3).value = imageHeight;
 
 
 %% Dump mappings out to JSON.
-pathHere = fileparts(which('writeDragonJsonMappings'));
-mappingsFile = fullfile(pathHere, 'DragonMappings.json');
+mappingsFile = fullfile(outputFolder, 'dragonMappings.json');
 savejson('', mappings, ...
     'FileName', mappingsFile, ...
     'ArrayIndent', 1, ...
@@ -274,7 +243,6 @@ materialDefault.setParameter('Kd', 'spectrum', '300:0 800:0');
 pbrtScene = mexximpToMPbrt(scene, ...
     'materialDefault', materialDefault, ...
     'materialDiffuseParameter', 'Kd', ...
-    'materialSpecularParameter', 'Ks', ...
     'workingFolder', outputFolder, ...
     'meshSubfolder', 'pbrt-geometry', ...
     'rewriteMeshData', true);
@@ -284,7 +252,7 @@ pbrtScene = applyMPbrtGenericMappings(pbrtScene, validatedMappings);
 
 
 %% Try to render the PBRT scene.
-pbrtFile = fullfile(outputFolder, 'poc.pbrt');
+pbrtFile = fullfile(outputFolder, 'dragon.pbrt');
 pbrtScene.printToFile(pbrtFile);
 
 pbrt = '/home/ben/render/pbrt/pbrt-v2-spectral/src/bin/pbrt';
