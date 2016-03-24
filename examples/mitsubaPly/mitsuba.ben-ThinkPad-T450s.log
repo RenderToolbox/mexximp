@@ -1,30 +1,30 @@
-2016-03-23 18:16:57 INFO  main [mitsuba.cpp:275] Mitsuba version 0.5.0 (Linux, 64 bit), Copyright (c) 2014 Wenzel Jakob
-2016-03-23 18:16:57 INFO  main [mitsuba.cpp:377] Parsing scene description from "test.xml" ..
-2016-03-23 18:16:57 INFO  main [PluginManager] Loading plugin "plugins/vertexcolors.so" ..
-2016-03-23 18:16:57 INFO  main [PluginManager] Loading plugin "plugins/diffuse.so" ..
-2016-03-23 18:16:57 INFO  main [PluginManager] Loading plugin "plugins/ply.so" ..
-2016-03-23 18:16:57 INFO  main [PLYLoader] Loading geometry from "test.ply" ..
-2016-03-23 18:16:57 INFO  main [PLYLoader] "test": Loaded 12 triangles, 8 vertices (496 B in 0 ms).
-2016-03-23 18:16:57 INFO  main [PluginManager] Loading plugin "plugins/direct.so" ..
-2016-03-23 18:16:57 INFO  main [Scene] No sensors found! Adding a perspective camera..
-2016-03-23 18:16:57 INFO  main [PluginManager] Loading plugin "plugins/perspective.so" ..
-2016-03-23 18:16:57 INFO  main [PluginManager] Loading plugin "plugins/hdrfilm.so" ..
-2016-03-23 18:16:57 INFO  main [PluginManager] Loading plugin "plugins/gaussian.so" ..
-2016-03-23 18:16:57 INFO  main [PluginManager] Loading plugin "plugins/independent.so" ..
-2016-03-23 18:16:57 INFO  ren0 [KDTreeBase] Constructing a SAH kd-tree (12 primitives) ..
-2016-03-23 18:16:57 INFO  ren0 [KDTreeBase] Finished -- took 0 ms.
-2016-03-23 18:16:57 WARN  ren0 [Scene] No emitters found -- adding sun & sky.
-2016-03-23 18:16:57 INFO  ren0 [PluginManager] Loading plugin "plugins/sunsky.so" ..
-2016-03-23 18:16:57 INFO  ren0 [PluginManager] Loading plugin "plugins/sky.so" ..
-2016-03-23 18:16:57 INFO  ren0 [PluginManager] Loading plugin "plugins/envmap.so" ..
-2016-03-23 18:16:57 INFO  ren0 [PluginManager] Loading plugin "plugins/lanczos.so" ..
-2016-03-23 18:16:58 INFO  ren0 [EnvironmentMap] Precomputing data structures for environment map sampling (515.0 KiB)
-2016-03-23 18:16:58 INFO  ren0 [EnvironmentMap] Done (took 1 ms)
-2016-03-23 18:16:58 INFO  ren0 [PluginManager] Loading plugin "plugins/sphere.so" ..
-2016-03-23 18:16:58 INFO  ren0 [SamplingIntegrator] Starting render job (768x576, 4 samples, 4 cores, SSE2 enabled) ..
-2016-03-23 18:16:58 INFO  ren0 [RenderJob] Render time: 0.9400s
-2016-03-23 18:16:58 INFO  ren0 [HDRFilm] Writing image to "/home/ben/render/mexximp/examples/mitsubaPly/test.exr" ..
-2016-03-23 18:16:58 INFO  main [statistics.cpp:142] Statistics:
+2016-03-24 12:36:39 INFO  main [mitsuba.cpp:275] Mitsuba version 0.5.0 (Linux, 64 bit), Copyright (c) 2014 Wenzel Jakob
+2016-03-24 12:36:39 INFO  main [mitsuba.cpp:377] Parsing scene description from "test.xml" ..
+2016-03-24 12:36:39 INFO  main [PluginManager] Loading plugin "plugins/vertexcolors.so" ..
+2016-03-24 12:36:39 INFO  main [PluginManager] Loading plugin "plugins/diffuse.so" ..
+2016-03-24 12:36:39 INFO  main [PluginManager] Loading plugin "plugins/ply.so" ..
+2016-03-24 12:36:39 INFO  main [PLYLoader] Loading geometry from "mySquare.ply" ..
+2016-03-24 12:36:39 INFO  main [PLYLoader] "mySquare": Loaded 2 triangles, 4 vertices (200 B in 0 ms).
+2016-03-24 12:36:39 INFO  main [PluginManager] Loading plugin "plugins/direct.so" ..
+2016-03-24 12:36:39 INFO  main [Scene] No sensors found! Adding a perspective camera..
+2016-03-24 12:36:39 INFO  main [PluginManager] Loading plugin "plugins/perspective.so" ..
+2016-03-24 12:36:39 INFO  main [PluginManager] Loading plugin "plugins/hdrfilm.so" ..
+2016-03-24 12:36:39 INFO  main [PluginManager] Loading plugin "plugins/gaussian.so" ..
+2016-03-24 12:36:39 INFO  main [PluginManager] Loading plugin "plugins/independent.so" ..
+2016-03-24 12:36:39 INFO  ren0 [KDTreeBase] Constructing a SAH kd-tree (2 primitives) ..
+2016-03-24 12:36:39 INFO  ren0 [KDTreeBase] Finished -- took 0 ms.
+2016-03-24 12:36:39 WARN  ren0 [Scene] No emitters found -- adding sun & sky.
+2016-03-24 12:36:39 INFO  ren0 [PluginManager] Loading plugin "plugins/sunsky.so" ..
+2016-03-24 12:36:39 INFO  ren0 [PluginManager] Loading plugin "plugins/sky.so" ..
+2016-03-24 12:36:39 INFO  ren0 [PluginManager] Loading plugin "plugins/envmap.so" ..
+2016-03-24 12:36:39 INFO  ren0 [PluginManager] Loading plugin "plugins/lanczos.so" ..
+2016-03-24 12:36:39 INFO  ren0 [EnvironmentMap] Precomputing data structures for environment map sampling (515.0 KiB)
+2016-03-24 12:36:39 INFO  ren0 [EnvironmentMap] Done (took 0 ms)
+2016-03-24 12:36:39 INFO  ren0 [PluginManager] Loading plugin "plugins/sphere.so" ..
+2016-03-24 12:36:39 INFO  ren0 [SamplingIntegrator] Starting render job (768x576, 4 samples, 4 cores, SSE2 enabled) ..
+2016-03-24 12:36:40 INFO  ren0 [RenderJob] Render time: 0.6380s
+2016-03-24 12:36:40 INFO  ren0 [HDRFilm] Writing image to "/home/ben/render/mexximp/examples/mitsubaPly/test.exr" ..
+2016-03-24 12:36:40 INFO  main [statistics.cpp:142] Statistics:
 ------------------------------------------------------------
  * Loaded plugins :
     -  plugins/diffuse.so [Smooth diffuse BRDF]
@@ -42,11 +42,11 @@
     -  plugins/vertexcolors.so [Vertex color texture]
 
   * General :
-    -  Normal rays traced : 2.512 M
-    -  Shadow rays traced : 742.938 K
+    -  Normal rays traced : 2.070 M
+    -  Shadow rays traced : 300.171 K
 
   * Texture system :
     -  Cumulative MIP map memory allocations : 1 MiB
-    -  Filtered texture lookups : 36.19 % (1.03 M of 2.84 M)
-    -  Lookups with clamped anisotropy : 0.00 % (0.00 of 1.03 M)
+    -  Filtered texture lookups : 62.00 % (1.47 M of 2.37 M)
+    -  Lookups with clamped anisotropy : 0.00 % (0.00 of 1.47 M)
 ------------------------------------------------------------
