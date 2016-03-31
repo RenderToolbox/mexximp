@@ -1,4 +1,4 @@
-function pocRender(originalScene, mappingsFile, varargin)
+function [status, result] = pocRender(originalScene, mappingsFile, varargin)
 %% Proof of concept utility to render with JSON mappings and Mexximp.
 %
 % This is sandbox code.  We ask for parameters we need and then do a
@@ -11,6 +11,7 @@ function pocRender(originalScene, mappingsFile, varargin)
 % BSH
 
 parser = inputParser();
+parser.KeepUnmatched = true;
 parser.addRequired('originalScene', @ischar);
 parser.addRequired('mappingsFile', @ischar);
 parser.addParameter('fov', pi()/3, @isnumeric);
@@ -19,6 +20,8 @@ parser.addParameter('imageHeight', 240, @isnumeric);
 parser.addParameter('pbrt', [], @ischar);
 parser.addParameter('pbrtMaterial', []);
 parser.addParameter('outputFolder', fullfile(tempdir(), 'mappings-poc'), @ischar);
+parser.addParameter('lookAtDirection', [0 0 -1]', @isnumeric);
+parser.addParameter('upDirection', [0 1 0]', @isnumeric);
 parser.parse(originalScene, mappingsFile, varargin{:});
 originalScene = parser.Results.originalScene;
 mappingsFile = parser.Results.mappingsFile;
@@ -28,21 +31,14 @@ imageHeight = parser.Results.imageHeight;
 pbrt = parser.Results.pbrt;
 pbrtMaterial = parser.Results.pbrtMaterial;
 outputFolder = parser.Results.outputFolder;
+lookAtDirection = parser.Results.lookAtDirection;
+upDirection = parser.Results.upDirection;
 
 %% Setup.
 [~, sceneBase, sceneExt] = fileparts(originalScene);
 datFile = fullfile(outputFolder, [sceneBase '.dat']);
 pbrtFile = fullfile(outputFolder, [sceneBase '.pbrt']);
 defaultMappingsFile = fullfile(outputFolder, 'pocDefaultMappings.json');
-
-% incomplete: camera orientation depends on scene format
-if strcmp('.dae', sceneExt)
-    lookAtDirection = [0 1 0]';
-    upDirection = [0 0 1]';
-else
-    lookAtDirection = [0 0 -1]';
-    upDirection = [0 1 0]';
-end
 
 % use anisoward from pbrt-v2-spectral
 if isempty(pbrtMaterial)
@@ -162,7 +158,7 @@ if 2 == exist(mappingsFile, 'file')
 end
 
 %% Get the scene!
-scene = mexximpCleanImport(originalScene);
+scene = mexximpCleanImport(originalScene, varargin{:});
 scene = applyMexximpMappings(scene, mappings);
 
 %% Convert to an mPbrt scene.
@@ -179,8 +175,7 @@ pbrtScene = applyMPbrtGenericMappings(pbrtScene, mappings);
 %% Try to render with PBRT.
 pbrtScene.printToFile(pbrtFile);
 command = sprintf('%s --outfile %s %s', pbrt, datFile, pbrtFile);
-[~, result] = unix(command);
-disp(result);
+[status, result] = unix(command);
 
 imageData = ReadDAT(datFile);
 srgb = MultispectralToSRGB(imageData, getpref('PBRT', 'S'), 100, true);

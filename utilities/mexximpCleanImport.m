@@ -26,13 +26,17 @@ function [scene, elements, postFlags] = mexximpCleanImport(sceneFile, varargin)
 % Copyright (c) 2016 mexximp Team
 
 parser = inputParser();
+parser.KeepUnmatched = true;
 parser.addRequired('sceneFile', @ischar);
-parser.parse(sceneFile);
+parser.addParameter('ignoreRootTransform', false, @islogical);
+parser.parse(sceneFile, varargin{:});
 sceneFile = parser.Results.sceneFile;
+ignoreRootTransform = parser.Results.ignoreRootTransform;
 
 %% Parse postprocessing flags.
 flagParser = inputParser();
 flagParser.StructExpand = true;
+flagParser.KeepUnmatched = true;
 
 % get flag names from mexximp mex-function itself
 flags = mexximpConstants('postprocessStep');
@@ -57,6 +61,12 @@ postFlags = flagParser.Results;
 
 %% Import the scene.
 scene = mexximpImport(sceneFile, postFlags);
+
+% sometimes Assimp gives us a misleading root node transform
+%   for example with "Z_UP" Collada exported from Blender
+if ignoreRootTransform
+    scene.rootNode.transformation = mexximpIdentity();
+end
 
 % reshape the node hierarchy to a consistent, "flat" form
 scene.rootNode = mexximpFlattenNodes(scene);
