@@ -5,7 +5,7 @@ function [pbrtNode, includeFile] = mexximpMeshToMPbrt(scene, mesh, varargin)
 % mexximp mesh to create an mPbrt object declaration within an
 % ObjectBegin/ObjectEnd section.
 %
-% The given camera should be an element with type "meshes" as
+% The given mesh should be an element with type "meshes" as
 % returned from mexximpSceneElements().  Only the following mesh fields are
 % converted:
 %   - name

@@ -48,7 +48,7 @@ for mm = materialInds
     mitsubaScene.append(mitsubaNode);
 end
 
-%% Lights and world transformations with AttributeBegin/End.
+%% Emitters and toWorld transformations.
 lightInds = find(strcmp('lights', elementTypes));
 for ll = lightInds
     mitsubaNode = mexximpLightToMMitsuba(mexximpScene, elements(ll), varargin{:});
@@ -56,12 +56,12 @@ for ll = lightInds
 end
 
 %% Named ObjectBegin/End for each mesh.
-%   Invoked with ObjectInstance by nodes below.
-% meshInds = find(strcmp('meshes', elementTypes));
-% for mm = meshInds
-%     pbrtNode = mexximpMeshToMPbrt(mexximpScene, elements(mm), varargin{:});
-%     mitsubaScene.world.append(pbrtNode);
-% end
+%   Invoked by filename from shapes below.
+meshInds = find(strcmp('meshes', elementTypes));
+for mm = meshInds
+    pbrtNode = mexximpMeshToMMitsuba(mexximpScene, elements(mm), varargin{:});
+    mitsubaScene.append(pbrtNode);
+end
 
 %% Objects and world transformations with AttributeBegin/End.
 % nodeInds = find(strcmp('nodes', elementTypes));
