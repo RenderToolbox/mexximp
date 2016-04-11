@@ -43,8 +43,11 @@ end
 %% bsdf for each material.
 %   Invoked by ref from shapes below.
 materialInds = find(strcmp('materials', elementTypes));
-for mm = materialInds
-    mitsubaNode = mexximpMaterialToMMitsuba(mexximpScene, elements(mm), varargin{:});
+nMaterials = numel(materialInds);
+materialIds = cell(1, nMaterials);
+for mm = 1:nMaterials
+    mitsubaNode = mexximpMaterialToMMitsuba(mexximpScene, elements(materialInds(mm)), varargin{:});
+    materialIds{mm} = mitsubaNode.id;
     mitsubaScene.append(mitsubaNode);
 end
 
@@ -55,21 +58,22 @@ for ll = lightInds
     mitsubaScene.append(mitsubaNode);
 end
 
-%% Named ObjectBegin/End for each mesh.
+%% PLY file for each mesh.
 %   Invoked by filename from shapes below.
 meshInds = find(strcmp('meshes', elementTypes));
-for mm = meshInds
-    pbrtNode = mexximpMeshToMMitsuba(mexximpScene, elements(mm), varargin{:});
-    mitsubaScene.append(pbrtNode);
+nMeshes = numel(meshInds);
+meshFiles = cell(1, nMeshes);
+for mm = 1:nMeshes
+    [~, meshFiles{mm}] = mexximpMeshToMMitsuba(mexximpScene, elements(meshInds(mm)), varargin{:});
 end
 
-%% Objects and world transformations with AttributeBegin/End.
-% nodeInds = find(strcmp('nodes', elementTypes));
-% for nn = nodeInds
-%     objects = mexximpNodeToMPbrt(mexximpScene, elements(nn), varargin{:});
-%
-%     % skip nodes that don't invoke any mesh objects
-%     for oo = 1:numel(objects)
-%         mitsubaScene.world.append(objects{oo});
-%     end
-% end
+% PLY shape element for each node.
+nodeInds = find(strcmp('nodes', elementTypes));
+for nn = nodeInds
+    mitsubaNodes = mexximpNodeToMMitsuba(mexximpScene, elements(nn), meshFiles, materialIds, varargin{:});
+    
+    % skip nodes that don't invoke any mesh objects
+    for oo = 1:numel(mitsubaNodes)
+        mitsubaScene.append(mitsubaNodes{oo});
+    end
+end

@@ -13,7 +13,6 @@ function [plyFile, plyRelativePath] = mexximpMeshToMMitsuba(scene, mesh, varargi
 %   - vertices
 %   - faces
 %   - normals
-%   - tangents
 %   - textureCoordinates0
 %
 % The actual vertex data for the given mesh will be written to a PLY file.
@@ -35,7 +34,7 @@ function [plyFile, plyRelativePath] = mexximpMeshToMMitsuba(scene, mesh, varargi
 % out of date.
 %
 % Returns an a file name for the new PLY file that was written.  Also
-% returns a relative path to the PLY file that includes the meshSubfolder
+% returns a relative path to the PLY file that PLYs the meshSubfolder
 % but omits the meshSubfolder
 %
 % [plyFile, plyRelativePath] = mexximpMeshToMMitsuba(scene, mesh, varargin)
@@ -59,76 +58,51 @@ rewriteMeshData = parser.Results.rewriteMeshData;
 %% Dig out the name.
 meshName = mesh.name;
 meshIndex = mesh.path{end};
-pbrtName = mexximpCleanName(meshName, meshIndex);
+mitsubaId = mexximpCleanName(meshName, meshIndex);
 
-% build the Include folder and file names
-includeRelativePath = fullfile(meshSubfolder, [pbrtName '.pbrt']);
-plyFile = fullfile(workingFolder, includeRelativePath);
-includeFolder = fullfile(workingFolder, meshSubfolder);
+% build the PLY folder and file names
+plyRelativePath = fullfile(meshSubfolder, [mitsubaId '.ply']);
+plyFile = fullfile(workingFolder, plyRelativePath);
+plyFolder = fullfile(workingFolder, meshSubfolder);
 
-%% Add vertex data to an mPbrt trianglemesh Shape.
-pbrtShape = MPbrtElement('Shape', ...
-    'type', 'trianglemesh', ...
-    'name', pbrtName);
-
+%% Build up mesh data to send to a PLY file.
 data = mPathGet(scene, mesh.path);
 
-if ~isempty(data.faces)
-    indices = [data.faces.indices];
-    pbrtShape.setParameter('indices', 'integer', indices);
-end
+% required xyz and face data
+xyz = data.vertices;
+faces = cat(1, data.faces.indices)';
 
-if ~isempty(data.vertices)
-    pbrtShape.setParameter('P', 'point', data.vertices);
-end
+% more optional args
+plyArgs = {};
 
 if ~isempty(data.normals)
-    pbrtShape.setParameter('N', 'normal', data.normals);
-end
-
-if ~isempty(data.tangents)
-    pbrtShape.setParameter('S', 'vector', data.tangents);
+    plyArgs = cat(2, {'normals', data.normals});
 end
 
 if ~isempty(data.textureCoordinates0)
     % only use the first set of texture coordinates
     % always assume 2 uv components (no uvw)
-    uv = data.textureCoordinates0(1:2,:);
-    pbrtShape.setParameter('uv', 'float', uv);
+    uvs = data.textureCoordinates0(1:2, :);
+    plyArgs = cat(2, {'uvs', uvs});
 end
 
-%% Follow 0-based index to the mesh's material.
-materialIndex = data.materialIndex + 1;
-materialData = scene.materials(materialIndex);
+if ~isempty(data.colors0)
+    rgbs = data.colors0(1:3, :);
+    plyArgs = cat(2, {'colors', rgbs});
+end
 
-nameQuery = {'key', mexximpStringMatcher('name')};
-namePath = {'properties', nameQuery, 'data'};
-nameData = mPathGet(materialData, namePath);
-materialName = mexximpCleanName(nameData, materialIndex);
 
-%% Build the pbrt object declaration and associated material.
-mitsubaNode = MPbrtContainer('Object', ...
-    'name', pbrtName, ...
-    'beginWithName', true);
-
-pbrtMaterial = MPbrtElement.namedMaterial(materialName);
-mitsubaNode.append(pbrtMaterial);
-
-pbrtInclude = MPbrtElement('Include', 'value', includeRelativePath);
-mitsubaNode.append(pbrtInclude);
-
-%% If necessary, write the include file.
+%% If necessary, write the PLY file.
 if 2 == exist(plyFile, 'file') && ~rewriteMeshData
-    % use an existing Include file
+    % use an existing PLY file
     return;
 end
 
 % need a folder to land in
-if 7 ~= exist(includeFolder, 'dir')
-    mkdir(includeFolder);
+if 7 ~= exist(plyFolder, 'dir')
+    mkdir(plyFolder);
 end
 
-% make a temp scene with just the Shape in it
-tempScene = MPbrtScene();
-tempScene.overall.append(pbrtShape);
-tempScene.printToFile(plyFile);
+mexximpWriteTriangleMeshPly(plyFile, xyz, faces, ...
+    'format', 'binary_little_endian', ...
+    plyArgs{:});

@@ -54,7 +54,7 @@ function mexximpWriteTriangleMeshPly(outputFile, xyz, faces, varargin)
 %   xyz = [0 0 0; 0 1 0; 1 1 0; 1 0 0]';
 %   faces = [0 1 3; 1 2 3]';
 %   normals = [1 1 1; 1 1 1; 1 1 1;]';
-%   uvs = [0 0; 0 1; 1 1; 1 0];
+%   uvs = [0 0; 0 1; 1 1; 1 0]';
 %   colors = [1 0 0; 0 1 0; 0 0 1; 0.5 0.5 0.5]';
 %   mexximpWriteTriangleMeshPly('mySquare.ply', xyz, faces, ...
 %       'normals', normals, ...

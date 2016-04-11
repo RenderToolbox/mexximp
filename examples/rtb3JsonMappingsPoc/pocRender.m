@@ -214,8 +214,10 @@ if 2 == exist(mitsuba, 'file');
     %pbrtScene = applyMPbrtGenericMappings(pbrtScene, mappings);
     
     % invoke the renderer
+    libPath = fileparts(mitsuba);
     mitsubaScene.printToFile(mitsubaFile);
-    command = sprintf('%s --outfile %s %s', mitsuba, exrFile, mitsubaFile);
+    command = sprintf('LD_LIBRARY_PATH="%s" "%s" -o "%s" "%s"', ...
+        libPath, mitsuba, exrFile, mitsubaFile);
     [status, result] = unix(command);
     
     [imageData, ~, S] = ReadMultispectralEXR(exrFile);
