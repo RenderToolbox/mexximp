@@ -1,9 +1,9 @@
-function pbrtElement = mexximpMaterialToMPbrt(scene, material, varargin)
-%% Convert a mexximp material to an mPbrt MakeNamedMaterial element.
+function mitsubaNode = mexximpMaterialToMMitsuba(scene, material, varargin)
+%% Convert a mexximp material to an mMitsuba bsdf element.
 %
-% pbrtElement = mexximpMaterialToPbrt(scene, material) cherry picks
+% mitsubaNode = mexximpMaterialToMMitsuba(scene, material) cherry picks
 % material properties from the given mexximp material and scene and uses
-% these to create an mPbrt scene Material element.
+% these to create an mMitsuba bsdf element.
 %
 % The given material should be an element with type "materials" as
 % returned from mexximpSceneElements().
@@ -17,18 +17,19 @@ function pbrtElement = mexximpMaterialToMPbrt(scene, material, varargin)
 %   - 'specular'
 %   - 'texture'
 %
-% By default, the new pbrt material will have type "uber", diffuse
-% parameter "Kd" and specular parameter "Kr".  These may be overidden by
-% passing values for these named parameters.  For example:
+% By default, the new mitsuba bsdf will have pluginType "ward", diffuse
+% parameter "diffuseReflectance" and specular parameter
+% "specularReflectance".  These may be overidden by passing values for
+% these named parameters.  For example:
 %   mexximpMaterialToMPbrt( ...
-%       'materialDefault', MPbrtElement.makeNamedMaterial('', 'anisoward'), ...
-%       'materialDiffuseParameter', 'Kd', ...
-%       'materialSpecularParameter', 'Ks');
+%       'materialDefault', MMitsubaElement('', 'bsdf', 'diffuse'), ...
+%       'materialDiffuseParameter', 'reflectance', ...
+%       'materialSpecularParameter', '');
 %
-% Returns an MPbrtElement with identifier MakeNamedMaterial and parameters
+% Returns an MMitsubaNode with type 'bsdf' and parameters
 % filled in based on mexximp material properties.
 %
-% pbrtElement = mexximpMaterialToMPbrt(scene, material, varargin)
+% mitsubaNode = mexximpMaterialToMMitsuba(scene, material, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
@@ -36,9 +37,9 @@ parser = inputParser();
 parser.KeepUnmatched = true;
 parser.addRequired('scene', @isstruct);
 parser.addRequired('material', @isstruct);
-parser.addParameter('materialDefault', MPbrtElement.makeNamedMaterial('', 'uber'), @isobject);
-parser.addParameter('materialDiffuseParameter', 'Kd', @ischar);
-parser.addParameter('materialSpecularParameter', 'Kr', @ischar);
+parser.addParameter('materialDefault', MMitsubaElement('', 'bsdf', 'diffuse'), @isobject);
+parser.addParameter('materialDiffuseParameter', 'diffuseReflectance', @ischar);
+parser.addParameter('materialSpecularParameter', 'specularReflectance', @ischar);
 parser.parse(scene, material, varargin{:});
 scene = parser.Results.scene;
 material = parser.Results.material;
@@ -49,7 +50,7 @@ materialSpecularParameter = parser.Results.materialSpecularParameter;
 %% Dig out the material name.
 materialName = material.name;
 materialIndex = material.path{end};
-pbrtName = mexximpCleanName(materialName, materialIndex);
+mitsubaId = mexximpCleanName(materialName, materialIndex);
 
 %% Dig out diffuse and specular rgb and texture values.
 properties = mPathGet(scene, cat(2, material.path, {'properties'}));
@@ -58,23 +59,29 @@ specularRgb = queryProperties(properties, 'key', 'specular', 'data', []);
 diffuseTexture = queryProperties(properties, 'textureSemantic', 'diffuse', 'data', '');
 specularTexture = queryProperties(properties, 'textureSemantic', 'specular', 'data', '');
 
-%% Build the pbrt material.
-pbrtElement = MPbrtElement.makeNamedMaterial(pbrtName, materialDefault.type);
-pbrtElement.parameters = materialDefault.parameters;
+%% Build the mitsuba material.
+mitsubaNode = MMitsubaElement(mitsubaId, materialDefault.type, materialDefault.pluginType);
+mitsubaNode.nested = materialDefault.nested;
 
-if ~isempty(materialDiffuseParameter) && ~isempty(pbrtElement.getParameter(materialDiffuseParameter))
+diffuseNode = mitsubaNode.find(materialDiffuseParameter);
+if ~isempty(materialDiffuseParameter) && ~isempty(diffuseNode)
     if ~isempty(diffuseTexture)
-        pbrtElement.setParameter(materialDiffuseParameter, 'texture', diffuseTexture);
+        diffuseNode.type = 'texture';
+        diffuseNode.data.value = diffuseTexture;
     elseif ~isempty(diffuseRgb)
-        pbrtElement.setParameter(materialDiffuseParameter, 'rgb', diffuseRgb(1:3));
+        diffuseNode.type = 'rgb';
+        diffuseNode.data.value = diffuseRgb(1:3);
     end
 end
 
-if ~isempty(materialSpecularParameter) && ~isempty(pbrtElement.getParameter(materialSpecularParameter))
+specularNode = mitsubaNode.find(materialDiffuseParameter);
+if ~isempty(materialSpecularParameter) && ~isempty(specularNode)
     if ~isempty(specularTexture)
-        pbrtElement.setParameter(materialSpecularParameter, 'texture', specularTexture);
+        specularNode.type = 'texture';
+        specularNode.data.value = specularTexture;
     elseif ~isempty(specularRgb)
-        pbrtElement.setParameter(materialSpecularParameter, 'rgb', specularRgb(1:3));
+        specularNode.type = 'rgb';
+        specularNode.data.value = specularRgb(1:3);
     end
 end
 

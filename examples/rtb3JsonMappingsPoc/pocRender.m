@@ -17,8 +17,10 @@ parser.addRequired('mappingsFile', @ischar);
 parser.addParameter('fov', pi()/3, @isnumeric);
 parser.addParameter('imageWidth', 320, @isnumeric);
 parser.addParameter('imageHeight', 240, @isnumeric);
-parser.addParameter('pbrt', [], @ischar);
+parser.addParameter('pbrt', '', @ischar);
 parser.addParameter('pbrtMaterial', []);
+parser.addParameter('mitsuba', '', @ischar);
+parser.addParameter('mitsubaMaterial', []);
 parser.addParameter('outputFolder', fullfile(tempdir(), 'mappings-poc'), @ischar);
 parser.addParameter('lookAtDirection', [0 0 -1]', @isnumeric);
 parser.addParameter('upDirection', [0 1 0]', @isnumeric);
@@ -30,24 +32,15 @@ imageWidth = parser.Results.imageWidth;
 imageHeight = parser.Results.imageHeight;
 pbrt = parser.Results.pbrt;
 pbrtMaterial = parser.Results.pbrtMaterial;
+mitsuba = parser.Results.mitsuba;
+mitsubaMaterial = parser.Results.mitsubaMaterial;
 outputFolder = parser.Results.outputFolder;
 lookAtDirection = parser.Results.lookAtDirection;
 upDirection = parser.Results.upDirection;
 
 %% Setup.
 [~, sceneBase, sceneExt] = fileparts(originalScene);
-datFile = fullfile(outputFolder, [sceneBase '.dat']);
-pbrtFile = fullfile(outputFolder, [sceneBase '.pbrt']);
 defaultMappingsFile = fullfile(outputFolder, 'pocDefaultMappings.json');
-
-% use anisoward from pbrt-v2-spectral
-if isempty(pbrtMaterial)
-    pbrtMaterial = MPbrtElement.makeNamedMaterial('', 'anisoward');
-    pbrtMaterial.setParameter('Kd', 'spectrum', '300:0 800:0');
-    pbrtMaterial.setParameter('Ks', 'rgb', [0.5 0.5 0.5]);
-    pbrtMaterial.setParameter('alphaU', 'float', 0.15);
-    pbrtMaterial.setParameter('alphaV', 'float', 0.15);
-end
 
 %% Default camera setup.
 mm = 1;
@@ -161,22 +154,71 @@ end
 scene = mexximpCleanImport(originalScene, varargin{:});
 scene = applyMexximpMappings(scene, mappings);
 
-%% Convert to an mPbrt scene.
-pbrtScene = mexximpToMPbrt(scene, ...
-    'materialDefault', pbrtMaterial, ...
-    'materialDiffuseParameter', 'Kd', ...
-    'workingFolder', outputFolder, ...
-    'meshSubfolder', 'pbrt-geometry', ...
-    'rewriteMeshData', true);
-pbrtScene = applyMPbrtMappings(pbrtScene, mappings);
-pbrtScene = applyMPbrtGenericMappings(pbrtScene, mappings);
+%% Render with PBRT?
+if 2 == exist(pbrt, 'file');
+    datFile = fullfile(outputFolder, [sceneBase '.dat']);
+    pbrtFile = fullfile(outputFolder, [sceneBase '.pbrt']);
+    
+    % use anisoward from pbrt-v2-spectral
+    if isempty(pbrtMaterial)
+        pbrtMaterial = MPbrtElement.makeNamedMaterial('', 'anisoward');
+        pbrtMaterial.setParameter('Kd', 'spectrum', '300:0 800:0');
+        pbrtMaterial.setParameter('Ks', 'rgb', [0.5 0.5 0.5]);
+        pbrtMaterial.setParameter('alphaU', 'float', 0.15);
+        pbrtMaterial.setParameter('alphaV', 'float', 0.15);
+    end
+    
+    % convert to an mPbrt scene
+    pbrtScene = mexximpToMPbrt(scene, ...
+        'materialDefault', pbrtMaterial, ...
+        'materialDiffuseParameter', 'Kd', ...
+        'workingFolder', outputFolder, ...
+        'meshSubfolder', 'pbrt-geometry', ...
+        'rewriteMeshData', true);
+    pbrtScene = applyMPbrtMappings(pbrtScene, mappings);
+    pbrtScene = applyMPbrtGenericMappings(pbrtScene, mappings);
+    
+    
+    % invoke the renderer
+    pbrtScene.printToFile(pbrtFile);
+    command = sprintf('%s --outfile %s %s', pbrt, datFile, pbrtFile);
+    [status, result] = unix(command);
+    
+    imageData = ReadDAT(datFile);
+    srgb = MultispectralToSRGB(imageData, getpref('PBRT', 'S'), 100, true);
+    ShowXYZAndSRGB([], srgb, [sceneBase sceneExt]);
+end
 
-
-%% Try to render with PBRT.
-pbrtScene.printToFile(pbrtFile);
-command = sprintf('%s --outfile %s %s', pbrt, datFile, pbrtFile);
-[status, result] = unix(command);
-
-imageData = ReadDAT(datFile);
-srgb = MultispectralToSRGB(imageData, getpref('PBRT', 'S'), 100, true);
-ShowXYZAndSRGB([], srgb, [sceneBase sceneExt]);
+%% Render with Mitsuba?
+if 2 == exist(mitsuba, 'file');
+    exrFile = fullfile(outputFolder, [sceneBase '.exr']);
+    mitsubaFile = fullfile(outputFolder, [sceneBase '.xml']);
+    
+    % use anisoward from pbrt-v2-spectral
+    if isempty(mitsubaMaterial)
+        mitsubaMaterial = MMitsubaElement('', 'bsdf', 'ward');
+        mitsubaMaterial.append(MMitsubaProperty.withValue('diffuseReflectance', 'spectrum', '300:0 800:0'));
+        mitsubaMaterial.append(MMitsubaProperty.withValue('specularReflectance', 'rgb', [0.5 0.5 0.5]));
+        mitsubaMaterial.append(MMitsubaProperty.withValue('alphaU', 'float', 0.15));
+        mitsubaMaterial.append(MMitsubaProperty.withValue('alphaV', 'float', 0.15));
+    end
+    
+    % convert to an mMitsuba scene
+    mitsubaScene = mexximpToMitsuba(scene, ...
+        'materialDefault', mitsubaMaterial, ...
+        'materialDiffuseParameter', 'diffuseReflectance', ...
+        'workingFolder', outputFolder, ...
+        'meshSubfolder', 'mitsuba-geometry', ...
+        'rewriteMeshData', true);
+    %pbrtScene = applyMPbrtMappings(pbrtScene, mappings);
+    %pbrtScene = applyMPbrtGenericMappings(pbrtScene, mappings);
+    
+    % invoke the renderer
+    mitsubaScene.printToFile(mitsubaFile);
+    command = sprintf('%s --outfile %s %s', mitsuba, exrFile, mitsubaFile);
+    [status, result] = unix(command);
+    
+    [imageData, ~, S] = ReadMultispectralEXR(exrFile);
+    srgb = MultispectralToSRGB(imageData, S, 100, true);
+    ShowXYZAndSRGB([], srgb, [sceneBase sceneExt]);
+end

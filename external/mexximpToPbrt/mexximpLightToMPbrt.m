@@ -2,7 +2,7 @@ function pbrtNode = mexximpLightToMPbrt(scene, light, varargin)
 %% Convert a mexximp light to mPbrt transformation and LightSource elements.
 %
 % pbrtNode = mexximpLightToMPbrt(scene, light) converts the given
-% mexximp light to an mPbrt scene Camera element and
+% mexximp light to an mPbrt scene LightSource element and
 % associated transformations.
 %
 % The given light should be an element with type "lights" as

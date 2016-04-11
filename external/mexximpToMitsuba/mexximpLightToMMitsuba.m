@@ -1,17 +1,16 @@
-function pbrtNode = mexximpLightToMPbrt(scene, light, varargin)
-%% Convert a mexximp light to mPbrt transformation and LightSource elements.
+function mitsubaNode = mexximpLightToMMitsuba(scene, light, varargin)
+%% Convert a mexximp light to an mMitsuba emitter element.
 %
-% pbrtNode = mexximpLightToMPbrt(scene, light) converts the given
-% mexximp light to an mPbrt scene Camera element and
-% associated transformations.
+% mitsubaNode = mexximpLightToMMitsuba(scene, light) converts the given
+% mexximp light to an mMitsuba emitter element.
 %
 % The given light should be an element with type "lights" as
 % returned from mexximpSceneElements().
 %
-% Returns an MPbrtElement with identifier LightSource and parameters
+% Returns an MMitsubaElement with type emitter and parameters
 % filled in based on the mexximp light.
 %
-% pbrtNode = mexximpLightToMPbrt(scene, light, varargin)
+% mitsubaNode = mexximpLightToMMitsuba(scene, light, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
@@ -26,10 +25,16 @@ light = parser.Results.light;
 %% Dig out the name.
 lightName = light.name;
 lightIndex = light.path{end};
-pbrtName = mexximpCleanName(lightName, lightIndex);
+mitsubaId = mexximpCleanName(lightName, lightIndex);
 
 %% Dig out and convert transformations.
 internal = mPathGet(scene, light.path);
+
+% light internal orientation
+internalDirection = internal.lookAtDirection';
+if all(0 == internalDirection)
+    internalDirection = [0 0 1];
+end
 
 % light position in the scene
 nameQuery = {'name', mexximpStringMatcher(light.name)};
@@ -39,38 +44,31 @@ if isempty(externalTransform)
     externalTransform = mexximpIdentity();
 end
 
-%% Build the pbrt light and associated transform.
-pbrtLight = MPbrtElement('LightSource', 'name', pbrtName);
-
-pbrtSceneTransform = MPbrtElement.transformation('ConcatTransform', externalTransform);
-
-pbrtNode = MPbrtContainer('Attribute');
-pbrtNode.append(pbrtSceneTransform);
-pbrtNode.append(pbrtLight);
-
-%% Fill in type-specific parameter values.
+%% Build an emitter with type-specific parameter values.
 switch internal.type
     case 'directional'
-        pbrtLight.type = 'distant';
-        pbrtLight.setParameter('L', 'rgb', internal.diffuseColor);
-        pbrtLight.setParameter('from', 'point', [0 0 0]);
-        pbrtLight.setParameter('to', 'point', internal.lookAtDirection);
+        mitsubaNode = MMitsubaElement(mitsubaId, 'emitter', 'directional');
+        mitsubaNode.append(MMitsubaProperty.withValue('irradiance', 'rgb', internal.diffuseColor'));
         
     case 'point'
-        pbrtLight.type = 'point';
-        pbrtLight.setParameter('I', 'rgb', internal.diffuseColor);
-        pbrtLight.setParameter('from', 'point', [0 0 0]);
+        mitsubaNode = MMitsubaElement(mitsubaId, 'emitter', 'point');
+        mitsubaNode.append(MMitsubaProperty.withValue('intensity', 'rgb', internal.diffuseColor'));
         
     case 'spot'
-        pbrtLight.type = 'spot';
-        pbrtLight.setParameter('I', 'rgb', internal.diffuseColor);
-        pbrtLight.setParameter('from', 'point', [0 0 0]);
-        pbrtLight.setParameter('to', 'point', internal.lookAtDirection);
+        mitsubaNode = MMitsubaElement(mitsubaId, 'emitter', 'spot');
+        mitsubaNode.append(MMitsubaProperty.withValue('intensity', 'rgb', internal.diffuseColor'));
         
         outerAngle = internal.outerConeAngle * 180 / pi();
         innerAngle = internal.innerConeAngle * 180 / pi();
-        deltaAngle = outerAngle - innerAngle;
-        pbrtLight.setParameter('coneangle', 'float', innerAngle);
-        pbrtLight.setParameter('conedeltaangle', 'float', deltaAngle);
-        
+        mitsubaNode.append(MMitsubaProperty.withValue('beamWidth', 'float', innerAngle));
+        mitsubaNode.append(MMitsubaProperty.withValue('cutoffAngle', 'float', outerAngle));
 end
+
+%% Add the inner orientation and world transformation.
+toWorld = MMitsubaProperty('toWorld', 'transform');
+toWorld.append(MMitsubaProperty.withData('', 'lookat', ...
+    'origin', [0 0 0], ...
+    'target', internalDirection, ...
+    'up', [0 1 0]));
+toWorld.append(MMitsubaProperty.withValue('', 'matrix', externalTransform(:)'));
+mitsubaNode.append(toWorld);

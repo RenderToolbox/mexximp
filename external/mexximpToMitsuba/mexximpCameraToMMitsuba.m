@@ -1,8 +1,8 @@
-function pbrtNode = mexximpCameraToMPbrt(scene, camera, varargin)
-%% Convert a mexximp camera to mPbrt transformation and Camera elements.
+function mitsubaNode = mexximpCameraToMMitsuba(scene, camera, varargin)
+%% Convert a mexximp camera to mMitsuba sensor element.
 %
-% pbrtNode = mexximpCameraToMPbrt(scene, camera) converts the given
-% mexximp camera to create an mPbrt scene Camera element and
+% mitsubaNode = mexximpCameraToMMitsuba(scene, camera) converts the given
+% mexximp camera to create an mMitsuba sensor element and
 % associated transformations.
 %
 % The given camera should be an element with type "cameras" as
@@ -10,12 +10,12 @@ function pbrtNode = mexximpCameraToMPbrt(scene, camera, varargin)
 %
 % By default, the camera will have type "perspective".  This may be
 % overidden by passing the 'cameraType' parameter.  For example:
-%   mexximpCameraToMPbrt( ... 'cameraType', 'orthographic');
+%   mexximpCameraToMMitsuba( ... 'cameraType', 'orthographic');
 %
-% Returns an MPbrtElement with identifier Camera and parameters
+% Returns an mMitsuba sensor element with type camera and parameters
 % filled in based on the mexximp camera.
 %
-% pbrtNode = mexximpCameraToMPbrt(scene, camera, varargin)
+% mitsubaNode = mexximpCameraToMMitsuba(scene, camera, varargin)
 %
 % Copyright (c) 2016 mexximp Team
 
@@ -32,7 +32,7 @@ cameraType = parser.Results.cameraType;
 %% Dig out the name.
 cameraName = camera.name;
 cameraIndex = camera.path{end};
-pbrtName = mexximpCleanName(cameraName, cameraIndex);
+mitsubaId = mexximpCleanName(cameraName, cameraIndex);
 
 %% Dig out and convert parameter values.
 internal = mPathGet(scene, camera.path);
@@ -42,22 +42,10 @@ internal = mPathGet(scene, camera.path);
 %   but it seems to behave like the full field of view.  Assimp bug?
 xFov = internal.horizontalFov * 180 / pi();
 
-% PBRT "fov" refers to the shorter image dimension
-if internal.aspectRatio < 1
-    % fov is xfov
-    fov = xFov;
-else
-    % fov is yfov, scale opposite leg of a right triangle by aspect ratio
-    fov = 2 * atand(tand(xFov ./ 2) ./ internal.aspectRatio);
-end
-
-
 % default camera orientation
+internalOrigin = internal.position;
 internalTarget = internal.position + internal.lookAtDirection;
-internalLookAt = [internal.position; internalTarget; internal.upDirection];
-if 9 ~= numel(internalLookAt)
-    internalLookAt = [0 0 0 0 0 -1 0 1 0];
-end
+internalUp = [0 1 0]';
 
 % camera position in the scene
 nameQuery = {'name', mexximpStringMatcher(camera.name)};
@@ -67,22 +55,16 @@ if isempty(externalTransform)
     externalTransform = mexximpIdentity();
 end
 
-% invert the camera transformation to get point of view
-externalTransform = inv(externalTransform);
+%% Build the mitsuba camera and associated transforms.
+mitsubaNode = MMitsubaElement(mitsubaId, 'sensor', cameraType);
+mitsubaNode.append(MMitsubaProperty.withValue('fov', 'float', xFov));
+mitsubaNode.append(MMitsubaProperty.withValue('fovAxis', 'string', 'x'));
 
-%% Build the pbrt camera and associated transforms.
-pbrtCamera = MPbrtElement('Camera', ...
-    'name', pbrtName, ...
-    'type', cameraType);
-pbrtCamera.setParameter('fov', 'float', fov);
+toWorld = MMitsubaProperty('toWorld', 'transform');
+toWorld.append(MMitsubaProperty.withData('', 'lookat', ...
+    'origin', internalOrigin', ...
+    'target', internalTarget', ...
+    'up', internalUp'));
+toWorld.append(MMitsubaProperty.withValue('', 'matrix', externalTransform(:)'));
+mitsubaNode.append(toWorld);
 
-pbrtInternalLookAt = MPbrtElement.transformation('LookAt', internalLookAt, ...
-    'comment', 'camera default orientation');
-
-pbrtSceneTransform = MPbrtElement.transformation('ConcatTransform', externalTransform, ...
-    'comment', 'camera scene position');
-
-pbrtNode = MPbrtContainer('', 'indent', '');
-pbrtNode.append(pbrtInternalLookAt);
-pbrtNode.append(pbrtSceneTransform);
-pbrtNode.append(pbrtCamera);
