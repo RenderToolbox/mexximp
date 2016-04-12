@@ -134,6 +134,78 @@ defaultMappings{mm}.properties(2).name = 'yresolution';
 defaultMappings{mm}.properties(2).valueType = 'integer';
 defaultMappings{mm}.properties(2).value = imageHeight;
 
+%% Default setup for Mitsuba.
+mm = mm + 1;
+defaultMappings{mm}.name = 'integrator';
+defaultMappings{mm}.broadType = 'integrator';
+defaultMappings{mm}.index = [];
+defaultMappings{mm}.specificType = 'direct';
+defaultMappings{mm}.operation = 'create';
+defaultMappings{mm}.destination = 'Mitsuba';
+defaultMappings{mm}.properties(1).name = 'shadingSamples';
+defaultMappings{mm}.properties(1).valueType = 'integer';
+defaultMappings{mm}.properties(1).value = 32;
+
+mm = mm + 1;
+defaultMappings{mm}.name = 'sampler';
+defaultMappings{mm}.broadType = 'sampler';
+defaultMappings{mm}.index = [];
+defaultMappings{mm}.specificType = 'ldsampler';
+defaultMappings{mm}.operation = 'update';
+defaultMappings{mm}.destination = 'Mitsuba';
+defaultMappings{mm}.properties(1).name = 'sampleCount';
+defaultMappings{mm}.properties(1).valueType = 'integer';
+defaultMappings{mm}.properties(1).value = 8;
+
+mm = mm + 1;
+defaultMappings{mm}.name = 'rfilter';
+defaultMappings{mm}.broadType = 'rfilter';
+defaultMappings{mm}.index = [];
+defaultMappings{mm}.specificType = 'gaussian';
+defaultMappings{mm}.operation = 'update';
+defaultMappings{mm}.destination = 'Mitsuba';
+defaultMappings{mm}.properties(1).name = 'stddev';
+defaultMappings{mm}.properties(1).valueType = 'float';
+defaultMappings{mm}.properties(1).value = 0.5;
+
+mm = mm + 1;
+defaultMappings{mm}.name = 'film';
+defaultMappings{mm}.broadType = 'film';
+defaultMappings{mm}.index = [];
+defaultMappings{mm}.specificType = 'hdrfilm';
+defaultMappings{mm}.operation = 'update';
+defaultMappings{mm}.destination = 'Mitsuba';
+defaultMappings{mm}.properties(1).name = 'width';
+defaultMappings{mm}.properties(1).valueType = 'integer';
+defaultMappings{mm}.properties(1).value = imageWidth;
+defaultMappings{mm}.properties(2).name = 'height';
+defaultMappings{mm}.properties(2).valueType = 'integer';
+defaultMappings{mm}.properties(2).value = imageHeight;
+defaultMappings{mm}.properties(3).name = 'banner';
+defaultMappings{mm}.properties(3).valueType = 'boolean';
+defaultMappings{mm}.properties(3).value = 'false';
+defaultMappings{mm}.properties(4).name = 'componentFormat';
+defaultMappings{mm}.properties(4).valueType = 'string';
+defaultMappings{mm}.properties(4).value = 'float16';
+defaultMappings{mm}.properties(5).name = 'fileFormat';
+defaultMappings{mm}.properties(5).valueType = 'string';
+defaultMappings{mm}.properties(5).value = 'openexr';
+defaultMappings{mm}.properties(6).name = 'pixelFormat';
+defaultMappings{mm}.properties(6).valueType = 'string';
+defaultMappings{mm}.properties(6).value = 'spectrum';
+
+mm = mm + 1;
+defaultMappings{mm}.name = '';
+defaultMappings{mm}.broadType = 'sensor';
+defaultMappings{mm}.index = [];
+defaultMappings{mm}.operation = 'update';
+defaultMappings{mm}.destination = 'Mitsuba';
+defaultMappings{mm}.properties(1).name = 'nearClip';
+defaultMappings{mm}.properties(1).valueType = 'float';
+defaultMappings{mm}.properties(1).value = 0.1;
+defaultMappings{mm}.properties(2).name = 'farClip';
+defaultMappings{mm}.properties(2).valueType = 'float';
+defaultMappings{mm}.properties(2).value = 100;
 
 %% Combine passed-in scene mappings with default mappings.
 if 7 ~= exist(outputFolder, 'dir')
@@ -210,7 +282,7 @@ if 2 == exist(mitsuba, 'file');
         'workingFolder', outputFolder, ...
         'meshSubfolder', 'mitsuba-geometry', ...
         'rewriteMeshData', true);
-    %pbrtScene = applyMPbrtMappings(pbrtScene, mappings);
+    mitsubaScene = applyMMitsubaMappings(mitsubaScene, mappings);
     %pbrtScene = applyMPbrtGenericMappings(pbrtScene, mappings);
     
     % invoke the renderer
@@ -218,7 +290,7 @@ if 2 == exist(mitsuba, 'file');
     mitsubaScene.printToFile(mitsubaFile);
     command = sprintf('LD_LIBRARY_PATH="%s" "%s" -o "%s" "%s"', ...
         libPath, mitsuba, exrFile, mitsubaFile);
-    [status, result] = unix(command);
+    [status, result] = unix(command)
     
     [imageData, ~, S] = ReadMultispectralEXR(exrFile);
     srgb = MultispectralToSRGB(imageData, S, 100, true);

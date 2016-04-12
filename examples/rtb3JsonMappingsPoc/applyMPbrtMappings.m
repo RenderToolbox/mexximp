@@ -7,7 +7,7 @@ function pbrtScene = applyMPbrtMappings(pbrtScene, mappings)
 % This generally amounts to locating scene elements of the scene object and
 % updating their field values based on the mappings properties.
 %
-% scene = applyMPbrtMappings(pbrtScene, mappings)
+% pbrtScene = applyMPbrtMappings(pbrtScene, mappings)
 %
 % Copyright (c) 2016 RemoteDataToolbox Team
 
@@ -33,7 +33,9 @@ for mm = 1:nPbrtMappings
     end
     
     %% Update element properties.
-    element.type = mapping.specificType;
+    if ~isempty(mapping.specificType)
+        element.type = mapping.specificType;
+    end
     for pp = 1:numel(mapping.properties)
         property = mapping.properties(pp);
         oldValue = element.getParameter(property.name);
