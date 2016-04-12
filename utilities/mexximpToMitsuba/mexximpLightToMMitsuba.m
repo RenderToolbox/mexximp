@@ -39,7 +39,7 @@ end
 % light position in the scene
 nameQuery = {'name', mexximpStringMatcher(light.name)};
 transformPath = cat(2, {'rootNode', 'children', nameQuery, 'transformation'});
-externalTransform = mPathGet(scene, transformPath)';
+externalTransform = mPathGet(scene, transformPath);
 if isempty(externalTransform)
     externalTransform = mexximpIdentity();
 end

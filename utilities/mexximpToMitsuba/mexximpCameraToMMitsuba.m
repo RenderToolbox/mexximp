@@ -55,9 +55,6 @@ if isempty(externalTransform)
     externalTransform = mexximpIdentity();
 end
 
-% flip z-axis for Mitsuba default
-%externalTransform = mexximpScale([1 1 -1]) * externalTransform;
-
 %% Build the mitsuba camera and associated transforms.
 mitsubaNode = MMitsubaElement(mitsubaId, 'sensor', cameraType);
 mitsubaNode.append(MMitsubaProperty.withValue('fov', 'float', xFov));
@@ -70,4 +67,15 @@ toWorld.append(MMitsubaProperty.withData('', 'lookat', ...
     'up', internalUp));
 toWorld.append(MMitsubaProperty.withValue('', 'matrix', externalTransform(:)'));
 mitsubaNode.append(toWorld);
+
+%% Add some default nested elements expected by Mitsuba.
+filter = MMitsubaElement('rfilter', 'rfilter', 'gaussian');
+filter.append(MMitsubaProperty.withValue('stddev', 'float', 0.5));
+film = MMitsubaElement('film', 'film', 'hdrfilm');
+film.append(filter);
+mitsubaNode.append(film);
+
+sampler = MMitsubaElement('sampler', 'sampler', 'ldsampler');
+sampler.append(MMitsubaProperty.withValue('sampleCount', 'integer', 8));
+mitsubaNode.append(sampler);
 
