@@ -42,18 +42,21 @@ internal = mPathGet(scene, camera.path);
 %   but it seems to behave like the full field of view.  Assimp bug?
 xFov = internal.horizontalFov * 180 / pi();
 
-% default camera orientation
-internalOrigin = internal.position;
-internalTarget = internal.position + internal.lookAtDirection;
-internalUp = [0 1 0]';
+% camera initial orientation
+internalOrigin = internal.position';
+internalTarget = internal.position' + internal.lookAtDirection';
+internalUp = internal.upDirection';
 
 % camera position in the scene
 nameQuery = {'name', mexximpStringMatcher(camera.name)};
 transformPath = cat(2, {'rootNode', 'children', nameQuery, 'transformation'});
-externalTransform = mPathGet(scene, transformPath)';
+externalTransform = mPathGet(scene, transformPath);
 if isempty(externalTransform)
     externalTransform = mexximpIdentity();
 end
+
+% flip z-axis for Mitsuba default
+%externalTransform = mexximpScale([1 1 -1]) * externalTransform;
 
 %% Build the mitsuba camera and associated transforms.
 mitsubaNode = MMitsubaElement(mitsubaId, 'sensor', cameraType);
@@ -62,9 +65,9 @@ mitsubaNode.append(MMitsubaProperty.withValue('fovAxis', 'string', 'x'));
 
 toWorld = MMitsubaProperty('toWorld', 'transform');
 toWorld.append(MMitsubaProperty.withData('', 'lookat', ...
-    'origin', internalOrigin', ...
-    'target', internalTarget', ...
-    'up', internalUp'));
+    'origin', internalOrigin, ...
+    'target', internalTarget, ...
+    'up', internalUp));
 toWorld.append(MMitsubaProperty.withValue('', 'matrix', externalTransform(:)'));
 mitsubaNode.append(toWorld);
 

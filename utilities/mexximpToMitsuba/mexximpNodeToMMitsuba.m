@@ -54,7 +54,7 @@ for oo = 1:nObjects
     shape.append(MMitsubaProperty.withData('', 'ref', 'id', materialIds{materialIndex}));
     
     % transform
-    nodeTransform = data.transformation';
+    nodeTransform = data.transformation;
     shape.append(MMitsubaProperty.withNested('toWorld', 'transform', 'matrix', ...
         'value', nodeTransform(:)'));
 end
