@@ -20,8 +20,7 @@ clear;
 clc;
 
 fov = 77.31962 * pi() / 180;
-%pbrt = '/home/ben/render/pbrt/pbrt-v2-spectral/src/bin/pbrt';
-pbrt = '';
+pbrt = '/home/ben/render/pbrt/pbrt-v2-spectral/src/bin/pbrt';
 mitsuba = '/home/ben/render/mitsuba/mitsuba-spectral/mitsuba';
 
 originalScene = which('CoordinatesTest.blend');

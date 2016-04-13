@@ -47,8 +47,8 @@ nMaterials = numel(materialInds);
 materialIds = cell(1, nMaterials);
 for mm = 1:nMaterials
     mitsubaNode = mexximpMaterialToMMitsuba(mexximpScene, elements(materialInds(mm)), varargin{:});
-    materialIds{mm} = mitsubaNode.id;
     mitsubaScene.append(mitsubaNode);
+    materialIds{mm} = mitsubaNode.id;
 end
 
 %% Emitters and toWorld transformations.

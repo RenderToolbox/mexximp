@@ -258,7 +258,7 @@ if 2 == exist(pbrt, 'file');
     
     imageData = ReadDAT(datFile);
     srgb = MultispectralToSRGB(imageData, getpref('PBRT', 'S'), 100, true);
-    ShowXYZAndSRGB([], srgb, [sceneBase sceneExt]);
+    ShowXYZAndSRGB([], srgb, [sceneBase sceneExt '(PBRT)']);
 end
 
 %% Render with Mitsuba?
@@ -283,7 +283,7 @@ if 2 == exist(mitsuba, 'file');
         'meshSubfolder', 'mitsuba-geometry', ...
         'rewriteMeshData', true);
     mitsubaScene = applyMMitsubaMappings(mitsubaScene, mappings);
-    %pbrtScene = applyMPbrtGenericMappings(pbrtScene, mappings);
+    mitsubaScene = applyMMitsubaGenericMappings(mitsubaScene, mappings);
     
     % invoke the renderer
     libPath = fileparts(mitsuba);
@@ -294,5 +294,5 @@ if 2 == exist(mitsuba, 'file');
     
     [imageData, ~, S] = ReadMultispectralEXR(exrFile);
     srgb = MultispectralToSRGB(imageData, S, 100, true);
-    ShowXYZAndSRGB([], srgb, [sceneBase sceneExt]);
+    ShowXYZAndSRGB([], srgb, [sceneBase sceneExt '(Mitsuba)']);
 end

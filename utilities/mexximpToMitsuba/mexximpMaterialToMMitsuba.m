@@ -60,8 +60,8 @@ diffuseTexture = queryProperties(properties, 'textureSemantic', 'diffuse', 'data
 specularTexture = queryProperties(properties, 'textureSemantic', 'specular', 'data', '');
 
 %% Build the mitsuba material.
-mitsubaNode = MMitsubaElement(mitsubaId, materialDefault.type, materialDefault.pluginType);
-mitsubaNode.nested = materialDefault.nested;
+mitsubaNode = materialDefault.copy();
+mitsubaNode.id = mitsubaId;
 
 diffuseNode = mitsubaNode.find(materialDiffuseParameter);
 if ~isempty(materialDiffuseParameter) && ~isempty(diffuseNode)
@@ -74,7 +74,7 @@ if ~isempty(materialDiffuseParameter) && ~isempty(diffuseNode)
     end
 end
 
-specularNode = mitsubaNode.find(materialDiffuseParameter);
+specularNode = mitsubaNode.find(materialSpecularParameter);
 if ~isempty(materialSpecularParameter) && ~isempty(specularNode)
     if ~isempty(specularTexture)
         specularNode.type = 'texture';

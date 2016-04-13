@@ -55,6 +55,9 @@ if isempty(externalTransform)
     externalTransform = mexximpIdentity();
 end
 
+% flip the x-axis for our convention
+externalTransform = mexximpScale([-1 1 1]) * externalTransform;
+
 %% Build the mitsuba camera and associated transforms.
 mitsubaNode = MMitsubaElement(mitsubaId, 'sensor', cameraType);
 mitsubaNode.append(MMitsubaProperty.withValue('fov', 'float', xFov));
