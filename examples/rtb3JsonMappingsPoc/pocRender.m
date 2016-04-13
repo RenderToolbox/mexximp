@@ -290,7 +290,7 @@ if 2 == exist(mitsuba, 'file');
     mitsubaScene.printToFile(mitsubaFile);
     command = sprintf('LD_LIBRARY_PATH="%s" "%s" -o "%s" "%s"', ...
         libPath, mitsuba, exrFile, mitsubaFile);
-    [status, result] = unix(command)
+    [status, result] = unix(command);
     
     [imageData, ~, S] = ReadMultispectralEXR(exrFile);
     srgb = MultispectralToSRGB(imageData, S, 100, true);

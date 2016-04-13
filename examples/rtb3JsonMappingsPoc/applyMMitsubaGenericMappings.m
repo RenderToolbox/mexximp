@@ -57,7 +57,7 @@ for mm = 1:nGenericMappings
     %% Apply Generic mappings special operations.
     switch mapping.operation
         case 'blessAsAreaLight'
-            % Turn an existing shape into an emitter.
+            %% Turn an existing shape into an area emitter.
             %
             % We start with a shape declaration:
             % <shape id="LightY-mesh_0" type="serialized">
@@ -84,62 +84,88 @@ for mm = 1:nGenericMappings
             element.append(emitter);
             
         case 'blessAsBumpMap'
-            %             %% Turn an existing material into a bumpmap material.
-            %             %
-            %             % We start with a float imagemap texture and a material
-            %             % # texture earthTexture
-            %             % Texture "earthTexture" "float" "imagemap"
-            %             %	"string filename" "earthbump1k-stretch-rgb.exr"
-            %             %	"float gamma" [1]
-            %             %	"float maxanisotropy" [20]
-            %             %	"bool trilinear" "false"
-            %             %	"float udelta" [0.0]
-            %             %	"float uscale" [1.0]
-            %             %	"float vdelta" [0.0]
-            %             %	"float vscale" [1.0]
-            %             %	"string wrap" "repeat"
-            %             % ...
-            %             % # material Material-material
-            %             % MakeNamedMaterial "Material-material"
-            %             %   "string type" "matte"
-            %             %   "spectrum Kd" "mccBabel-11.spd"
-            %             %
-            %             % We enclose the texture in a "scale" texture so that we can
-            %             % apply a scale factor.  Then we add this scale texture to the
-            %             % existing material.  We also need to sort these elements
-            %             % because they depend on each other.
-            %             %
-            %             % Texture "earthTexture" "float" "imagemap" ...
-            %             %
-            %             % Texture "earthBumpMap-scaled" "float" "scale"
-            %             %    "texture tex1" "earthTexture"
-            %             %    "float tex2" [0.1]
-            %             %
-            %             % # material Material-material
-            %             % MakeNamedMaterial "Material-material"
-            %             %    "string type" "matte"
-            %             %    "spectrum Kd" "mccBabel-11.spd"
-            %             %    "texture bumpmap" "earthBumpMap-scaled"
+            %% Turn an existing material into a bumpmap material.
             %
-            %             % locate the original texture
-            %             textureName = getMappingProperty(mapping, 'texture', '');
-            %             originalTexture = mitsubaScene.world.find('Texture', ...
-            %                 'name', textureName);
+            % We start with an existing texture and existing material.
             %
-            %             % wrap the original texture in a new scale texture
-            %             scaledTextureName = [originalTexture.name '_scaled'];
-            %             scaleTexture = MPbrtElement.texture(scaledTextureName, 'float', 'scale');
-            %             scaleTexture.setProperty('tex1', 'texture', originalTexture.name);
-            %             scaleTexture.setProperty('tex2', 'float', ...
-            %                 getMappingProperty(mapping, 'scale', 1));
-            %             mitsubaScene.world.prepend(scaleTexture);
+            % <texture id="earthTexture" type="bitmap">
+            %	<float name="gamma" value="1"/>
+            %	<float name="maxAnisotropy" value="20"/>
+            %	<float name="uoffset" value="0.0"/>
+            %	<float name="uscale" value="1.0"/>
+            %	<float name="voffset" value="0.0"/>
+            %	<float name="vscale" value="1.0"/>
+            %	<string name="filename" value="/home/ben/render/VirtualScenes/MiscellaneousData/Textures/earthbump1k-stretch-rgb.exr"/>
+            %	<string name="filterType" value="ewa"/>
+            %	<string name="wrapMode" value="repeat"/>
+            % </texture>
+            % ...
+            % <bsdf id="Material-material" type="roughconductor">
+            % 	<float name="alpha" value="0.4"/>
+            % 	<spectrum filename="/home/ben/render/RenderToolbox3/RenderData/PBRTMetals/Au.eta.spd" name="eta"/>
+            % 	<spectrum filename="/home/ben/render/RenderToolbox3/RenderData/PBRTMetals/Au.k.spd" name="k"/>
+            % </bsdf>
             %
-            %             % move textures to the front, in dependency order
-            %             mitsubaScene.world.prepend(scaleTexture);
-            %             mitsubaScene.world.prepend(originalTexture);
+            % We rename the material because we will want existing shapes
+            % to refer to a new material that we're about to make, instead
+            % of the original material.
             %
-            %             % add the scale texture to the blessed material
-            %             element.setProperty('bumpmap', 'texture', scaledTextureName);
+            % <bsdf id="Material-material-inner" type="roughconductor">
+            % 	...
+            % </bsdf>
+            %
+            % We wrap the texture in a "scale" texture so that we can apply
+            % a scale factor to the bumps.
+            %
+            % <texture id="earthBumpMap-scaled" type="scale">
+            %   <float name="scale" value="0.1"/>
+            %   <ref id="earthTexture" name="value"/>
+            % </texture>
+            %
+            % Finally, we make a new "bumpmap" material which wraps our
+            % scale texture and the renamed original material.  We use the
+            % id of the original material so that existing shapes will
+            % refer to this new, "blessed" material instead of the
+            % original.
+            
+            % locate and rename the original material
+            originalMaterialId = element.id;
+            innerMaterialId = [originalMaterialId '-inner'];
+            element.id = innerMaterialId;
+            
+            % locate the original texture
+            textureName = getMappingProperty(mapping, 'texture', '');
+            originalTexture = mitsubaScene.find(textureName, ...
+                'type', 'texture');
+            
+            % wrap the original texture in a new scale texture
+            scaleTextureId = [originalTexture.id '-scaled'];
+            scaleTexture = MMitsubaElement(scaleTextureId, 'texture', 'scale');
+            scaleTexture.append(MMitsubaProperty.withData('', 'ref', ...
+                'id', originalTexture.id, ...
+                'name', 'value'));
+            scaleTexture.setProperty('scale', 'float', ...
+                getMappingProperty(mapping, 'scale', 1));
+            
+            % wrap original material and scaled texture in a "bumpmap" material
+            bumpmap = MMitsubaElement(originalMaterialId, 'bsdf', 'bumpmap');
+            bumpmap.append(MMitsubaProperty.withData('', 'ref', ...
+                'id', innerMaterialId, ...
+                'name', 'bsdf'));
+            bumpmap.append(MMitsubaProperty.withData('', 'ref', ...
+                'id', scaleTextureId, ...
+                'name', 'texture'));
+            
+            % move objects to front in the right order such that:
+            %   - things that are independent come first
+            %   - thigs that have "ref" properties come next
+            %   - elements of the same type are grouped together
+            %       because our XML writer will group them anyway,
+            %       and we want to choose which group comes first (textures)
+            mitsubaScene.prepend(bumpmap);
+            mitsubaScene.prepend(element);
+            mitsubaScene.prepend(scaleTexture);
+            mitsubaScene.prepend(originalTexture);
     end
     
     %% Apply Generic mappings properties as PBRT element parameters.
@@ -147,7 +173,7 @@ for mm = 1:nGenericMappings
         case 'materials'
             switch mapping.specificType
                 case 'matte'
-                    element.pluginType = 'diffuse';                    
+                    element.pluginType = 'diffuse';
                     element.setProperty('reflectance', 'spectrum', ...
                         getMappingProperty(mapping, 'diffuseReflectance', '300:0 800:0'));
                     

@@ -67,7 +67,8 @@ diffuseNode = mitsubaNode.find(materialDiffuseParameter);
 if ~isempty(materialDiffuseParameter) && ~isempty(diffuseNode)
     if ~isempty(diffuseTexture)
         diffuseNode.type = 'texture';
-        diffuseNode.data.value = diffuseTexture;
+        diffuseNode.data = struct('type', 'bitmap');
+        diffuseNode.append(MMitsubaProperty.withValue('filename', 'string', diffuseTexture));
     elseif ~isempty(diffuseRgb)
         diffuseNode.type = 'rgb';
         diffuseNode.data.value = diffuseRgb(1:3);
@@ -78,7 +79,8 @@ specularNode = mitsubaNode.find(materialSpecularParameter);
 if ~isempty(materialSpecularParameter) && ~isempty(specularNode)
     if ~isempty(specularTexture)
         specularNode.type = 'texture';
-        specularNode.data.value = specularTexture;
+        specularNode.data = struct('type', 'bitmap');
+        specularNode.append(MMitsubaProperty.withValue('filename', 'string', specularTexture));
     elseif ~isempty(specularRgb)
         specularNode.type = 'rgb';
         specularNode.data.value = specularRgb(1:3);
