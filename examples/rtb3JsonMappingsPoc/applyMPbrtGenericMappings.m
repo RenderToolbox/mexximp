@@ -230,7 +230,7 @@ for mm = 1:nGenericMappings
                     element.setParameter('gamma', 'float', ...
                         getMappingProperty(mapping, 'gamma', 1));
                     element.setParameter('maxanisotropy', 'float', ...
-                        getMappingProperty(mapping, 'maxAnisotropy', 8));
+                        getMappingProperty(mapping, 'maxAnisotropy', 20));
                     element.setParameter('udelta', 'float', ...
                         getMappingProperty(mapping, 'offsetU', 0));
                     element.setParameter('vdelta', 'float', ...
@@ -246,7 +246,7 @@ for mm = 1:nGenericMappings
                     end
                     element.setParameter('wrap', 'string', wrap);
                     
-                    filterMode = getMappingProperty(mapping, 'filterMode', 'trilinear');
+                    filterMode = getMappingProperty(mapping, 'filterMode', '');
                     isTrilinear = strcmp('trilinear', filterMode);
                     element.setParameter('trilinear', 'bool', isTrilinear);
                     
