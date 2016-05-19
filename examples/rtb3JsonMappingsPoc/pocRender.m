@@ -257,7 +257,9 @@ if 2 == exist(pbrt, 'file');
     [status, result] = unix(command);
     
     imageData = ReadDAT(datFile);
-    srgb = MultispectralToSRGB(imageData, getpref('PBRT', 'S'), 100, true);
+    srgb = MultispectralToSRGB(imageData, getpref('PBRT', 'S'), ...
+        'toneMapFactor', 100, ...
+        'isScale', true);
     ShowXYZAndSRGB([], srgb, [sceneBase sceneExt '(PBRT)']);
 end
 
@@ -292,7 +294,10 @@ if 2 == exist(mitsuba, 'file');
         libPath, mitsuba, exrFile, mitsubaFile);
     [status, result] = unix(command);
     
-    [imageData, ~, S] = ReadMultispectralEXR(exrFile);
-    srgb = MultispectralToSRGB(imageData, S, 100, true);
+    [imageData, ~, S] = rtbReadMultispectralEXR(exrFile);
+    srgb = MultispectralToSRGB(imageData, S, ...
+        'toneMapFactor', 100, ...
+        'isScale', true);
+    
     ShowXYZAndSRGB([], srgb, [sceneBase sceneExt '(Mitsuba)']);
 end
