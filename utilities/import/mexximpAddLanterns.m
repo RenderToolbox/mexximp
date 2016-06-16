@@ -65,17 +65,17 @@ for ii = 1:nLanterns
     
     lantern = mexximpConstants('light');
     lantern.name = sprintf('lantern-%d', ii);
-    lantern.position = [0 0 0];
+    lantern.position = [0 0 0]';
     lantern.type = 'point';
-    lantern.lookAtDirection = [0 0 0];
+    lantern.lookAtDirection = [0 0 0]';
     lantern.innerConeAngle = 0;
     lantern.outerConeAngle = 0;
     lantern.constantAttenuation = 1;
     lantern.linearAttenuation = 0;
     lantern.quadraticAttenuation = 1;
-    lantern.ambientColor = [1 1 1];
-    lantern.diffuseColor = [1 1 1];
-    lantern.specularColor = [1 1 1];
+    lantern.ambientColor = [1 1 1]';
+    lantern.diffuseColor = [1 1 1]';
+    lantern.specularColor = [1 1 1]';
     
     lanternNode = mexximpConstants('node');
     lanternNode.name = lantern.name;

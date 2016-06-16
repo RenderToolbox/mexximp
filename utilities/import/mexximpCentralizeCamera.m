@@ -40,7 +40,7 @@ function [scene, camera, cameraNode] = mexximpCentralizeCamera(scene, varargin)
 % distance will be calculated such that the camera's field of view
 % encompasses all of the vertices in the scene.  The distance calculation
 % assumes that the viewAxis is normalized.  Scaling the viewAxis will cause
-% the camera to move closer to or farther from the middle point. 
+% the camera to move closer to or farther from the middle point.
 %
 % Setting viewExterior to false should be useful when viewing "indoor"
 % scenes. This will cause the viewing direction to be reversed.  The camera
@@ -79,9 +79,29 @@ ignoreNodes = parser.Results.ignoreNodes;
 
 %% Locate the first camera and the node that instantiates it.
 if isempty(scene.cameras)
-    error('mexximpCentralizeCamera:noCamera', 'Scene must have a camera.');
+    camera = mexximpConstants('camera');
+    camera.name = 'Camera';
+    camera.position = [0 0 0]';
+    camera.lookAtDirection = [0 0 -1]';
+    camera.upDirection = [0 1 0]';
+    camera.aspectRatio = [1 1 1]';
+    camera.horizontalFov = pi()/6;
+    camera.clipPlaneFar = 1e6;
+    camera.clipPlaneNear = 0.1;
+    
+    cameraNode = mexximpConstants('node');
+    cameraNode.name = camera.name;
+    cameraNode.transformation = eye(4);
+    
+    if isempty(scene.rootNode.children)
+        scene.rootNode.children = cameraNode;
+    else
+        scene.rootNode.children = [scene.rootNode.children cameraNode];
+    end
+else
+    camera = scene.cameras(1);
 end
-camera = scene.cameras(1);
+scene.cameras = camera;
 
 % find the node with the same name as the camera
 %   TODO: search the whole node tree, not just the first tier
