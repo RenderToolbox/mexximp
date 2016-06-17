@@ -84,7 +84,7 @@ if isempty(scene.cameras)
     camera.position = [0 0 0]';
     camera.lookAtDirection = [0 0 -1]';
     camera.upDirection = [0 1 0]';
-    camera.aspectRatio = [1 1 1]';
+    camera.aspectRatio = 1;
     camera.horizontalFov = pi()/6;
     camera.clipPlaneFar = 1e6;
     camera.clipPlaneNear = 0.1;
