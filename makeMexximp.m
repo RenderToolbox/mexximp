@@ -21,10 +21,12 @@
 % mexximp mex-functions.   This script will also run some tests on the
 % functions as it goes.
 %
-% You should rnu this script from the mexximp root folder.
+% You should run this script from the mexximp root folder.
+%
+% Once this function completes, you can try an example, like the one in
+% examples/scratch/exportTestScene.m.
 %
 % 2016 benjamin.heasly@gmail.com
-%
 
 %% Choose library files.
 clear;
