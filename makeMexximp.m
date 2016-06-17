@@ -1,3 +1,31 @@
+% Build the mexximp mex-functions.
+%
+% These instructions are for Linux.  Should be similar for OS X.  Windows?
+%
+% Mexximp depends on Assimp being installed.  For full Collada support you
+% should get Assimp 3.1.1 or later.
+%   - http://www.assimp.org/main_downloads.html
+%   - https://github.com/assimp/assimp
+%
+% You may need to build Assimp from source in order to get the latest
+% version.  This was easy for me on Linux:
+%   - Unzip or clone the source
+%   - cd to source folder
+%   - cmake CMakeLists.txt -G 'Unix Makefiles'
+%   - make
+%
+% On OS X, it should be as easy as:
+%   - brew install assimp
+%
+% With Assimp installed, you can run this Matlab script to build the
+% mexximp mex-functions.   This script will also run some tests on the
+% functions as it goes.
+%
+% If successful, 
+%
+% 2016 benjamin.heasly@gmail.com
+%
+
 clear;
 clc;
 
