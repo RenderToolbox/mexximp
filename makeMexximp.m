@@ -21,15 +21,15 @@
 % mexximp mex-functions.   This script will also run some tests on the
 % functions as it goes.
 %
-% If successful, 
+% You should rnu this script from the mexximp root folder.
 %
 % 2016 benjamin.heasly@gmail.com
 %
 
+%% Choose library files.
 clear;
 clc;
 
-%% Choose library files.
 INC = '-I/usr/local/include';
 LINC = '-L/usr/local/lib';
 LIBS = '-lassimp';
