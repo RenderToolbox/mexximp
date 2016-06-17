@@ -1,6 +1,6 @@
 # mexximp
 
-Matlab MEX-function wrapper for Assimp.
+Matlab [mex-function](http://www.mathworks.com/help/matlab/apiref/mexfunction.html) wrapper for [Assimp](http://www.assimp.org/) tool.
 
 mexximp is a Matlab interface to the [Assimp](http://www.assimp.org/) tool.  You can import scenes using the Assimp importer, read and modify scene contents, create scenes from scratch, and export scenes using the Assimp exporter
 
