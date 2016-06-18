@@ -21,15 +21,17 @@ Here's how to get started:
 
 mexximp depends on Assimp.  For full support of Collada scene files, you should install  Assimp 3.1.1 or later.
 
-On Linux, your distribution's assimp package might be out of date.  So you should build Assimp from source.  Fortunately, this is pretty easy:
- - Get the source code as an [archive](http://www.assimp.org/main_downloads.html) or from [GitHub](https://github.com/assimp/assimp)
- - Unzip or clone the source
- - cd to the source folder
+### Linux
+Your distribution's assimp package might be out of date, so you should build Assimp from source.  Fortunately, this is pretty easy:
+ - Get the source code as an [archive](http://www.assimp.org/main_downloads.html) or from [GitHub](https://github.com/assimp/assimp).
+ - Unzip or clone the source.
+ - `cd` to the source folder.
  - `cmake CMakeLists.txt -G 'Unix Makefiles'`
  - `make`
 
 This is all it took for me (ben) on Linux Mint 17.3.  I hope your mileage does *not* vary.
  
-On OS X, it should be as easy as:
- - get [Homebrew](http://brew.sh/)
+### OS X
+It should be as easy as:
+ - Get [Homebrew](http://brew.sh/).
  - `brew install assimp`
