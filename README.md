@@ -2,9 +2,9 @@
 
 Matlab [mex-function](http://www.mathworks.com/help/matlab/apiref/mexfunction.html) wrapper for [Assimp](http://www.assimp.org/) tool.
 
-mexximp is a Matlab interface to the [Assimp](http://www.assimp.org/) tool.  You can import scenes using the Assimp importer, read and modify scene contents, create scenes from scratch, and export scenes using the Assimp exporter
+mexximp is a Matlab interface to the [Assimp](http://www.assimp.org/) tool.  You can import 3D scene files using the Assimp importer, read and modify scene data, create scenes from scratch, and export scenes using the Assimp exporter.
 
-The way it works is Assimp wrangles scenes to and from its own C-struct representation of scenes.  Then mexximp wrangles the C-structs to and from plain old Matlab structs that you can work with.
+Here's how it works.  Assimp wrangles 3D scene files to and from its own C-struct representation.  This is what makes Assimp awesome.  Then mexximp wrangles the C-structs to and from Matlab structs that you can work with.
 ```
 Scene file <-> Asssimp C-structs <-> mexximp Matlab structs
 ```
