@@ -19,7 +19,7 @@ Here's how to get started:
 
 # Installing Assimp
 
-mexximp depends Assimp.  For full support of Collada scene files, you should install  Assimp 3.1.1 or later.
+mexximp depends on Assimp.  For full support of Collada scene files, you should install  Assimp 3.1.1 or later.
 
 On Linux, your distribution's assimp package might be out of date.  So you should build Assimp from source.  Fortunately, this is pretty easy:
  - Get the source code as an [archive](http://www.assimp.org/main_downloads.html) or from [GitHub](https://github.com/assimp/assimp)
