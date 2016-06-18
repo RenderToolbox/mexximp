@@ -6,7 +6,7 @@ mexximp is a Matlab interface to the [Assimp](http://www.assimp.org/) tool.  You
 
 Here's how it works.  Assimp wrangles 3D scene files to and from its own C-struct representation.  This is what makes Assimp awesome.  Then mexximp wrangles the C-structs to and from Matlab structs that you can work with.
 ```
-Scene file <-> Asssimp C-structs <-> mexximp Matlab structs
+3D scene file <-> Asssimp C-structs <-> mexximp Matlab structs
 ```
 
 # Getting Started
@@ -19,9 +19,9 @@ Here's how to get started:
 
 # Installing Assimp
 
-mexximp depends on Assimp being installed.  For full Collada support you should get Assimp 3.1.1 or later.
+mexximp depends Assimp.  For full support of Collada scene files, you should install  Assimp 3.1.1 or later.
 
-On Linux, your distribution's assimp package might be out of date.  So you should build from source.  Fortunately, this is pretty easy:
+On Linux, your distribution's assimp package might be out of date.  So you should build Assimp from source.  Fortunately, this is pretty easy:
  - Get the source code as an [archive](http://www.assimp.org/main_downloads.html) or from [GitHub](https://github.com/assimp/assimp)
  - Unzip or clone the source
  - cd to the source folder
