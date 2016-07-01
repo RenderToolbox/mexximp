@@ -30,14 +30,16 @@
 
 %% Choose library files.
 clear;
-clc;
 
 INC = '-I/usr/local/include';
 LINC = '-L/usr/local/lib';
 LIBS = '-lassimp';
 
 %% Set up build folder.
-buildFolder = fullfile(pwd(), 'build');
+pathHere = fileparts(which('makeMexximp'));
+cd(pathHere);
+
+buildFolder = fullfile(pathHere, 'build');
 if 7 ~= exist(buildFolder, 'dir')
     mkdir(buildFolder);
 end
