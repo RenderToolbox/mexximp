@@ -28,6 +28,20 @@
 %
 % 2016 benjamin.heasly@gmail.com
 
+% TODO: would like to make mexximp relocatable so that we can distribute
+% the mex function along with libassimp and not make people buld assimp
+% themselves.  If we download a libassimp somwhere we can add this path to
+% LD_LIBRARY_PATH, and the linker should find it there.  We hate
+% LD_LIBRARY_PATH, but this is how Matlab manages its own dependencies, so
+% we may just roll with it.
+%
+% If we're using the Toolbox Toolbox, we can obtain libassimp as a
+% "download" toolbox.  It can have a hook to add the correct path to
+% LD_LIBRARY_PATH.
+%
+% It's too bad we can't build and execute mex functions in Docker
+% container.
+
 %% Choose library files.
 clear;
 
