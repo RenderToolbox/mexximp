@@ -29,9 +29,15 @@ parser = inputParser();
 parser.KeepUnmatched = true;
 parser.addRequired('sceneFile', @ischar);
 parser.addParameter('ignoreRootTransform', false, @islogical);
+parser.addParameter('toReplace', {}, @iscellstr);
+parser.addParameter('targetFormat', 'png', @ischar);
+parser.addParameter('exrtoolsImage', 'ninjaben/exrtools', @ischar);
 parser.parse(sceneFile, varargin{:});
 sceneFile = parser.Results.sceneFile;
 ignoreRootTransform = parser.Results.ignoreRootTransform;
+toReplace = parser.Results.toReplace;
+targetFormat = parser.Results.targetFormat;
+exrtoolsImage = parser.Results.exrtoolsImage;
 
 %% Parse postprocessing flags.
 flagParser = inputParser();
@@ -62,6 +68,7 @@ postFlags = flagParser.Results;
 %% Import the scene.
 scene = mexximpImport(sceneFile, postFlags);
 
+%% Fix up the node hierarchy.
 % sometimes Assimp gives us a misleading root node transform
 %   for example with "Z_UP" Collada exported from Blender
 if ignoreRootTransform
@@ -71,5 +78,19 @@ end
 % reshape the node hierarchy to a consistent, "flat" form
 scene.rootNode = mexximpFlattenNodes(scene);
 
-% get an easy-to-iterate array of all scene elements
+%% Locate specific scene elements.
 elements = mexximpSceneElements(scene);
+
+%% Recode images?
+if isempty(toReplace)
+    return;
+end
+
+mightBeFile = @(s) ischar(s) && 1 <= sum('.' == s);
+scene = mexximpVisitStructFields(scene, @mexximpRecodeImage, ...
+    'filterFunction', mightBeFile, ...
+    'visitArgs', { ...
+    'baseFolder', fileparts(sceneFile), ...
+    'toReplace', toReplace, ...
+    'targetFormat', targetFormat, ...
+    'exrtoolsImage', exrtoolsImage});
