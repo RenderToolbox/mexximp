@@ -60,7 +60,7 @@ parser.addParameter('operation', '', @ischar);
 parser.addParameter('options', '', @ischar);
 parser.addParameter('blurFile', '', @ischar);
 parser.addParameter('args', '', @ischar);
-parser.addParameter('exrtoolsImage', 'ninjaben/exrtools', @ischar);
+parser.addParameter('exrtoolsImage', 'ninjaben/exrtools-docker', @ischar);
 parser.parse(inFile, varargin{:});
 inFile = parser.Results.inFile;
 outFile = parser.Results.outFile;
@@ -69,25 +69,6 @@ options = parser.Results.options;
 blurFile = parser.Results.blurFile;
 args = parser.Results.args;
 exrtoolsImage = parser.Results.exrtoolsImage;
-
-%% Locate exrtools.
-% try Docker
-[status, ~] = system(['docker pull ' exrtoolsImage]);
-if 0 == status
-    workDir = pwd();
-    commandPrefix = sprintf('docker run %s -v "%s":"%s" -w "%s" ', ...
-        exrtoolsImage, ...
-        workDir, ...
-        workDir, ...
-        workDir);
-else
-    % try local install
-    [status, result] = system('which exrblur');
-    if 0 ~= status
-        error('Could not locate local install of exrtools: %s', result);
-    end
-    commandPrefix = '';
-end
 
 %% Choose operation.
 [inPath, inBase, inExt] = fileparts(inFile);
@@ -125,6 +106,26 @@ switch operation
         error('Unsupported exrtool operation "%s".', operation);
 end
 outFile = fullfile(outPath, [outBase outExt]);
+
+%% Locate exrtools.
+% try Docker
+[status, ~] = system(['docker pull ' exrtoolsImage]);
+if 0 == status
+    workDir = pwd();
+    commandPrefix = sprintf('docker run -v "%s":"%s" -v "%s":"%s" -v "%s":"%s" -w "%s" %s ', ...
+        inPath, inPath, ...
+        outPath, outPath, ...
+        workDir, workDir, ...
+        workDir, ...
+        exrtoolsImage);
+else
+    % try local install
+    [status, result] = system('which exrblur');
+    if 0 ~= status
+        error('Could not locate local install of exrtools: %s', result);
+    end
+    commandPrefix = '';
+end
 
 %% Convert the image.
 command = sprintf('%s%s %s %s %s %s %s', ...
