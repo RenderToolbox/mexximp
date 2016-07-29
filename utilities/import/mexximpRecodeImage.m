@@ -24,9 +24,12 @@ function [recodedFile, isRecoded, info] = mexximpRecodeImage(imageFile, varargin
 % re-coding the given image.  The default is 'png', recode the image as a
 % PNG.
 %
-% rtbRecodeImage( ... 'baseFolder', baseFolder) specifies the folder where
+% rtbRecodeImage( ... 'sceneFolder', sceneFolder) specifies the folder where
 % to search for the given imageFile, in case imageFile contains a relative
 % path.  The default is pwd().
+%
+% rtbRecodeImage( ... 'workingFolder', workingFolder) specifies the folder
+% where write recoded image files, the default is pwd().
 %
 % rtbRecodeImage( ... 'exrtoolsImage', exrtoolsImage) specifies the name of a
 % docker image that contains exrtools.  The default is 'ninjaben/exrtools'.
@@ -45,13 +48,15 @@ parser = inputParser();
 parser.addRequired('imageFile', @ischar);
 parser.addParameter('toReplace', {'gif'}, @iscellstr);
 parser.addParameter('targetFormat', 'png', @ischar);
-parser.addParameter('baseFolder', pwd(), @ischar);
+parser.addParameter('sceneFolder', pwd(), @ischar);
+parser.addParameter('workingFolder', pwd(), @ischar);
 parser.addParameter('exrtoolsImage', 'ninjaben/exrtools', @ischar);
 parser.parse(imageFile, varargin{:});
 imageFile = parser.Results.imageFile;
 toReplace = parser.Results.toReplace;
 targetFormat = parser.Results.targetFormat;
-baseFolder = parser.Results.baseFolder;
+sceneFolder = parser.Results.sceneFolder;
+workingFolder = parser.Results.workingFolder;
 exrtoolsImage = parser.Results.exrtoolsImage;
 
 isRecoded = false;
@@ -69,18 +74,17 @@ if ~any(strcmp(toReplace, imageExt(2:end)))
 end
 
 %% Try to locate the image.
-recodedFile = fullfile(imagePath, [imageBase '.' targetFormat]);
 if 2 == exist(imageFile, 'file')
     % given as absolute path
     originalPath = imageFile;
-    recodedPath = recodedFile;
 else
-    % given as relative to baseFolder
-    originalPath = fullfile(baseFolder, imageFile);
-    recodedPath = fullfile(baseFolder, recodedFile);
+    % given as relative to sceneFolder
+    originalPath = fullfile(sceneFolder, imageFile);
 end
 
 %% Try to recode the image.
+recodedFile = fullfile(imagePath, [imageBase '.' targetFormat]);
+recodedPath = fullfile(workingFolder, recodedFile);
 if strcmp(targetFormat, 'exr') || strcmp(imageExt(2:end), 'exr')
     % with exrtools
     try

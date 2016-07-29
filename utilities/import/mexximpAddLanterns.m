@@ -15,6 +15,9 @@ function [scene, lanterns, lanternNodes] = mexximpAddLanterns(scene, varargin)
 % lanterns about the camera like a cube with side length lanternDistance.
 % the default is 1, the unit cube.
 %
+% mexximpAddLanterns( ... 'lanternRgb', lanternRgb) specifies the RGB
+% lignting "spectrum" for the lanterns.  The default is [1 1 1].
+%
 % Returns the given scene, with modifications.  Also returns a struct array
 % of lights and lightNodes that were added to the scene.
 %
@@ -25,9 +28,11 @@ function [scene, lanterns, lanternNodes] = mexximpAddLanterns(scene, varargin)
 parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addParameter('lanternDistance', 1, @isscalar);
+parser.addParameter('lanternRgb', [1 1 1], @isnumeric);
 parser.parse(scene, varargin{:});
 scene = parser.Results.scene;
 lanternDistance = parser.Results.lanternDistance;
+lanternRgb = parser.Results.lanternRgb;
 
 %% Locate the first camera and the node that instantiates it.
 if isempty(scene.cameras)
@@ -36,7 +41,6 @@ end
 camera = scene.cameras(1);
 
 % find the node with the same name as the camera
-%   TODO: search the whole node tree, not just the first tier
 nodeNames = {scene.rootNode.children.name};
 cameraNodeIndex = find(strcmp(camera.name, nodeNames), 1, 'first');
 if isempty(cameraNodeIndex)
@@ -73,9 +77,9 @@ for ii = 1:nLanterns
     lantern.constantAttenuation = 1;
     lantern.linearAttenuation = 0;
     lantern.quadraticAttenuation = 1;
-    lantern.ambientColor = [1 1 1]';
-    lantern.diffuseColor = [1 1 1]';
-    lantern.specularColor = [1 1 1]';
+    lantern.ambientColor = lanternRgb(:);
+    lantern.diffuseColor = lanternRgb(:);
+    lantern.specularColor = lanternRgb(:);
     
     lanternNode = mexximpConstants('node');
     lanternNode.name = lantern.name;
