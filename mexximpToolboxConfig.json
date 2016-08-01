@@ -13,7 +13,7 @@
 	},
 	{
 		"flavor": "",
-		"hook": "",
+		"hook": "clear mex",
 		"localHookTemplate": "",
 		"name": "mexximp_binary",
 		"pathPlacement": "append",
