@@ -85,6 +85,11 @@ end
 %% Try to recode the image.
 recodedFile = fullfile(imagePath, [imageBase '.' targetFormat]);
 recodedPath = fullfile(workingFolder, recodedFile);
+recodedFolder = fullfile(workingFolder, imagePath);
+if 7 ~= exist(recodedFolder, 'dir')
+    mkdir(recodedFolder);
+end
+
 if strcmp(targetFormat, 'exr') || strcmp(imageExt(2:end), 'exr')
     % with exrtools
     try
@@ -119,7 +124,11 @@ else
     end
     
     try
-        imwrite(imageData, colorMap, recodedPath, targetFormat);
+        if isempty(colorMap)
+            imwrite(imageData, recodedPath, targetFormat);
+        else
+            imwrite(imageData, colorMap, recodedPath, targetFormat);
+        end
     catch ex
         % report an unwritten file
         info.verbatimName = imageFile;
