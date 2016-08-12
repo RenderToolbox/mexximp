@@ -42,7 +42,7 @@ function [outFile, result] = mexximpExrTools(inFile, varargin)
 % given operation, after the output file.  For example:
 %   exrnormalize input.exr output.exr [ maxval ]
 %
-% rtbRecodeImage( ... 'exrtoolsImage', exrtoolsImage) specifies the name of
+% rtbRecodeImage( ... 'dockerImage', dockerImage) specifies the name of
 % a docker image that contains exrtools.  The default is
 % 'ninjaben/exrtools'.
 %
@@ -60,7 +60,8 @@ parser.addParameter('operation', '', @ischar);
 parser.addParameter('options', '', @ischar);
 parser.addParameter('blurFile', '', @ischar);
 parser.addParameter('args', '', @ischar);
-parser.addParameter('exrtoolsImage', 'ninjaben/exrtools-docker', @ischar);
+parser.addParameter('dockerImage', 'ninjaben/exrtools-docker', @ischar);
+parser.addParameter('podSelector', 'app=exrtools', @ischar);
 parser.parse(inFile, varargin{:});
 inFile = parser.Results.inFile;
 outFile = parser.Results.outFile;
@@ -68,7 +69,8 @@ operation = parser.Results.operation;
 options = parser.Results.options;
 blurFile = parser.Results.blurFile;
 args = parser.Results.args;
-exrtoolsImage = parser.Results.exrtoolsImage;
+dockerImage = parser.Results.dockerImage;
+podSelector = parser.Results.podSelector;
 
 %% Choose operation.
 [inPath, inBase, inExt] = fileparts(inFile);
@@ -108,9 +110,10 @@ end
 outFile = fullfile(outPath, [outBase outExt]);
 
 %% Locate exrtools.
-% try Docker
-[status, ~] = system(['docker pull ' exrtoolsImage]);
-if 0 == status
+[status, ~] = system(['docker pull ' dockerImage]);
+[kubeStatus, ~] = system('kubectl version --client');
+if 0 == status;
+    % try running in Docker
     [~, uid] = system('id -u `whoami`');
     workDir = pwd();
     commandPrefix = sprintf('docker run --rm -u %s:%s -v "%s":"%s" -v "%s":"%s" -v "%s":"%s" -w "%s" %s ', ...
@@ -119,14 +122,25 @@ if 0 == status
         outPath, outPath, ...
         workDir, workDir, ...
         workDir, ...
-        exrtoolsImage);
+        dockerImage);
+    
+elseif 0 == kubeStatus
+    podCommand = sprintf('kubectl get pods --selector="%s" -o jsonpath=''{.items[0].metadata.name}''', ...
+        podSelector);
+    [status, podName] = system(podCommand);
+    if 0 ~= status
+        error('Could not locate Kubernetes pod with selector "%s"', podSelector);
+    end
+    podName = strtrim(podName);
+    commandPrefix = sprintf('kubectl exec %s -- ', podName);
+    
 else
     % try local install
     [status, result] = system('which exrblur');
     if 0 ~= status
         error('Could not locate local install of exrtools: %s', result);
     end
-    commandPrefix = '';
+    commandPrefix = strtrim(result);
 end
 
 %% Convert the image.

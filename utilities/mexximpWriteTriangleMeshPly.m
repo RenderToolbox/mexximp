@@ -144,37 +144,37 @@ nVertices = size(xyz, 2);
 nFaces = size(faces, 2);
 
 %% Write the PLY header, which is always text.
-fprintf(fid, 'ply\n');
-fprintf(fid, 'format %s 1.0\n', format);
+fprintf(fid, 'ply\r\n');
+fprintf(fid, 'format %s 1.0\r\n', format);
 
-fprintf(fid, 'element vertex %d\n', nVertices);
-fprintf(fid, 'property float32 x\n');
-fprintf(fid, 'property float32 y\n');
-fprintf(fid, 'property float32 z\n');
+fprintf(fid, 'element vertex %d\r\n', nVertices);
+fprintf(fid, 'property float32 x\r\n');
+fprintf(fid, 'property float32 y\r\n');
+fprintf(fid, 'property float32 z\r\n');
 
 hasNormals = nVertices == size(normals, 2);
 if hasNormals
-    fprintf(fid, 'property float32 nx\n');
-    fprintf(fid, 'property float32 ny\n');
-    fprintf(fid, 'property float32 nz\n');
+    fprintf(fid, 'property float32 nx\r\n');
+    fprintf(fid, 'property float32 ny\r\n');
+    fprintf(fid, 'property float32 nz\r\n');
 end
 
 hasUVs = nVertices == size(uvs, 2);
 if hasUVs
-    fprintf(fid, 'property float32 u\n');
-    fprintf(fid, 'property float32 v\n');
+    fprintf(fid, 'property float32 u\r\n');
+    fprintf(fid, 'property float32 v\r\n');
 end
 
 hasColors = nVertices == size(colors, 2);
 if hasColors
-    fprintf(fid, 'property float32 red\n');
-    fprintf(fid, 'property float32 green\n');
-    fprintf(fid, 'property float32 blue\n');
+    fprintf(fid, 'property float32 red\r\n');
+    fprintf(fid, 'property float32 green\r\n');
+    fprintf(fid, 'property float32 blue\r\n');
 end
 
-fprintf(fid, 'element face %d\n', nFaces);
-fprintf(fid, 'property list uint32 uint32 vertex_index\n');
-fprintf(fid, 'end_header\n');
+fprintf(fid, 'element face %d\r\n', nFaces);
+fprintf(fid, 'property list uint32 uint32 vertex_indices\r\n');
+fprintf(fid, 'end_header\r\n');
 
 %% Organize the data into a big array we can march through.
 vertexData = xyz;
@@ -195,7 +195,7 @@ if hasColors
     asciiFormat = [asciiFormat, '\t%f %f %f'];
 end
 
-asciiFormat = [asciiFormat, '\n'];
+asciiFormat = [asciiFormat, '\r\n'];
 
 %% Write the PLY body.
 
@@ -208,9 +208,9 @@ if strcmp('ascii', format)
     
     % faces
     for ff = 1:nFaces
-        fprintf(fid, '3 %d %d %d\n', faces(:, ff));
+        fprintf(fid, '3 %d %d %d\r\n', faces(:, ff));
     end
-    fprintf(fid, '\n');
+    fprintf(fid, '\r\n');
     return;
 end
 
