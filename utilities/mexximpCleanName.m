@@ -1,4 +1,4 @@
-function name = mexximpCleanName(originalName, index)
+function [name, matchExpression] = mexximpCleanName(originalName, index)
 % Make a formatted name for a scene element.
 %
 % name = mexximpCleanName(originalName, index) returns a consistently
@@ -7,12 +7,16 @@ function name = mexximpCleanName(originalName, index)
 % name unique.  In addition, the name will be restricted to alphanumeric
 % characters and underscores.
 %
+% [name, matchExpression] = mexximpCleanName(originalName, index) also
+% returns a regular expression that can be used to match the given name,
+% with or without an index prefix.  For example, regex
+%
 % For example, mexximpCleanName('Cube.005', 2) will produce the name
-% 'Cube_005_2'.
+% '2_Cube_005'.
 %
 % Returns a formatted name based on the given originalName and index.
 %
-% name = mexximpCleanName(originalName, index)
+% [name, matchExpression] = mexximpCleanName(originalName, index)
 %
 % Copyright (c) 2016 mexximp Team
 
@@ -22,6 +26,13 @@ parser.addRequired('index');
 parser.parse(originalName, index);
 originalName = parser.Results.originalName;
 index = parser.Results.index;
+
+%% Sanity check.
+if isempty(originalName)
+    name = '';
+    matchExpression = '';
+    return;
+end
 
 %% Convert unwanted characters to underscore.
 isUpper = originalName >= 'A' & originalName <= 'Z';
@@ -33,6 +44,12 @@ originalName(isUnderscore) = '_';
 %% Build the new name.
 if isempty(index) || ~isnumeric(index)
     name = originalName;
+    
+    % correct form, with wilcard on index
+    matchExpression = ['\d+_' originalName];
 else
     name = sprintf('%d_%s', index, originalName);
+    
+    % index plus name should be unique
+    matchExpression = name;
 end
