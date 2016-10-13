@@ -28,7 +28,7 @@ function [scene, lanterns, lanternNodes] = mexximpAddLanterns(scene, varargin)
 parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addParameter('lanternDistance', 1, @isscalar);
-parser.addParameter('lanternRgb', [1 1 1], @isnumeric);
+parser.addParameter('lanternRgb', [10 10 10], @isnumeric);
 parser.parse(scene, varargin{:});
 scene = parser.Results.scene;
 lanternDistance = parser.Results.lanternDistance;
