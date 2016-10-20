@@ -16,12 +16,13 @@ function [value, exists] = mPathGet(data, p)
 %
 % Copyright (c) 2016 mPath Team
 
-parser = inputParser();
-parser.addRequired('data');
-parser.addRequired('p', @iscell);
-parser.parse(data, p);
-data = parser.Results.data;
-p = parser.Results.p;
+%% inputParser was too slow.
+% parser = inputParser();
+% parser.addRequired('data');
+% parser.addRequired('p', @iscell);
+% parser.parse(data, p);
+% data = parser.Results.data;
+% p = parser.Results.p;
 
 %% Base case: empty path is the identity path.
 if isempty(p)
