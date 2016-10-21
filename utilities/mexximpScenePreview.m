@@ -4,13 +4,13 @@ function ax = mexximpScenePreview(scene, varargin)
 % ax = mexximpScenePreview(scene) makes a quick Matlab rendering from the
 % meshes in the given scene.
 %
-% mexximpScenePreview( ...'axes', a) plots into the given axes.
+% mexximpScenePreview( ...'axes', axes) plots into the given axes.
 %
-% Returns the axes used for plotting.
+% Returns the figure used for plotting.
 %
 % See also mexximpScenePreview
 %
-% ax = mexximpScenePreview(scene, varargin)
+% f = mexximpScenePreview(scene, varargin)
 %
 % Copyright (c) 2016 mexximp Teame
 
@@ -23,9 +23,20 @@ ax = parser.Results.axes;
 
 % use given axes, or open new figure
 if isempty(ax) || ~isa(ax, 'matlab.graphics.axis.Axes');
-    fig = figure();
-    ax = axes('Parent', fig);
+    f = figure();
+    ax = axes('Parent', f);
 end
+
+%% Set up axes.
+set(ax, ...
+    'DataAspectRatio', [1 1 1], ...
+    'Projection', 'perspective', ...
+    'XGrid', 'on', ...
+    'YGrid', 'on', ...
+    'ZGrid', 'on');
+xlabel('X');
+ylabel('Y');
+zlabel('Z');
 
 
 %% Apply a visitFunction to each scene node.
@@ -42,10 +53,7 @@ else
 end
 
 mexximpVisitNodes(scene, @scatterMeshes, ax, cameraNames, lightNames);
-xlabel('X');
-ylabel('Y');
-zlabel('Z');
-set(ax, 'DataAspectRatio', [1 1 1], 'CameraViewAngle', 178);
+
 
 %% Node visitFunction to plot mesh into given axes.
 function ax = scatterMeshes(scene, node, ~, workingTransformation, ax, cameraNames, lightNames)
@@ -57,12 +65,13 @@ if any(isCamera)
     camera = scene.cameras(cameraIndex + 1);
     vertices = [camera.position(:) camera.lookAtDirection(:)];
     transformed = mexximpApplyTransform(vertices, workingTransformation);
-    drawArrow(ax, transformed, camera.name, [0 0 0]);
+    drawArrow(ax, transformed, camera, [0 0 0]);
     
     set(ax, ...
         'CameraPosition', transformed(:,1), ...
         'CameraTarget', transformed(:,2), ...
-        'CameraUpVector', camera.upDirection);
+        'CameraUpVector', camera.upDirection, ...
+        'CameraViewAngle', rad2deg(camera.horizontalFov));
 end
 
 
@@ -74,7 +83,7 @@ if any(isLight)
     vertices = [light.position(:) light.lookAtDirection(:)];
     transformed = mexximpApplyTransform(vertices, workingTransformation);
     lineColor = light.diffuseColor / max(light.diffuseColor);
-    drawArrow(ax, transformed, light.name, lineColor);
+    drawArrow(ax, transformed, light, lineColor);
 end
 
 % transform and scatter plot meshes at this node
@@ -85,10 +94,6 @@ for ii = 1:nMeshes
     vertices = scene.meshes(meshIndex + 1).vertices;
     transformed = mexximpApplyTransform(vertices, workingTransformation);
     faces = scene.meshes(meshIndex + 1).faces;
-    
-    % build a name for this mesh
-    meshName = scene.meshes(meshIndex + 1).name;
-    name = [node.name ' : ' meshName ' # ' num2str(meshIndex)];
     
     % dig out an rgb color for this mesh
     materialIndex = scene.meshes(meshIndex + 1).materialIndex;
@@ -101,26 +106,49 @@ for ii = 1:nMeshes
         meshColor = [0.5 0.5 0.5];
     end
     
-    drawMesh(ax, transformed, faces, name, meshColor);
+    query = {'key', mexximpStringMatcher('name')};
+    [resultIndex, resultScore] = mPathQuery(material.properties, query);
+    if 1 == resultScore
+        materialName = material.properties(resultIndex).data;
+    else
+        materialName = 'unknown';
+    end
+    
+    
+    info.nodeName = node.name;
+    info.meshName = scene.meshes(meshIndex + 1).name;
+    info.meshIndex = meshIndex;
+    info.materialName = materialName;
+    info.materialIndex = materialIndex;
+    drawMesh(ax, transformed, faces, info, meshColor);
 end
 
 
 %% Make a ball with a pointer to show orientation.
-function drawArrow(ax, vertices, name, lineColor)
+function drawArrow(ax, vertices, info, lineColor)
 
 x = vertices(1,:);
 y = vertices(2,:);
 z = vertices(3,:);
-line(x, y, z, ...
+line(x(1), y(1), z(1), ...
     'Parent', ax, ...
     'Marker', '.', ...
-    'MarkerSize', 30, ...
+    'MarkerSize', 50, ...
+    'LineStyle', 'none', ...
+    'Color', lineColor, ...
+    'ButtonDownFcn', @(obj, eventData)respondToClick(obj, eventData, info));
+
+line(x, y, z, ...
+    'Parent', ax, ...
+    'Marker', 'none', ...
     'LineStyle', '-', ...
-    'Color', lineColor);
+    'LineWidth', 10, ...
+    'Color', lineColor, ...
+    'ButtonDownFcn', @(obj, eventData)respondToClick(obj, eventData, info));
 
 
 %% Scatter plot the given mesh vertices into the given axes.
-function drawMesh(ax, vertices, faces, name, color)
+function drawMesh(ax, vertices, faces, info, color)
 
 f = 1 + cat(1, faces.indices);
 v = vertices';
@@ -128,5 +156,37 @@ patch(ax, ...
     'Faces', f, ...
     'Vertices', v, ...
     'FaceColor', color, ...
-    'FaceAlpha', 0.1, ...
-    'EdgeColor', 'none');
+    'FaceAlpha', 1, ...
+    'EdgeColor', 'none', ...
+    'ButtonDownFcn', @(obj, eventData)respondToClick(obj, eventData, info));
+
+
+%% Point the camera or print mesh info.
+function respondToClick(obj, eventData, objectInfo)
+ax = get(obj, 'Parent');
+clickPoint = eventData.IntersectionPoint;
+
+switch eventData.Button
+    case 1
+        % point the camera at the click point
+        set(ax, 'CameraTarget', clickPoint);
+        
+    case 3
+        % move the camera towards the click point
+        currentPosition = get(ax, 'CameraPosition');
+        newPosition = (currentPosition + clickPoint) / 2;
+        set(ax, ...
+            'CameraTarget', clickPoint, ...
+            'CameraPosition', newPosition);
+end
+
+viewInfo.clickPoint = clickPoint;
+viewInfo.cameraPosition = get(ax, 'CameraPosition');
+viewInfo.cameraTarget = get(ax, 'CameraTarget');
+viewInfo.cameraUp = get(ax, 'CameraUpVector');
+disp('View:')
+disp(viewInfo);
+
+disp('Object:');
+disp(objectInfo);
+disp(' ');
