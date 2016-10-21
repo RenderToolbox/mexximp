@@ -33,7 +33,8 @@ set(ax, ...
     'Projection', 'perspective', ...
     'XGrid', 'on', ...
     'YGrid', 'on', ...
-    'ZGrid', 'on');
+    'ZGrid', 'on', ...
+    'ButtonDownFcn', @(obj, eventData)respondToClick(obj, eventData, []));
 xlabel('X');
 ylabel('Y');
 zlabel('Z');
@@ -163,13 +164,14 @@ patch(ax, ...
 
 %% Point the camera or print mesh info.
 function respondToClick(obj, eventData, objectInfo)
-ax = get(obj, 'Parent');
+ax = gca();
 clickPoint = eventData.IntersectionPoint;
 
 switch eventData.Button
     case 1
         % point the camera at the click point
-        set(ax, 'CameraTarget', clickPoint);
+        currentPoint = get(ax, 'CurrentPoint');
+        set(ax, 'CameraTarget', currentPoint(1,:));
         
     case 3
         % move the camera towards the click point
@@ -187,6 +189,8 @@ viewInfo.cameraUp = get(ax, 'CameraUpVector');
 disp('View:')
 disp(viewInfo);
 
-disp('Object:');
-disp(objectInfo);
-disp(' ');
+if ~isempty(objectInfo)
+    disp('Object:');
+    disp(objectInfo);
+    disp(' ');
+end
