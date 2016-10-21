@@ -32,7 +32,7 @@ parser = inputParser();
 parser.addRequired('scene', @isstruct);
 parser.addRequired('name', @ischar);
 parser.addParameter('type', '', @(t)any(strcmp(t, ...
-    {'camera', 'light', 'material', 'mesh', 'embeddedTexture', 'node'})));
+    {'camera', 'light', 'material', 'mesh', 'embeddedTexture', 'nodes'})));
 parser.parse(scene, name, varargin{:});
 scene = parser.Results.scene;
 name = parser.Results.name;

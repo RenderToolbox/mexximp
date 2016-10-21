@@ -32,6 +32,10 @@ function struct = mexximpVisitStructFields(struct, visitFunction, varargin)
 % filterFunction returns true.  This is an optimization to avoid unnecesary
 % invokations of the visitFunction.
 %
+% mexximpVisitStructFields( ... 'ignoreFields', ignoreFields) specifies a
+% cell array of field names to ignore.  Visiting will skip any fields that
+% match any of these names.
+%
 % struct = mexximpVisitStructFields(struct, visitFunction, varargin)
 %
 % Copyright (c) 2016 mexximp Team
@@ -41,28 +45,36 @@ parser.addRequired('struct', @isstruct);
 parser.addRequired('visitFunction', @(f) isa(f, 'function_handle'));
 parser.addParameter('visitArgs', {}, @iscell);
 parser.addParameter('filterFunction', []);
+parser.addParameter('ignoreFields', {}, @iscellstr);
 parser.parse(struct, visitFunction, varargin{:});
 struct = parser.Results.struct;
 visitFunction = parser.Results.visitFunction;
 visitArgs = parser.Results.visitArgs;
 filterFunction = parser.Results.filterFunction;
+ignoreFields = parser.Results.ignoreFields;
 
 % kick off recursion with the original struct
-struct = traverseFields(struct, visitFunction, filterFunction, visitArgs);
+struct = traverseFields(struct, visitFunction, filterFunction, ignoreFields, visitArgs);
 
 
 %% Recursively traverse struct fields.
-function struct = traverseFields(struct, visitFunction, filterFunction, visitArgs)
+function struct = traverseFields(struct, visitFunction, filterFunction, ignoreFields, visitArgs)
 
 nElements = numel(struct);
 topLevelFields = fieldnames(struct);
 for ee = 1:nElements
     for tt = 1:numel(topLevelFields)
         field = topLevelFields{tt};
+        
+        % truncate the traversal?
+        if any(strcmp(ignoreFields, field))
+            continue;
+        end
+        
         value = struct(ee).(field);
         if isstruct(value)
             % recursive case: dig into nested struct
-            struct(ee).(field) = traverseFields(value, visitFunction, filterFunction, visitArgs);
+            struct(ee).(field) = traverseFields(value, visitFunction, filterFunction, ignoreFields, visitArgs);
             
         elseif isempty(filterFunction) || feval(filterFunction, value)
             % base case: apply the visit function to the field value
