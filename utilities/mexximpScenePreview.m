@@ -55,6 +55,12 @@ end
 
 mexximpVisitNodes(scene, @scatterMeshes, ax, cameraNames, lightNames);
 
+%% Print some usage info.
+disp('mexximpScenePreview:')
+disp('  left click: look around')
+disp('  right click: move forward')
+disp('  middle clock: display camera and mesh info')
+
 
 %% Node visitFunction to plot mesh into given axes.
 function ax = scatterMeshes(scene, node, ~, workingTransformation, ax, cameraNames, lightNames)
