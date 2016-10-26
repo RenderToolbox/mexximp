@@ -49,5 +49,8 @@ function children = flattenChildren(scene, node, childResults, workingTransforma
 % apply "inherited", combined transformation directly to this node 
 node.transformation = workingTransformation;
 
+% children will become peers, so don't include them as children
+node.children = [];
+
 % suck up child results and combine
 children = [node, childResults{:}];
