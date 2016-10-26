@@ -6,3 +6,4 @@ test-export.dae
 dna.*
 *.log
 
+*.DS_Store
