@@ -70,14 +70,14 @@ isCamera = strcmp(node.name, cameraNames);
 if any(isCamera)
     cameraIndex = find(isCamera, 1, 'first') - 1;
     camera = scene.cameras(cameraIndex + 1);
-    vertices = [camera.position(:) camera.lookAtDirection(:)];
+    vertices = [camera.position(:) camera.lookAtDirection(:) camera.upDirection(:)];
     transformed = mexximpApplyTransform(vertices, workingTransformation);
-    drawArrow(ax, transformed, camera, [0 0 0]);
+    drawArrow(ax, transformed(:,1:2), camera, [0 0 0]);
     
     set(ax, ...
         'CameraPosition', transformed(:,1), ...
         'CameraTarget', transformed(:,2), ...
-        'CameraUpVector', camera.upDirection, ...
+        'CameraUpVector', transformed(:,3), ...
         'CameraViewAngle', rad2deg(camera.horizontalFov));
 end
 
