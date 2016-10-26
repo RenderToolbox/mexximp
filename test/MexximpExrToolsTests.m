@@ -1,4 +1,4 @@
-classdef MexximpExrToolsTest < matlab.unittest.TestCase
+classdef MexximpExrToolsTests < matlab.unittest.TestCase
     
     properties
         jpegFile;

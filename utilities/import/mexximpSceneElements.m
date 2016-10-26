@@ -1,5 +1,5 @@
 function elements = mexximpSceneElements(scene)
-%% Explore a scene and make a flattened-out representation of its elements.
+%% Explore a scene and make an easy-to-iterate representation of its elements.
 %
 % The idea here is to explore the entire scene and discover all of the
 % elements that make it up.  "Elements" are things like cameras, lights,
@@ -51,12 +51,11 @@ meshes = sceneElementsByName(scene.meshes, 'meshes', {'meshes'});
 embeddedTextures = sceneElementsByName(scene.embeddedTextures, 'embeddedTextures', {'embeddedTextures'});
 
 %% Nodes
-scene.rootNode = mexximpFlattenNodes(scene);
-rootNode = sceneElement(scene.rootNode.name, 'nodes', {'rootNode'});
-nodes = sceneElementsByName(scene.rootNode.children, 'nodes', {'rootNode', 'children'});
+nodes = mexximpNodePaths(scene);
+[nodes.type] = deal('nodes');
 
 %% Concatenate them all.
-elements = [cameras{:}, lights{:}, materials{:}, meshes{:}, embeddedTextures{:}, rootNode, nodes{:}];
+elements = [cameras{:}, lights{:}, materials{:}, meshes{:}, embeddedTextures{:}, nodes];
 
 %% Pack up scene elements from a struct array with a "name" field.
 function elements = sceneElementsByName(s, type, pathBase)
