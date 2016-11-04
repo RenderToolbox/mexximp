@@ -22,7 +22,7 @@ end
 if isempty(fileExt)
     outFile = fullfile(filePath, [fileBase '.mat']);
 else
-    outFile = fileExt;
+    outFile = fileName;
 end
 
 save(outFile, '-struct', 'scene');
