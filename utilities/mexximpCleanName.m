@@ -30,7 +30,11 @@ index = parser.Results.index;
 %% Sanity check.
 if isempty(originalName)
     name = '';
-    matchExpression = '';
+    if isempty(index)
+        matchExpression = '';
+    else
+        matchExpression = sprintf('%d_[\\w_]+', index);
+    end
     return;
 end
 
