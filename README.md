@@ -44,7 +44,7 @@ Invalid MEX-file '/home/username/GitRepos/mexximp/build/mexximpImport.mexa64': /
 
 This is a general issue when working with Matlab and mex-functions that load shared libraries.  We have an [issue](https://github.com/RenderToolbox/mexximp/issues/2) about it.
 
-#### Work-around
+#### Work-around 1
 One work-around is to set the `LD_PRELOAD` environment variable before starting Matlab.  This instructs the system to load your new version of the `libstdc++` system library, instead of loading the old version that's bundled with Matlab.
 
 First you can locate your new version:
@@ -59,6 +59,7 @@ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6 matlab
 ```
 This should work allow you to use Matlab normally, and also use mexximp.
 
+#### Work-around 2
 Another option is to set `LD_PRELOAD` once and for all, from a startup script like `.bash_profile`.  You would add a line like this:
 ```
 export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
