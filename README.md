@@ -63,4 +63,4 @@ Another option is to set `LD_PRELOAD` once and for all, from a startup script li
 ```
 export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
 ```
-This should have the same effect, and allow you to launch matlab normally with just `matlab`.
+This should have the same effect, and allow you to launch matlab normally with just `matlab`.  But it could also interfere with other programs, so please use this work-around cautiously.
