@@ -53,7 +53,7 @@ locate libstdc++.so.6
 ```
 This may return several results.  Choose one from a system location like `/usr/lib`, for example, `/usr/lib/x86_64-linux-gnu/libstdc++.so.6`
 
-Then from the terminal, instead of launching Matlab with `matlab`, woud can do
+Then from the terminal, you would launch matlab with the following command instead of just `matlab`:
 ```
 LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6 matlab
 ```
