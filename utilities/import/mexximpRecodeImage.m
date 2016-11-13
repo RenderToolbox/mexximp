@@ -74,12 +74,15 @@ if ~any(strcmp(toReplace, imageExt(2:end)))
 end
 
 %% Try to locate the image.
-if 2 == exist(imageFile, 'file')
+if 2 == exist(imageFile, 'file') && (~strcmp(fileparts(imageFile),''))
     % given as absolute path
+    % The first part of the condidion will also return true if the imageFile is on
+    % Matlab path and the imageFile is just a file name. To eliminate this
+    % condition we need to check if imageFile contains a a path.
     originalPath = imageFile;
 else
-    % given as relative to sceneFolder
-    originalPath = fullfile(sceneFolder, imageFile);
+    % given as absolute to sceneFolder
+    originalPath = fullfile(workingFolder, sceneFolder, imageFile);
 end
 
 %% Try to recode the image.

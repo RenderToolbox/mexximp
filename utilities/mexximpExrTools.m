@@ -60,7 +60,7 @@ parser.addParameter('operation', '', @ischar);
 parser.addParameter('options', '', @ischar);
 parser.addParameter('blurFile', '', @ischar);
 parser.addParameter('args', '', @ischar);
-parser.addParameter('dockerImage', 'ninjaben/exrtools-docker', @ischar);
+parser.addParameter('exrtoolsImage', 'ninjaben/exrtools-docker', @ischar);
 parser.addParameter('podSelector', 'app=exrtools', @ischar);
 parser.parse(inFile, varargin{:});
 inFile = parser.Results.inFile;
@@ -69,7 +69,7 @@ operation = parser.Results.operation;
 options = parser.Results.options;
 blurFile = parser.Results.blurFile;
 args = parser.Results.args;
-dockerImage = parser.Results.dockerImage;
+dockerImage = parser.Results.exrtoolsImage;
 podSelector = parser.Results.podSelector;
 
 %% Choose operation.
@@ -116,13 +116,30 @@ if 0 == status;
     % try running in Docker
     [~, uid] = system('id -u `whoami`');
     workDir = pwd();
-    commandPrefix = sprintf('docker run --rm -u %s:%s -v "%s":"%s" -v "%s":"%s" -v "%s":"%s" -w "%s" %s ', ...
+    
+    % When inPath == outPath
+    if strcmp(inPath,outPath)
+    
+        % Don't map the same directory twice
+        commandPrefix = sprintf('docker run --rm -u %s:%s -v "%s":"%s" -v "%s":"%s" -w "%s" %s ', ...
+        strtrim(uid), strtrim(uid), ...
+        outPath, outPath, ...
+        workDir, workDir, ...
+        workDir, ...
+        dockerImage);
+        
+    else
+        
+        commandPrefix = sprintf('docker run --rm -u %s:%s -v "%s":"%s" -v "%s":"%s" -v "%s":"%s" -w "%s" %s ', ...
         strtrim(uid), strtrim(uid), ...
         inPath, inPath, ...
         outPath, outPath, ...
         workDir, workDir, ...
         workDir, ...
         dockerImage);
+    
+    end
+    
     
 elseif 0 == kubeStatus
     podCommand = sprintf('kubectl get pods --selector="%s" -o jsonpath=''{.items[0].metadata.name}''', ...
