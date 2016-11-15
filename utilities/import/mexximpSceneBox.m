@@ -48,7 +48,7 @@ else
         meshIndex = node.meshIndices(ii);
         vertices = scene.meshes(meshIndex + 1).vertices;
         transformed = mexximpApplyTransform(vertices, workingTransformation);
-        meshBoxes = cat(2, min(transformed, [], 2), max(transformed, [], 2));
+        meshBoxes{ii} = cat(2, min(transformed, [], 2), max(transformed, [], 2));
     end
 end
 
