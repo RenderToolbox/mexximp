@@ -60,7 +60,7 @@ parser.addParameter('operation', '', @ischar);
 parser.addParameter('options', '', @ischar);
 parser.addParameter('blurFile', '', @ischar);
 parser.addParameter('args', '', @ischar);
-parser.addParameter('exrtoolsImage', 'ninjaben/exrtools-docker', @ischar);
+parser.addParameter('exrtoolsImage', 'hblasins/imagemagic-docker', @ischar);
 parser.addParameter('podSelector', 'app=exrtools', @ischar);
 parser.parse(inFile, varargin{:});
 inFile = parser.Results.inFile;
@@ -84,6 +84,8 @@ if isempty(operation)
             operation = 'ppmtoexr';
         case 'exr'
             operation = 'exrtopng';
+        case {'tga'}
+            operation = 'convert';
         otherwise
             error('Unsupported exrtool input file type "%s".', inExt);
     end
@@ -98,7 +100,7 @@ else
 end
 switch operation
     case {'exrblur', 'exrchr', 'exricamtm', 'exrnlm', 'exrnormalize', ...
-            'exrpptm', 'jpegtoexr', 'pngtoexr', 'ppmtoexr'}
+            'exrpptm', 'jpegtoexr', 'pngtoexr', 'ppmtoexr','convert'}
         outExt = '.exr';
     case {'exrtopng'}
         outExt = '.png';
@@ -161,14 +163,25 @@ else
 end
 
 %% Convert the image.
-command = sprintf('%s%s %s %s %s %s %s', ...
+
+% Handle the case when the blur file contains spaces. In this case
+% the path has to be surrounded with "". Unless the blurFile is an empty
+% string, then we don't need them.
+quote = '"';
+if isempty(blurFile), quote=''; end;
+
+
+command = sprintf('%s%s %s "%s" %s%s%s "%s" %s', ...
     commandPrefix, ...
     operation, ...
     options, ...
     inFile, ...
+    quote,...
     blurFile, ...
+    quote,...
     outFile, ...
     args);
+
 disp(command)
 [status, result] = system(command);
 if 0 ~= status
