@@ -84,7 +84,7 @@ if isempty(operation)
             operation = 'ppmtoexr';
         case 'exr'
             operation = 'exrtopng';
-        case {'tga'}
+        case {'tga', 'tif'}
             operation = 'convert';
         otherwise
             error('Unsupported exrtool input file type "%s".', inExt);
@@ -113,7 +113,8 @@ outFile = fullfile(outPath, [outBase outExt]);
 
 %% Locate exrtools.
 [status, ~] = system(['docker pull ' dockerImage]);
-[kubeStatus, ~] = system('kubectl version --client');
+kubeStatus = 1;
+%[kubeStatus, ~] = system('kubectl version --client');
 if 0 == status;
     % try running in Docker
     [~, uid] = system('id -u `whoami`');

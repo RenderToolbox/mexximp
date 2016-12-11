@@ -31,14 +31,14 @@ parser.addRequired('sceneFile', @ischar);
 parser.addParameter('ignoreRootTransform', false, @islogical);
 parser.addParameter('toReplace', {}, @iscellstr);
 parser.addParameter('targetFormat', 'png', @ischar);
-parser.addParameter('exrtoolsImage', 'ninjaben/exrtools-docker', @ischar);
+parser.addParameter('imagemagicImage', 'hblasins/imagemagic-docker', @ischar);
 parser.addParameter('workingFolder', pwd(), @ischar);
 parser.parse(sceneFile, varargin{:});
 sceneFile = parser.Results.sceneFile;
 ignoreRootTransform = parser.Results.ignoreRootTransform;
 toReplace = parser.Results.toReplace;
 targetFormat = parser.Results.targetFormat;
-exrtoolsImage = parser.Results.exrtoolsImage;
+imagemagicImage = parser.Results.imagemagicImage;
 workingFolder = parser.Results.workingFolder;
 
 %% Parse postprocessing flags.
@@ -96,4 +96,4 @@ scene = mexximpVisitStructFields(scene, @mexximpRecodeImage, ...
     'workingFolder', workingFolder, ...
     'toReplace', toReplace, ...
     'targetFormat', targetFormat, ...
-    'exrtoolsImage', exrtoolsImage});
+    'imagemagicImage', imagemagicImage});
