@@ -13,8 +13,14 @@ function [status, result, advice] = mexximpCheckNativeDependencies()
 
 
 %% Check for Assimp library.
+if ismac()
+    % assume homebrew
+    findLibCommand = 'brew list | grep assimp';
+else
+    findLibCommand = 'ldconfig -p | grep assimp.so.3';
+end
 assimp = checkSystem('Assimp', ...
-    'ldconfig -p | grep assimp.so.3', ...
+    findLibCommand, ...
     'It looks like Assimp is not installed.  Please use these instructions to install Assimp: https://github.com/RenderToolbox/RenderToolbox4#assimp.');
 
 
