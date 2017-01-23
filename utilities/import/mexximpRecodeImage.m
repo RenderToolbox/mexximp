@@ -80,7 +80,9 @@ if 2 == exist(imageFile, 'file') && (~strcmp(fileparts(imageFile),''))
     originalPath = imageFile;
 else
     % given as absolute to sceneFolder
-    originalPath = fullfile(workingFolder, sceneFolder, imageFile);
+    % originalPath = fullfile(workingFolder, sceneFolder, imageFile);
+    originalPath = fullfile(sceneFolder, imageFile);
+    
 end
 
 %% Try to recode the image.
