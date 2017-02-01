@@ -1,3 +1,4 @@
+function makeMexximp(varargin)
 % Build the mexximp mex-functions.
 %
 % These instructions are for Linux.  Should be similar for OS X.  Windows?
@@ -27,60 +28,68 @@
 %
 % 2016 benjamin.heasly@gmail.com
 
-
-%% Choose library files.
-clear;
-
-INC = '-I/usr/local/include';
-LINC = '-L/usr/local/lib';
-LIBS = '-lassimp';
+parser = inputParser();
+parser.addParameter('outputFolder', fullfile(pwd(), 'build'), @ischar);
+parser.addParameter('clean', true, @islogical);
+parser.addParameter('addOutputToPath', true, @islogical);
+parser.addParameter('includePaths', '-I/usr/local/include', @ischar);
+parser.addParameter('libPaths', '-L/usr/local/lib', @ischar);
+parser.addParameter('libs', '-lassimp', @ischar);
+parser.parse(varargin{:});
+outputFolder = parser.Results.outputFolder;
+clean = parser.Results.clean;
+addOutputToPath = parser.Results.addOutputToPath;
+includePaths = parser.Results.includePaths;
+libPaths = parser.Results.libPaths;
+libs = parser.Results.libs;
 
 
 %% Set up build folder.
-pathHere = fileparts(which('makeMexximp'));
-cd(pathHere);
-
-buildFolder = fullfile(pathHere, 'build');
-if 7 ~= exist(buildFolder, 'dir')
-    mkdir(buildFolder);
+outputFolderExists = 7 == exist(outputFolder, 'dir');
+if clean && outputFolderExists
+    rmdir(outputFolder, 's');
 end
 
-if isempty(strfind(path(), buildFolder))
-    addpath(buildFolder);
+if ~outputFolderExists
+    mkdir(outputFolder);
+end
+
+if addOutputToPath && isempty(strfind(path(), outputFolder))
+    addpath(outputFolder, '-begin');
 end
 
 
 %% Build a utility for getting string constants and default structs.
 source = 'src/mexximp_constants.cc';
-output = '-output build/mexximpConstants';
+output = sprintf('-output %s', fullfile(outputFolder, 'mexximpConstants'));
 
-mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
+mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
 
 %% Build a utility for testing mexximp internals.
 source = 'src/mexximp_test.cc src/mexximp_util.cc src/mexximp_scene.cc';
-output = '-output build/mexximpTest';
+output = sprintf('-output %s', fullfile(outputFolder, 'mexximpTest'));
 
-mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
+mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
 
 %% Build the importer.
 source = 'src/mexximp_import.cc src/mexximp_util.cc src/mexximp_scene.cc';
-output = '-output build/mexximpImport';
+output = sprintf('-output %s', fullfile(outputFolder, 'mexximpImport'));
 
-mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
+mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
 
 %% Build the exporter.
 source = 'src/mexximp_export.cc src/mexximp_util.cc src/mexximp_scene.cc';
-output = '-output build/mexximpExport';
+output = sprintf('-output %s', fullfile(outputFolder, 'mexximpExport'));
 
-mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
+mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
