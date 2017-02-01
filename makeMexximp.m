@@ -60,7 +60,7 @@ end
 
 
 %% Build a utility for getting string constants and default structs.
-source = 'src/mexximp_constants.cc';
+source = which('mexximp_constants.cc');
 output = sprintf('-output %s', fullfile(outputFolder, 'mexximpConstants'));
 
 mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
@@ -69,7 +69,7 @@ eval(mexCmd);
 
 
 %% Build a utility for testing mexximp internals.
-source = 'src/mexximp_test.cc src/mexximp_util.cc src/mexximp_scene.cc';
+source = [which('mexximp_test.cc') ' ' which('mexximp_util.cc') ' ' which('mexximp_scene.cc')];
 output = sprintf('-output %s', fullfile(outputFolder, 'mexximpTest'));
 
 mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
@@ -78,7 +78,7 @@ eval(mexCmd);
 
 
 %% Build the importer.
-source = 'src/mexximp_import.cc src/mexximp_util.cc src/mexximp_scene.cc';
+source = [which('mexximp_import.cc') ' ' which('mexximp_util.cc') ' ' which('mexximp_scene.cc')];
 output = sprintf('-output %s', fullfile(outputFolder, 'mexximpImport'));
 
 mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
@@ -87,7 +87,7 @@ eval(mexCmd);
 
 
 %% Build the exporter.
-source = 'src/mexximp_export.cc src/mexximp_util.cc src/mexximp_scene.cc';
+source = [which('mexximp_export.cc') ' ' which('mexximp_util.cc') ' ' which('mexximp_scene.cc')];
 output = sprintf('-output %s', fullfile(outputFolder, 'mexximpExport'));
 
 mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
