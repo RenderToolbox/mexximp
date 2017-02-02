@@ -11,11 +11,10 @@ classdef MexximpExrToolsTests < matlab.unittest.TestCase
     
     methods (TestMethodSetup)
         function setupFiles(obj)
-            pathHere = fileparts(mfilename('fullpath'));
-            obj.jpegFile = fullfile(pathHere, 'images', 'memorial.pp.s.jpg');
-            obj.pngFile = fullfile(pathHere, 'images', 'memorial.pp.s.png');
-            obj.ppmFile = fullfile(pathHere, 'images', 'memorial.pp.s.ppm');
-            obj.exrFile = fullfile(pathHere, 'images', 'memorial.pp.s.exr');
+            obj.jpegFile = which('memorial.pp.s.jpg');
+            obj.pngFile = which('memorial.pp.s.png');
+            obj.ppmFile = which('memorial.pp.s.ppm');
+            obj.exrFile = which('memorial.pp.s.exr');
             
             obj.outputFolder = fullfile(tempdir(), 'MexximpExrToolsTest');
             obj.outputFile = fullfile(obj.outputFolder, 'output.exr');
