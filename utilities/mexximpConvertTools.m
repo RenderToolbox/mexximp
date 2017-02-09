@@ -32,13 +32,12 @@ parser.addRequired('inFile', @ischar);
 parser.addParameter('outFile', '', @ischar);
 parser.addParameter('options', '', @ischar);
 parser.addParameter('imagemagicImage', 'hblasins/imagemagic-docker', @ischar);
-parser.addParameter('podSelector', 'app=exrtools', @ischar);
 parser.parse(inFile, varargin{:});
 inFile = parser.Results.inFile;
 outFile = parser.Results.outFile;
 options = parser.Results.options;
 dockerImage = parser.Results.imagemagicImage;
-podSelector = parser.Results.podSelector;
+
 
 %% Choose operation.
 [inPath, inBase] = fileparts(inFile);
@@ -58,8 +57,6 @@ outFile = fullfile(outPath, [outBase outExt]);
 
 %% Locate exrtools.
 [status, ~] = system(['docker pull ' dockerImage]);
-kubeStatus = 1;
-%[kubeStatus, ~] = system('kubectl version --client');
 if 0 == status;
     % try running in Docker
     [~, uid] = system('id -u `whoami`');
@@ -88,17 +85,6 @@ if 0 == status;
     
     end
     
-    
-elseif 0 == kubeStatus
-    podCommand = sprintf('kubectl get pods --selector="%s" -o jsonpath=''{.items[0].metadata.name}''', ...
-        podSelector);
-    [status, podName] = system(podCommand);
-    if 0 ~= status
-        error('Could not locate Kubernetes pod with selector "%s"', podSelector);
-    end
-    podName = strtrim(podName);
-    commandPrefix = sprintf('kubectl exec %s -- ', podName);
-    
 else
     % try local install
     [status, result] = system('which exrblur');
@@ -120,5 +106,5 @@ command = sprintf('%sconvert "%s" %s "%s"', ...
 disp(command)
 [status, result] = system(command);
 if 0 ~= status
-    error('exrtool operation failed: "%s".', result);
+    error('convert operation failed: "%s".', result);
 end

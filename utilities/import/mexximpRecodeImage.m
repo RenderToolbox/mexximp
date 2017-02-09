@@ -64,7 +64,7 @@ isRecoded = false;
 if ~any(strcmp(toReplace, imageExt(2:end)))
     info.verbatimName = imageFile;
     info.recodedFile = '';
-    info.recodedFile = '';
+    info.recodedPath = '';
     info.isRead = false;
     info.isWritten = false;
     info.error = [];
@@ -95,7 +95,10 @@ end
 
 % Recode the file only if it does not already exist.
 % This saves time if the same texture file is referenced multiple times.
-if exist(recodedPath,'file') == false
+if 2 == exist(recodedPath, 'file')
+    fprintf('%s: Already converted.\n', recodedFile);
+    
+else
     
     if strcmp(targetFormat, 'exr') || strcmp(imageExt(2:end), 'exr')
         % with Imagemagic Convert tools
@@ -148,8 +151,6 @@ if exist(recodedPath,'file') == false
             return;
         end
     end
-else
-    fprintf('%s: Already converted\n',recodedFile);
 end
 
 %% Report success.
