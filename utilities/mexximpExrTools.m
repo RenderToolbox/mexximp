@@ -60,7 +60,7 @@ parser.addParameter('operation', '', @ischar);
 parser.addParameter('options', '', @ischar);
 parser.addParameter('blurFile', '', @ischar);
 parser.addParameter('args', '', @ischar);
-parser.addParameter('dockerImage', 'ninjaben/exrtools-docker', @ischar);
+parser.addParameter('exrtoolsImage', 'hblasins/imagemagic-docker', @ischar);
 parser.addParameter('podSelector', 'app=exrtools', @ischar);
 parser.parse(inFile, varargin{:});
 inFile = parser.Results.inFile;
@@ -69,7 +69,7 @@ operation = parser.Results.operation;
 options = parser.Results.options;
 blurFile = parser.Results.blurFile;
 args = parser.Results.args;
-dockerImage = parser.Results.dockerImage;
+dockerImage = parser.Results.exrtoolsImage;
 podSelector = parser.Results.podSelector;
 
 %% Choose operation.
@@ -84,6 +84,8 @@ if isempty(operation)
             operation = 'ppmtoexr';
         case 'exr'
             operation = 'exrtopng';
+        case {'tga', 'tif'}
+            operation = 'convert';
         otherwise
             error('Unsupported exrtool input file type "%s".', inExt);
     end
@@ -98,7 +100,7 @@ else
 end
 switch operation
     case {'exrblur', 'exrchr', 'exricamtm', 'exrnlm', 'exrnormalize', ...
-            'exrpptm', 'jpegtoexr', 'pngtoexr', 'ppmtoexr'}
+            'exrpptm', 'jpegtoexr', 'pngtoexr', 'ppmtoexr','convert'}
         outExt = '.exr';
     case {'exrtopng'}
         outExt = '.png';
@@ -111,18 +113,36 @@ outFile = fullfile(outPath, [outBase outExt]);
 
 %% Locate exrtools.
 [status, ~] = system(['docker pull ' dockerImage]);
-[kubeStatus, ~] = system('kubectl version --client');
+kubeStatus = 1;
+%[kubeStatus, ~] = system('kubectl version --client');
 if 0 == status;
     % try running in Docker
     [~, uid] = system('id -u `whoami`');
     workDir = pwd();
-    commandPrefix = sprintf('docker run --rm -u %s:%s -v "%s":"%s" -v "%s":"%s" -v "%s":"%s" -w "%s" %s ', ...
+    
+    % When inPath == outPath
+    if strcmp(inPath,outPath)
+    
+        % Don't map the same directory twice
+        commandPrefix = sprintf('docker run --rm -u %s:%s -v "%s":"%s" -v "%s":"%s" -w "%s" %s ', ...
+        strtrim(uid), strtrim(uid), ...
+        outPath, outPath, ...
+        workDir, workDir, ...
+        workDir, ...
+        dockerImage);
+        
+    else
+        
+        commandPrefix = sprintf('docker run --rm -u %s:%s -v "%s":"%s" -v "%s":"%s" -v "%s":"%s" -w "%s" %s ', ...
         strtrim(uid), strtrim(uid), ...
         inPath, inPath, ...
         outPath, outPath, ...
         workDir, workDir, ...
         workDir, ...
         dockerImage);
+    
+    end
+    
     
 elseif 0 == kubeStatus
     podCommand = sprintf('kubectl get pods --selector="%s" -o jsonpath=''{.items[0].metadata.name}''', ...
@@ -144,14 +164,25 @@ else
 end
 
 %% Convert the image.
-command = sprintf('%s%s %s %s %s %s %s', ...
+
+% Handle the case when the blur file contains spaces. In this case
+% the path has to be surrounded with "". Unless the blurFile is an empty
+% string, then we don't need them.
+quote = '"';
+if isempty(blurFile), quote=''; end;
+
+
+command = sprintf('%s%s %s "%s" %s%s%s "%s" %s', ...
     commandPrefix, ...
     operation, ...
     options, ...
     inFile, ...
+    quote,...
     blurFile, ...
+    quote,...
     outFile, ...
     args);
+
 disp(command)
 [status, result] = system(command);
 if 0 ~= status

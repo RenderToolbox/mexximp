@@ -5,11 +5,9 @@ function [recodedFile, isRecoded, info] = mexximpRecodeImage(imageFile, varargin
 % return info about the new file.  This usually uses Matlab's built-in
 % imread() and imwrite().
 %
-% For OpenEXR images, attempts to use the system utility exrtools:
-%   http://scanline.ca/exrtools/
-% If exrtools is not present, attempts to invoke the Docker image
-% ninjaben/exrtools
-%   https://hub.docker.com/r/ninjaben/exrtools
+% For OpenEXR images, attempts to use the Imagemagic convert utility.
+% If convert is not present, attempts to invoke the Docker image
+% hblasins/imagemagic-docker
 %
 % [recodedFile, info] = rtbRecodeImage(imageFile) checks the given
 % imageFile of to see if it's of an unwanted type.  If so, re-codes the
@@ -31,8 +29,8 @@ function [recodedFile, isRecoded, info] = mexximpRecodeImage(imageFile, varargin
 % rtbRecodeImage( ... 'workingFolder', workingFolder) specifies the folder
 % where write recoded image files, the default is pwd().
 %
-% rtbRecodeImage( ... 'exrtoolsImage', exrtoolsImage) specifies the name of a
-% docker image that contains exrtools.  The default is 'ninjaben/exrtools'.
+% rtbRecodeImage( ... 'imagemagicImage', imagemagicImage) specifies the name of a
+% docker image that contains convert.  The default is 'hblasins/imagemagic-docker'.
 %
 % Returns the given imageFile name, scene, which may have been changed to a
 % new name.  Also returns a logical flag true when the given imageFile was
@@ -50,14 +48,14 @@ parser.addParameter('toReplace', {'gif'}, @iscellstr);
 parser.addParameter('targetFormat', 'png', @ischar);
 parser.addParameter('sceneFolder', pwd(), @ischar);
 parser.addParameter('workingFolder', pwd(), @ischar);
-parser.addParameter('exrtoolsImage', 'ninjaben/exrtools', @ischar);
+parser.addParameter('imagemagicImage','hblasins/imagemagic-docker',@ischar);
 parser.parse(imageFile, varargin{:});
 imageFile = parser.Results.imageFile;
 toReplace = parser.Results.toReplace;
 targetFormat = parser.Results.targetFormat;
 sceneFolder = parser.Results.sceneFolder;
 workingFolder = parser.Results.workingFolder;
-exrtoolsImage = parser.Results.exrtoolsImage;
+imagemagicImage = parser.Results.imagemagicImage;
 
 isRecoded = false;
 
@@ -74,12 +72,15 @@ if ~any(strcmp(toReplace, imageExt(2:end)))
 end
 
 %% Try to locate the image.
-if 2 == exist(imageFile, 'file')
+if 2 == exist(imageFile, 'file') && (~strcmp(fileparts(imageFile),''))
     % given as absolute path
+    % The first part of the condidion will also return true if the imageFile is on
+    % Matlab path and the imageFile is just a file name. To eliminate this
+    % condition we need to check if imageFile contains a a path.
     originalPath = imageFile;
 else
-    % given as relative to sceneFolder
-    originalPath = fullfile(sceneFolder, imageFile);
+    % given as absolute to sceneFolder
+    originalPath = fullfile(workingFolder, sceneFolder, imageFile);
 end
 
 %% Try to recode the image.
@@ -90,55 +91,63 @@ if 7 ~= exist(recodedFolder, 'dir')
     mkdir(recodedFolder);
 end
 
-if strcmp(targetFormat, 'exr') || strcmp(imageExt(2:end), 'exr')
-    % with exrtools
-    try
-        recodedPath = mexximpExrTools(originalPath, ...
-            'exrtoolsImage', exrtoolsImage, ...
-            'outFile', recodedPath);
-        
-    catch ex
-        % report an unreadable file
-        info.verbatimName = imageFile;
-        info.recodedFile = '';
-        info.recodedPath = '';
-        info.isRead = false;
-        info.isWritten = false;
-        info.error = ex;
-        return;
-    end
+% Recode the file only if it does not already exist.
+% This saves time if the same texture file is referenced multiple times.
+if exist(recodedPath,'file') == false
     
-else
-    % with imread()/imwrite()
-    try
-        [imageData, colorMap] = imread(originalPath);
-    catch ex
-        % report an unreadable file
-        info.verbatimName = imageFile;
-        info.recodedFile = '';
-        info.recodedPath = '';
-        info.isRead = false;
-        info.isWritten = false;
-        info.error = ex;
-        return;
-    end
-    
-    try
-        if isempty(colorMap)
-            imwrite(imageData, recodedPath, targetFormat);
-        else
-            imwrite(imageData, colorMap, recodedPath, targetFormat);
+    if strcmp(targetFormat, 'exr') || strcmp(imageExt(2:end), 'exr')
+        % with Imagemagic Convert tools
+        try
+            
+            recodedPath = mexximpConvertTools(originalPath, ...
+                'imagemagicImage', imagemagicImage, ...
+                'outFile', recodedPath);
+            
+        catch ex
+            % report an unreadable file
+            info.verbatimName = imageFile;
+            info.recodedFile = '';
+            info.recodedPath = '';
+            info.isRead = false;
+            info.isWritten = false;
+            info.error = ex;
+            return;
         end
-    catch ex
-        % report an unwritten file
-        info.verbatimName = imageFile;
-        info.recodedFile = recodedFile;
-        info.recodedPath = recodedPath;
-        info.isRead = true;
-        info.isWritten = false;
-        info.error = ex;
-        return;
+        
+    else
+        % with imread()/imwrite()
+        try
+            [imageData, colorMap] = imread(originalPath);
+        catch ex
+            % report an unreadable file
+            info.verbatimName = imageFile;
+            info.recodedFile = '';
+            info.recodedPath = '';
+            info.isRead = false;
+            info.isWritten = false;
+            info.error = ex;
+            return;
+        end
+        
+        try
+            if isempty(colorMap)
+                imwrite(imageData, recodedPath, targetFormat);
+            else
+                imwrite(imageData, colorMap, recodedPath, targetFormat);
+            end
+        catch ex
+            % report an unwritten file
+            info.verbatimName = imageFile;
+            info.recodedFile = recodedFile;
+            info.recodedPath = recodedPath;
+            info.isRead = true;
+            info.isWritten = false;
+            info.error = ex;
+            return;
+        end
     end
+else
+    fprintf('%s: Already converted\n',recodedFile);
 end
 
 %% Report success.

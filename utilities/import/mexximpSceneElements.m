@@ -62,7 +62,11 @@ function elements = sceneElementsByName(s, type, pathBase)
 nElements = numel(s);
 elements = cell(1, nElements);
 for ii = 1:nElements
-    name = s(ii).name;
+    try
+        name = s(ii).name;
+    catch
+        name = '';
+    end
     path = cat(2, pathBase, {ii});
     elements{ii} = sceneElement(name, type, path);
 end
