@@ -28,7 +28,7 @@ function [scene, elements, postFlags] = mexximpCleanImport(sceneFile, varargin)
 parser = inputParser();
 parser.KeepUnmatched = true;
 parser.addRequired('sceneFile', @ischar);
-parser.addParameter('ignoreRootTransform', false, @islogical);
+parser.addParameter('ignoreRootTransform', true, @islogical);
 parser.addParameter('toReplace', {}, @iscellstr);
 parser.addParameter('targetFormat', 'png', @ischar);
 parser.addParameter('imagemagicImage', 'hblasins/imagemagic-docker', @ischar);

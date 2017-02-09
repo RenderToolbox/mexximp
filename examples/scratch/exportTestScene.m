@@ -1,3 +1,4 @@
+function [scene, outputFile, status] = exportTestScene(varargin)
 % Example of creating a scene from scratch using mexximp.
 %
 % This example creates a mexximp scene from scratch.  It uses the function
@@ -11,17 +12,21 @@
 %
 % 2016 benjamin.heasly@gmail.com
 
+parser = inputParser();
+parser.addParameter('outputFile', fullfile(tempdir(), 'test-export.dae'), @ischar);
+parser.addParameter('outputFormat', 'collada', @ischar);
+parser.addParameter('openResult', false, @islogical);
+parser.parse(varargin{:});
+outputFile = parser.Results.outputFile;
+outputFormat = parser.Results.outputFormat;
+openResult = parser.Results.openResult;
 
-%% Make and export the scene.
-clear;
-clc;
-
-pathHere = fileparts(which('exportTestScene.m'));
-
+%% Make and export a scene.
 scene = makeTestScene();
-format = 'collada';
-colladaFile = fullfile(pathHere, 'test-export.dae');
-status = mexximpExport(scene, format, colladaFile, []);
+
+status = mexximpExport(scene, outputFormat, outputFile, []);
 
 %% Look at the XML Collada document.
-edit(colladaFile);
+if openResult
+    edit(colladaFile);
+end

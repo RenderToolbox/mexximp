@@ -62,6 +62,20 @@ classdef MexximpExportTests < matlab.unittest.TestCase
             testCase.assertMeshesAboutEqual(scenePrime.meshes, scene.meshes);
             testCase.assertMaterialsAboutEqual(scenePrime.materials, scene.materials);
         end
+        
+        function testExportExample(testCase)
+            outputFile = fullfile(tempdir(), 'scratch-example.dae');
+            [scene, outputFile, status] = exportTestScene( ...
+                'outputFile', outputFile, ...
+                'outputFormat', 'collada', ...
+                'openResult', false);
+            
+            testCase.assertEqual(status, 0);
+            testCase.assertClass(scene, 'struct');
+            testCase.assertNotEmpty(scene);
+            testCase.assertNotEmpty(scene.cameras);
+            testCase.assertEqual(exist(outputFile, 'file'), 2);
+        end
     end
     
     methods
@@ -91,7 +105,7 @@ classdef MexximpExportTests < matlab.unittest.TestCase
                 % ignore property data because exporter may change it harmlessly
                 materialPrime = testCase.clearPropertyData(materialsPrime(ii));
                 materialOriginal = testCase.clearPropertyData(materialsOriginal(ii));
-
+                
                 % ignore names because exporter changes them harmlessly
                 materialPrime.name = '';
                 materialOriginal.name = '';
