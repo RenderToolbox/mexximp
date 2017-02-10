@@ -31,6 +31,10 @@ function [outputFile, isRecoded] = mexximpRecodeImage(imageFile, varargin)
 % name of a docker image that contains convert.  The default is
 % 'hblasins/imagemagic-docker'.
 %
+% rtbRecodeImage( ... 'skipExisting', skipExisting) whether or not to skip
+% recoding of existing images.  The default is true, skip recoding when the
+% output already exists.
+%
 % Returns the path to the recoded image file, or the original file if it
 % was not recoded.  Also returns a flag indicating whether the image was
 % recoded.
@@ -46,13 +50,15 @@ parser.addRequired('imageFile', @ischar);
 parser.addParameter('toReplace', {'gif'}, @iscellstr);
 parser.addParameter('targetFormat', 'png', @ischar);
 parser.addParameter('sceneFolder', pwd(), @ischar);
-parser.addParameter('imagemagicImage','hblasins/imagemagic-docker',@ischar);
+parser.addParameter('imagemagicImage', 'hblasins/imagemagic-docker', @ischar);
+parser.addParameter('skipExisting', true, @islogical);
 parser.parse(imageFile, varargin{:});
 imageFile = parser.Results.imageFile;
 toReplace = parser.Results.toReplace;
 targetFormat = parser.Results.targetFormat;
 sceneFolder = parser.Results.sceneFolder;
 imagemagicImage = parser.Results.imagemagicImage;
+skipExisting = parser.Results.skipExisting;
 
 
 %% Do we need to recode this image?
@@ -86,7 +92,7 @@ end
 
 % Recode the file only if it does not already exist.
 % This saves time if the same texture file is referenced multiple times.
-if 2 == exist(outputFile, 'file')
+if skipExisting && 2 == exist(outputFile, 'file')
     fprintf('<%s>: Already recoded.\n', outputFile);
     
 else
