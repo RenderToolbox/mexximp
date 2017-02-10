@@ -81,7 +81,8 @@ for ee = 1:nElements
             % base case: apply the visit function to the field value
             try
                 [value, isUpdate] = feval(visitFunction, value, visitArgs{:});
-            catch
+            catch err
+                fprintf('Error applying visitFunction: %s\n', err.message)
                 isUpdate = false;
             end
             if isUpdate

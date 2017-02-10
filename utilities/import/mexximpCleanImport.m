@@ -32,7 +32,7 @@ parser.addParameter('ignoreRootTransform', true, @islogical);
 parser.addParameter('toReplace', {}, @iscellstr);
 parser.addParameter('targetFormat', 'png', @ischar);
 parser.addParameter('imagemagicImage', 'hblasins/imagemagic-docker', @ischar);
-parser.addParameter('workingFolder', pwd(), @ischar);
+parser.addParameter('workingFolder', '', @ischar);
 parser.parse(sceneFile, varargin{:});
 sceneFile = parser.Results.sceneFile;
 ignoreRootTransform = parser.Results.ignoreRootTransform;
@@ -70,6 +70,7 @@ postFlags = flagParser.Results;
 %% Import the scene.
 scene = mexximpImport(sceneFile, postFlags);
 
+
 %% Fix up the node hierarchy.
 % sometimes Assimp gives us a misleading root node transform
 %   for example with "Z_UP" Collada exported from Blender
@@ -80,20 +81,34 @@ end
 % reshape the node hierarchy to a consistent, "flat" form
 scene.rootNode = mexximpFlattenNodes(scene);
 
+
 %% Locate specific scene elements.
 elements = mexximpSceneElements(scene);
 
-%% Recode images?
-if isempty(toReplace)
-    return;
+%% Repair file references in the scene?
+if ~isempty(workingFolder)
+    mightBeFile = @(s) ischar(s) && 1 <= sum('.' == s);
+    sceneFolder = fileparts(sceneFile);
+    scene = mexximpVisitStructFields(scene, @mexximpResolveResource, ...
+        'filterFunction', mightBeFile, ...
+        'visitArgs', { ...
+        'sourceFolder', sceneFolder, ...
+        'useMatlabPath', false, ...
+        'strictMatching', false, ...
+        'outputFolder', workingFolder});
 end
 
-mightBeFile = @(s) ischar(s) && 1 <= sum('.' == s);
-sceneFolder = fileparts(sceneFile);
-scene = mexximpVisitStructFields(scene, @mexximpRecodeImage, ...
-    'filterFunction', mightBeFile, ...
-    'visitArgs', { ...
-    'sceneFolder', sceneFolder, ...
-    'toReplace', toReplace, ...
-    'targetFormat', targetFormat, ...
-    'imagemagicImage', imagemagicImage});
+%% Recode images?
+if ~isempty(toReplace)
+    mightBeFile = @(s) ischar(s) && 1 <= sum('.' == s);
+    sceneFolder = fileparts(sceneFile);
+    scene = mexximpVisitStructFields(scene, @mexximpRecodeImage, ...
+        'filterFunction', mightBeFile, ...
+        'visitArgs', { ...
+        'sceneFolder', sceneFolder, ...
+        'toReplace', toReplace, ...
+        'targetFormat', targetFormat, ...
+        'skipExisting', true, ...
+        'imagemagicImage', imagemagicImage});
+end
+
