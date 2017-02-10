@@ -1,4 +1,4 @@
-function [recodedFile, isRecoded, info] = mexximpRecodeImage(imageFile, varargin)
+function [outputFile, isRecoded] = mexximpRecodeImage(imageFile, varargin)
 %% Rewrite an image of an unwanted format to a preferred format.
 %
 % The idea here is to re-write an image file to some useful type, and
@@ -9,7 +9,7 @@ function [recodedFile, isRecoded, info] = mexximpRecodeImage(imageFile, varargin
 % If convert is not present, attempts to invoke the Docker image
 % hblasins/imagemagic-docker
 %
-% [recodedFile, info] = rtbRecodeImage(imageFile) checks the given
+% [outputFile, info] = rtbRecodeImage(imageFile) checks the given
 % imageFile of to see if it's of an unwanted type.  If so, re-codes the
 % image to a desirable type.  The recoded file will sit in the same folder
 % as the given imageFile.
@@ -33,13 +33,13 @@ function [recodedFile, isRecoded, info] = mexximpRecodeImage(imageFile, varargin
 %
 % Returns the path to the recoded image file, or the original file if it
 % was not recoded.  Also returns a flag indicating whether the image was
-% recoded.  Also returns a struct with additional information.
+% recoded.
 %
 % See also imformats
 %
-% [recodedFile, isRecoded, info] = mexximpRecodeImage(imageFile, varargin)
+% [outputFile, isRecoded] = mexximpRecodeImage(imageFile, varargin)
 %
-% Copyright (c) 2016 mexximp Teame
+% Copyright (c) 2017 mexximp Team
 
 parser = inputParser();
 parser.addRequired('imageFile', @ischar);
@@ -54,44 +54,40 @@ targetFormat = parser.Results.targetFormat;
 sceneFolder = parser.Results.sceneFolder;
 imagemagicImage = parser.Results.imagemagicImage;
 
-recodedFile = imageFile;
-isRecoded = false;
 
 %% Do we need to recode this image?
 [imagePath, imageBase, imageExt] = fileparts(imageFile);
 if ~any(strcmp(toReplace, imageExt(2:end)))
-    info.imageFile = imageFile;
-    info.recodedFile = '';
-    info.isRead = false;
-    info.isWritten = false;
-    info.error = [];
+    outputFile = imageFile;
+    isRecoded = false;
     return;
 end
 
+
 %% Try to locate the image.
 if 2 == exist(imageFile, 'file') && ~isempty(imagePath)
-    % given as absolute path
+    % treat as absolute path
     % The first part of the condidion will also return true if the imageFile is on
     % Matlab path and the imageFile is just a file name. To eliminate this
     % condition we need to check if imageFile contains a a path.
-    originalPath = imageFile;
-    recodedFile = fullfile(imagePath, [imageBase '.' targetFormat]);
+    originalFile = imageFile;
+    outputFile = fullfile(imagePath, [imageBase '.' targetFormat]);
 else
     % treat as relative to sceneFolder
-    originalPath = fullfile(sceneFolder, imageFile);
-    recodedFile = fullfile(sceneFolder, imagePath, [imageBase '.' targetFormat]);
+    originalFile = fullfile(sceneFolder, imageFile);
+    outputFile = fullfile(sceneFolder, imagePath, [imageBase '.' targetFormat]);
 end
 
 %% Try to recode the image.
-recodedFolder = fileparts(recodedFile);
-if 7 ~= exist(recodedFolder, 'dir')
-    mkdir(recodedFolder);
+outputFolder = fileparts(outputFile);
+if 7 ~= exist(outputFolder, 'dir')
+    mkdir(outputFolder);
 end
 
 % Recode the file only if it does not already exist.
 % This saves time if the same texture file is referenced multiple times.
-if 2 == exist(recodedFile, 'file')
-    fprintf('%s: Already converted.\n', recodedFile);
+if 2 == exist(outputFile, 'file')
+    fprintf('<%s>: Already recoded.\n', outputFile);
     
 else
     
@@ -99,47 +95,41 @@ else
         % with Imagemagic Convert tools
         try
             
-            recodedFile = mexximpConvertTools(originalPath, ...
+            outputFile = mexximpConvertTools(originalFile, ...
                 'imagemagicImage', imagemagicImage, ...
-                'outFile', recodedFile);
+                'outFile', outputFile);
             
         catch ex
-            % report an unreadable file
-            info.imageFile = imageFile;
-            info.recodedFile = '';
-            info.isRead = false;
-            info.isWritten = false;
-            info.error = ex;
+            % conversion error
+            fprintf('Error using mexximpConvertTools: %s.\n', ex.message);
+            outputFile = imageFile;
+            isRecoded = false;
             return;
         end
         
     else
         % with imread()/imwrite()
         try
-            [imageData, colorMap] = imread(originalPath);
+            [imageData, colorMap] = imread(originalFile);
         catch ex
             % report an unreadable file
-            info.imageFile = imageFile;
-            info.recodedFile = '';
-            info.isRead = false;
-            info.isWritten = false;
-            info.error = ex;
+            fprintf('Error using imread: %s.\n', ex.message);
+            outputFile = imageFile;
+            isRecoded = false;
             return;
         end
         
         try
             if isempty(colorMap)
-                imwrite(imageData, recodedFile, targetFormat);
+                imwrite(imageData, outputFile, targetFormat);
             else
-                imwrite(imageData, colorMap, recodedFile, targetFormat);
+                imwrite(imageData, colorMap, outputFile, targetFormat);
             end
         catch ex
-            % report an unwritten file
-            info.imageFile = imageFile;
-            info.recodedFile = '';
-            info.isRead = true;
-            info.isWritten = false;
-            info.error = ex;
+            % report an unwritable file
+            fprintf('Error using imwrite: %s.\n', ex.message);
+            outputFile = imageFile;
+            isRecoded = false;
             return;
         end
     end
@@ -147,8 +137,3 @@ end
 
 %% Report success.
 isRecoded = true;
-info.imageFile = imageFile;
-info.recodedFile = recodedFile;
-info.isRead = true;
-info.isWritten = true;
-info.error = [];
