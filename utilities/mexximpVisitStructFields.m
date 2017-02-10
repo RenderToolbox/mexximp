@@ -72,6 +72,7 @@ for ee = 1:nElements
         end
         
         value = struct(ee).(field);
+        
         if isstruct(value)
             % recursive case: dig into nested struct
             struct(ee).(field) = traverseFields(value, visitFunction, filterFunction, ignoreFields, visitArgs);

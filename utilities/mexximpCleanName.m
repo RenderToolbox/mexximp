@@ -29,7 +29,7 @@ index = parser.Results.index;
 
 %% Sanity check.
 if isempty(originalName)
-    name = '';
+    name = sprintf('%i',index);
     if isempty(index)
         matchExpression = '';
     else
