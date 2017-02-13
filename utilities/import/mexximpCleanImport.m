@@ -33,6 +33,8 @@ parser.addParameter('toReplace', {}, @iscellstr);
 parser.addParameter('targetFormat', 'png', @ischar);
 parser.addParameter('imagemagicImage', 'hblasins/imagemagic-docker', @ischar);
 parser.addParameter('workingFolder', '', @ischar);
+parser.addParameter('strictMatching', false, @islogical);
+parser.addParameter('useMatlabPath', false, @islogical);
 parser.parse(sceneFile, varargin{:});
 sceneFile = parser.Results.sceneFile;
 ignoreRootTransform = parser.Results.ignoreRootTransform;
@@ -40,6 +42,8 @@ toReplace = parser.Results.toReplace;
 targetFormat = parser.Results.targetFormat;
 imagemagicImage = parser.Results.imagemagicImage;
 workingFolder = parser.Results.workingFolder;
+strictMatching = parser.Results.strictMatching;
+useMatlabPath = parser.Results.useMatlabPath;
 
 %% Parse postprocessing flags.
 flagParser = inputParser();
@@ -93,8 +97,8 @@ if ~isempty(workingFolder)
         'filterFunction', mightBeFile, ...
         'visitArgs', { ...
         'sourceFolder', sceneFolder, ...
-        'useMatlabPath', false, ...
-        'strictMatching', false, ...
+        'useMatlabPath', useMatlabPath, ...
+        'strictMatching', strictMatching, ...
         'outputFolder', workingFolder});
 end
 
