@@ -56,7 +56,7 @@ end
 outFile = fullfile(outPath, [outBase outExt]);
 
 %% Locate exrtools.
-[status, ~] = system(['docker pull ' dockerImage]);
+[status, ~] = system('docker ps');
 if 0 == status;
     % try running in Docker
     [~, uid] = system('id -u `whoami`');
