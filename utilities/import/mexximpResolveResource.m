@@ -65,6 +65,7 @@ function [outputFile, isFound] = mexximpResolveResource(resourceFile, varargin)
 parser = inputParser();
 parser.addRequired('resourceFile', @ischar);
 parser.addParameter('sourceFolder', pwd(), @ischar);
+parser.addParameter('sourceFiles', {}, @iscellstr);
 parser.addParameter('useMatlabPath', false, @islogical);
 parser.addParameter('strictMatching', false, @islogical);
 parser.addParameter('outputFolder', '', @ischar);
@@ -74,6 +75,7 @@ parser.addParameter('outputReplaceWith', '_', @ischar);
 parser.parse(resourceFile, varargin{:});
 resourceFile = parser.Results.resourceFile;
 sourceFolder = parser.Results.sourceFolder;
+sourceFiles = parser.Results.sourceFiles;
 useMatlabPath = parser.Results.useMatlabPath;
 strictMatching = parser.Results.strictMatching;
 outputFolder = parser.Results.outputFolder;
@@ -87,12 +89,15 @@ else
     matchFunction = @fuzzyMatch;
 end
 
+if isempty(sourceFiles)
+    % look in sourceFolder
+    sourceFiles = mexximpCollectFiles(sourceFolder);
+end
+
 
 %% Find a match for the given resourceFile.
 [~, resourceBase, resourceExt] = fileparts(resourceFile);
 
-% look in sourceFolder
-sourceFiles = mexximpCollectFiles(sourceFolder);
 matchRelativePath = '';
 matchFolder = '';
 nSources = numel(sourceFiles);
