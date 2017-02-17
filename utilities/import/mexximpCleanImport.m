@@ -108,7 +108,11 @@ end
 %% Recode images?
 if ~isempty(toReplace)
     mightBeFile = @(s) ischar(s) && 1 <= sum('.' == s);
-    sceneFolder = fileparts(sceneFile);
+    if isempty(workingFolder)
+        sceneFolder = fileparts(sceneFile);
+    else
+        sceneFolder = workingFolder;
+    end
     scene = mexximpVisitStructFields(scene, @mexximpRecodeImage, ...
         'filterFunction', mightBeFile, ...
         'ignoreFields', {'rootNode', 'embeddedTextures', 'meshes', 'lights', 'cameras'}, ...
