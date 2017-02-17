@@ -72,6 +72,7 @@ for ee = 1:nElements
         end
         
         value = struct(ee).(field);
+        
         if isstruct(value)
             % recursive case: dig into nested struct
             struct(ee).(field) = traverseFields(value, visitFunction, filterFunction, ignoreFields, visitArgs);
@@ -80,7 +81,8 @@ for ee = 1:nElements
             % base case: apply the visit function to the field value
             try
                 [value, isUpdate] = feval(visitFunction, value, visitArgs{:});
-            catch
+            catch err
+                fprintf('Error applying visitFunction: %s\n', err.message)
                 isUpdate = false;
             end
             if isUpdate

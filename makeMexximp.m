@@ -1,3 +1,4 @@
+function makeMexximp(varargin)
 % Build the mexximp mex-functions.
 %
 % These instructions are for Linux.  Should be similar for OS X.  Windows?
@@ -18,88 +19,77 @@
 %   - brew install assimp
 %
 % With Assimp installed, you can run this Matlab script to build the
-% mexximp mex-functions.   This script will also run some tests on the
-% functions as it goes.
+% mexximp mex-functions.  You should run this script from the mexximp root
+% folder.
 %
-% You should run this script from the mexximp root folder.
-%
-% Once this function completes, you can try an example, like the one in
+% Once this function completes, you should run the tests in the test
+% folder.  You can als try an example, like the one in
 % examples/scratch/exportTestScene.m.
 %
 % 2016 benjamin.heasly@gmail.com
 
-% TODO: would like to make mexximp relocatable so that we can distribute
-% the mex function along with libassimp and not make people buld assimp
-% themselves.  If we download a libassimp somwhere we can add this path to
-% LD_LIBRARY_PATH, and the linker should find it there.  We hate
-% LD_LIBRARY_PATH, but this is how Matlab manages its own dependencies, so
-% we may just roll with it.
-%
-% If we're using the Toolbox Toolbox, we can obtain libassimp as a
-% "download" toolbox.  It can have a hook to add the correct path to
-% LD_LIBRARY_PATH.
-%
-% It's too bad we can't build and execute mex functions in Docker
-% container.
+parser = inputParser();
+parser.addParameter('outputFolder', fullfile(pwd(), 'build'), @ischar);
+parser.addParameter('clean', true, @islogical);
+parser.addParameter('addOutputToPath', true, @islogical);
+parser.addParameter('includePaths', '-I/usr/local/include', @ischar);
+parser.addParameter('libPaths', '-L/usr/local/lib', @ischar);
+parser.addParameter('libs', '-lassimp', @ischar);
+parser.parse(varargin{:});
+outputFolder = parser.Results.outputFolder;
+clean = parser.Results.clean;
+addOutputToPath = parser.Results.addOutputToPath;
+includePaths = parser.Results.includePaths;
+libPaths = parser.Results.libPaths;
+libs = parser.Results.libs;
 
-%% Choose library files.
-clear;
-
-INC = '-I/usr/local/include';
-LINC = '-L/usr/local/lib';
-LIBS = '-lassimp';
 
 %% Set up build folder.
-pathHere = fileparts(which('makeMexximp'));
-cd(pathHere);
-
-buildFolder = fullfile(pathHere, 'build');
-if 7 ~= exist(buildFolder, 'dir')
-    mkdir(buildFolder);
+outputFolderExists = 7 == exist(outputFolder, 'dir');
+if clean && outputFolderExists
+    rmdir(outputFolder, 's');
 end
 
-if isempty(strfind(path(), buildFolder))
-    addpath(buildFolder);
+if ~outputFolderExists
+    mkdir(outputFolder);
 end
+
+if addOutputToPath && isempty(strfind(path(), outputFolder))
+    addpath(outputFolder, '-begin');
+end
+
 
 %% Build a utility for getting string constants and default structs.
-source = 'src/mexximp_constants.cc';
-output = '-output build/mexximpConstants';
+source = which('mexximp_constants.cc');
+output = sprintf('-output %s', fullfile(outputFolder, 'mexximpConstants'));
 
-mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
+mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
+
 
 %% Build a utility for testing mexximp internals.
-source = 'src/mexximp_test.cc src/mexximp_util.cc src/mexximp_scene.cc';
-output = '-output build/mexximpTest';
+source = [which('mexximp_test.cc') ' ' which('mexximp_util.cc') ' ' which('mexximp_scene.cc')];
+output = sprintf('-output %s', fullfile(outputFolder, 'mexximpTest'));
 
-mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
+mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
-%% Test mexximp internals.
-runtests('test/MexximpUtilTests.m');
-runtests('test/MexximpSceneTests.m');
 
 %% Build the importer.
-source = 'src/mexximp_import.cc src/mexximp_util.cc src/mexximp_scene.cc';
-output = '-output build/mexximpImport';
+source = [which('mexximp_import.cc') ' ' which('mexximp_util.cc') ' ' which('mexximp_scene.cc')];
+output = sprintf('-output %s', fullfile(outputFolder, 'mexximpImport'));
 
-mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
+mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
 
-%% Test the importer.
-runtests('test/MexximpImportTests.m');
 
 %% Build the exporter.
-source = 'src/mexximp_export.cc src/mexximp_util.cc src/mexximp_scene.cc';
-output = '-output build/mexximpExport';
+source = [which('mexximp_export.cc') ' ' which('mexximp_util.cc') ' ' which('mexximp_scene.cc')];
+output = sprintf('-output %s', fullfile(outputFolder, 'mexximpExport'));
 
-mexCmd = sprintf('mex %s %s %s %s %s', INC, LINC, LIBS, output, source);
+mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
-
-%% Test the importer and exporter.
-runtests('test/MexximpExportTests.m');

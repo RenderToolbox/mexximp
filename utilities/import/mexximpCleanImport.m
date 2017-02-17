@@ -31,15 +31,19 @@ parser.addRequired('sceneFile', @ischar);
 parser.addParameter('ignoreRootTransform', true, @islogical);
 parser.addParameter('toReplace', {}, @iscellstr);
 parser.addParameter('targetFormat', 'png', @ischar);
-parser.addParameter('exrtoolsImage', 'ninjaben/exrtools-docker', @ischar);
-parser.addParameter('workingFolder', pwd(), @ischar);
+parser.addParameter('imagemagicImage', 'hblasins/imagemagic-docker', @ischar);
+parser.addParameter('workingFolder', '', @ischar);
+parser.addParameter('strictMatching', false, @islogical);
+parser.addParameter('useMatlabPath', false, @islogical);
 parser.parse(sceneFile, varargin{:});
 sceneFile = parser.Results.sceneFile;
 ignoreRootTransform = parser.Results.ignoreRootTransform;
 toReplace = parser.Results.toReplace;
 targetFormat = parser.Results.targetFormat;
-exrtoolsImage = parser.Results.exrtoolsImage;
+imagemagicImage = parser.Results.imagemagicImage;
 workingFolder = parser.Results.workingFolder;
+strictMatching = parser.Results.strictMatching;
+useMatlabPath = parser.Results.useMatlabPath;
 
 %% Parse postprocessing flags.
 flagParser = inputParser();
@@ -70,6 +74,7 @@ postFlags = flagParser.Results;
 %% Import the scene.
 scene = mexximpImport(sceneFile, postFlags);
 
+
 %% Fix up the node hierarchy.
 % sometimes Assimp gives us a misleading root node transform
 %   for example with "Z_UP" Collada exported from Blender
@@ -80,20 +85,42 @@ end
 % reshape the node hierarchy to a consistent, "flat" form
 scene.rootNode = mexximpFlattenNodes(scene);
 
+
 %% Locate specific scene elements.
 elements = mexximpSceneElements(scene);
 
-%% Recode images?
-if isempty(toReplace)
-    return;
+%% Repair file references in the scene?
+if ~isempty(workingFolder)
+    mightBeFile = @(s) ischar(s) && 1 <= sum('.' == s);
+    sceneFolder = fileparts(sceneFile);
+    filesToMatch = mexximpCollectFiles(sceneFolder);
+    scene = mexximpVisitStructFields(scene, @mexximpResolveResource, ...
+        'filterFunction', mightBeFile, ...
+        'ignoreFields', {'rootNode', 'embeddedTextures', 'meshes', 'lights', 'cameras'}, ...
+        'visitArgs', { ...
+        'sourceFolder', sceneFolder, ...
+        'sourceFiles', filesToMatch, ...
+        'useMatlabPath', useMatlabPath, ...
+        'strictMatching', strictMatching, ...
+        'outputFolder', workingFolder});
 end
 
-mightBeFile = @(s) ischar(s) && 1 <= sum('.' == s);
-scene = mexximpVisitStructFields(scene, @mexximpRecodeImage, ...
-    'filterFunction', mightBeFile, ...
-    'visitArgs', { ...
-    'sceneFolder', fileparts(sceneFile), ...
-    'workingFolder', workingFolder, ...
-    'toReplace', toReplace, ...
-    'targetFormat', targetFormat, ...
-    'exrtoolsImage', exrtoolsImage});
+%% Recode images?
+if ~isempty(toReplace)
+    mightBeFile = @(s) ischar(s) && 1 <= sum('.' == s);
+    if isempty(workingFolder)
+        sceneFolder = fileparts(sceneFile);
+    else
+        sceneFolder = workingFolder;
+    end
+    scene = mexximpVisitStructFields(scene, @mexximpRecodeImage, ...
+        'filterFunction', mightBeFile, ...
+        'ignoreFields', {'rootNode', 'embeddedTextures', 'meshes', 'lights', 'cameras'}, ...
+        'visitArgs', { ...
+        'sceneFolder', sceneFolder, ...
+        'toReplace', toReplace, ...
+        'targetFormat', targetFormat, ...
+        'skipExisting', true, ...
+        'imagemagicImage', imagemagicImage});
+end
+

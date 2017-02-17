@@ -13,21 +13,15 @@ function [status, result, advice] = mexximpCheckNativeDependencies()
 
 
 %% Check for Assimp library.
+if ismac()
+    % assume homebrew
+    findLibCommand = 'brew list | grep assimp';
+else
+    findLibCommand = 'ldconfig -p | grep assimp.so.3';
+end
 assimp = checkSystem('Assimp', ...
-    'ldconfig -p | grep assimp.so.3', ...
+    findLibCommand, ...
     'It looks like Assimp is not installed.  Please use these instructions to install Assimp: https://github.com/RenderToolbox/RenderToolbox4#assimp.');
-
-
-%% Check for Docker.
-docker = checkSystem('Docker', ...
-    'docker ps', ...
-    'It looks like Docker is not installed.  Please visit https://github.com/RenderToolbox/RenderToolbox4/wiki/Docker.');
-
-
-%% Check for a local installation of ExrTools.
-exrTools = checkSystem('ExrTools', ...
-    'which exrblur', ...
-    'It looks like ExrTools is not installed.  Please visit http://scanline.ca/exrtools/.  Or, consider installing Docker so that mexximp can get ExrTools for you.');
 
 
 %% Assimp is required.
@@ -39,13 +33,25 @@ if 0 ~= assimp.status
 end
 
 
+%% Check for Docker.
+docker = checkSystem('Docker', ...
+    'docker ps', ...
+    'It looks like Docker is not installed.  Please visit https://github.com/RenderToolbox/RenderToolbox4/wiki/Docker.');
+
+
 %% Docker can cover other tools.
 if 0 == docker.status
     status = 0;
-    result = 'OK.';
+    result = 'Local dependencies were found.';
     advice = '';
     return;
 end
+
+
+%% Check for a local installation of ExrTools.
+exrTools = checkSystem('ExrTools', ...
+    'which exrblur', ...
+    'It looks like ExrTools is not installed.  Please visit http://scanline.ca/exrtools/.  Or, consider installing Docker so that mexximp can get ExrTools for you.');
 
 
 %% Check for other tools.
@@ -58,7 +64,7 @@ end
 
 %% Looks good from here.
 status = 0;
-result = 'OK.';
+result = 'Local dependencies were found.';
 advice = '';
 
 
