@@ -1,4 +1,4 @@
-function combined = mexximpCombineScenes(outer, inner, varargin)
+function [combined, outerElements, innerElements] = mexximpCombineScenes(outer, inner, varargin)
 %% Combine two scenes by copying materials, meshes, and nodes.
 %
 % combined = mexximpCombineScenes(outer, inner) combines the two given
@@ -22,9 +22,13 @@ function combined = mexximpCombineScenes(outer, inner, varargin)
 % add to each node name from the inner scene.  The default is '', don't add
 % any prefix.
 %
-% combined = mexximpCombineScenes(outer, inner, varargin)
+% Returns a new, combined scene struct.  Also returns an array of scene
+% elements that came from the outer scene, and an array of elements that
+% came from the inner scene.
 %
-% Copyright (c) 2016 mexximp Teame
+% [combined, outerElements, innerElements] = mexximpCombineScenes(outer, inner, varargin)
+%
+% Copyright (c) 2016 mexximp team
 
 parser = inputParser();
 parser.addRequired('outer', @isstruct);
@@ -74,6 +78,7 @@ end
 combined.meshes = cat(2, outer.meshes, inner.meshes);
 
 %% Copy Nodes with mesh offset and transformation.
+nOuterNodes = numel(outer.rootNode.children);
 nInnerNodes = numel(inner.rootNode.children);
 
 for mm = 1:nInnerNodes
@@ -88,3 +93,27 @@ for mm = 1:nInnerNodes
 end
 
 combined.rootNode.children = cat(2, outer.rootNode.children, inner.rootNode.children);
+
+%% Report where elements in the combined scene came from.
+combinedElements = mexximpSceneElements(combined);
+nElements = numel(combinedElements);
+isOuterElement = true(1, nElements);
+for ee = 1:nElements
+    % all elements are outer elements, except:
+    %   appended materials
+    %   appended meshes
+    %   appended nodes
+    element = combinedElements(ee);
+    elementIndex = element.path{end};
+    switch element.type
+        case 'materials'
+            isOuterElement(ee) = elementIndex <= nOuterMaterials;
+        case 'meshes'
+            isOuterElement(ee) = elementIndex <= nOuterMeshes;
+        case 'nodes'
+            isOuterElement(ee) = isnumeric(elementIndex) && elementIndex <= nOuterNodes;
+    end
+end
+outerElements = combinedElements(isOuterElement);
+innerElements = combinedElements(~isOuterElement);
+
