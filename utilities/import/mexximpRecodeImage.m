@@ -52,6 +52,7 @@ parser.addParameter('targetFormat', 'png', @ischar);
 parser.addParameter('sceneFolder', pwd(), @ischar);
 parser.addParameter('imagemagicImage', 'hblasins/imagemagic-docker', @ischar);
 parser.addParameter('skipExisting', true, @islogical);
+parser.addParameter('options','',@ischar);
 parser.parse(imageFile, varargin{:});
 imageFile = parser.Results.imageFile;
 toReplace = parser.Results.toReplace;
@@ -59,6 +60,7 @@ targetFormat = parser.Results.targetFormat;
 sceneFolder = parser.Results.sceneFolder;
 imagemagicImage = parser.Results.imagemagicImage;
 skipExisting = parser.Results.skipExisting;
+options = parser.Results.options;
 
 
 %% Do we need to recode this image?
@@ -103,7 +105,8 @@ else
             
             outputFile = mexximpConvertTools(originalFile, ...
                 'imagemagicImage', imagemagicImage, ...
-                'outFile', outputFile);
+                'outFile', outputFile, ...
+                'options', options);
             
         catch ex
             % conversion error

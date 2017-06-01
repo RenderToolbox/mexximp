@@ -35,6 +35,7 @@ parser.addParameter('imagemagicImage', 'hblasins/imagemagic-docker', @ischar);
 parser.addParameter('workingFolder', '', @ischar);
 parser.addParameter('strictMatching', false, @islogical);
 parser.addParameter('useMatlabPath', false, @islogical);
+parser.addParameter('options', '', @ischar);
 parser.parse(sceneFile, varargin{:});
 sceneFile = parser.Results.sceneFile;
 ignoreRootTransform = parser.Results.ignoreRootTransform;
@@ -44,6 +45,7 @@ imagemagicImage = parser.Results.imagemagicImage;
 workingFolder = parser.Results.workingFolder;
 strictMatching = parser.Results.strictMatching;
 useMatlabPath = parser.Results.useMatlabPath;
+options = parser.Results.options;
 
 %% Parse postprocessing flags.
 flagParser = inputParser();
@@ -121,6 +123,7 @@ if ~isempty(toReplace)
         'toReplace', toReplace, ...
         'targetFormat', targetFormat, ...
         'skipExisting', true, ...
-        'imagemagicImage', imagemagicImage});
+        'imagemagicImage', imagemagicImage,...
+        'options', options});
 end
 
