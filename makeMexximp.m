@@ -63,7 +63,7 @@ end
 source = which('mexximp_constants.cc');
 output = sprintf('-output %s', fullfile(outputFolder, 'mexximpConstants'));
 
-mexCmd = sprintf('mex %s %s %s %s %s', includePaths, libPaths, libs, output, source);
+mexCmd = sprintf('mex -v %s %s %s %s %s', includePaths, libPaths, libs, output, source);
 fprintf('%s\n', mexCmd);
 eval(mexCmd);
 

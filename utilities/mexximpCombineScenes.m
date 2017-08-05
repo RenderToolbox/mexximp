@@ -65,10 +65,13 @@ nOuterMaterials = numel(outer.materials);
 combined.materials = cat(2, outer.materials, inner.materials);
 
 %% Copy Meshes with material offset.
+%  but adding the prefix.
 nOuterMeshes = numel(outer.meshes);
 nInnerMeshes = numel(inner.meshes);
 
+
 for mm = 1:nInnerMeshes
+    inner.meshes(mm).name = [insertPrefix inner.meshes(mm).name];
     if ~isempty(inner.meshes(mm).materialIndex)
         inner.meshes(mm).materialIndex = ...
             inner.meshes(mm).materialIndex + nOuterMaterials;
@@ -81,6 +84,9 @@ combined.meshes = cat(2, outer.meshes, inner.meshes);
 nOuterNodes = numel(outer.rootNode.children);
 nInnerNodes = numel(inner.rootNode.children);
 
+
+% Shouldn't this be done recursively?
+% what if rootNode.children.children is not empty?
 for mm = 1:nInnerNodes
     if ~isempty(inner.rootNode.children(mm).meshIndices)
         inner.rootNode.children(mm).name = ...
