@@ -7,7 +7,7 @@ function [outputFile, isRecoded] = mexximpRecodeImage(imageFile, varargin)
 %
 % For OpenEXR images, attempts to use the Imagemagic convert utility.
 % If convert is not present, attempts to invoke the Docker image
-% rendertoolbox/imagemagic-docker
+% rendertoolbox/imagemagick
 %
 % [outputFile, info] = rtbRecodeImage(imageFile) checks the given
 % imageFile of to see if it's of an unwanted type.  If so, re-codes the
@@ -29,7 +29,7 @@ function [outputFile, isRecoded] = mexximpRecodeImage(imageFile, varargin)
 %
 % rtbRecodeImage( ... 'imagemagicImage', imagemagicImage) specifies the
 % name of a docker image that contains convert.  The default is
-% 'rendertoolbox/imagemagic-docker'.
+% 'rendertoolbox/imagemagick'.
 %
 % rtbRecodeImage( ... 'skipExisting', skipExisting) whether or not to skip
 % recoding of existing images.  The default is true, skip recoding when the
@@ -50,7 +50,7 @@ parser.addRequired('imageFile', @ischar);
 parser.addParameter('toReplace', {'gif'}, @iscellstr);
 parser.addParameter('targetFormat', 'png', @ischar);
 parser.addParameter('sceneFolder', pwd(), @ischar);
-parser.addParameter('imagemagicImage', 'rendertoolbox/imagemagic-docker', @ischar);
+parser.addParameter('imagemagicImage', 'rendertoolbox/imagemagick', @ischar);
 parser.addParameter('skipExisting', true, @islogical);
 parser.addParameter('options','',@ischar);
 parser.parse(imageFile, varargin{:});

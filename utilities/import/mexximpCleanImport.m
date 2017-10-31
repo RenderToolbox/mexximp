@@ -31,7 +31,7 @@ parser.addRequired('sceneFile', @ischar);
 parser.addParameter('ignoreRootTransform', true, @islogical);
 parser.addParameter('toReplace', {}, @iscellstr);
 parser.addParameter('targetFormat', 'png', @ischar);
-parser.addParameter('imagemagicImage', 'rendertoolbox/imagemagic-docker', @ischar);
+parser.addParameter('imagemagicImage', 'rendertoolbox/imagemagick', @ischar);
 parser.addParameter('workingFolder', '', @ischar);
 parser.addParameter('strictMatching', false, @islogical);
 parser.addParameter('useMatlabPath', false, @islogical);

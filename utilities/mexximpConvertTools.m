@@ -18,7 +18,7 @@ function [outFile, result] = mexximpConvertTools(inFile, varargin)
 %
 % mexximpConvertTools( ... 'imagemagicImage', dockerImage) specifies the name of
 % a docker image that contains imagemagic.  The default is
-% 'rendertoolbox/imagemagic-docker'.
+% 'rendertoolbox/imagemagick'.
 %
 % mexximpConvertTools( ... 'outFile', outFile) specifies the name of the output
 % file to write.  The default is chosen from the given inputFile and
@@ -31,7 +31,7 @@ parser = inputParser();
 parser.addRequired('inFile', @ischar);
 parser.addParameter('outFile', '', @ischar);
 parser.addParameter('options', '', @ischar);
-parser.addParameter('imagemagicImage', 'rendertoolbox/imagemagic-docker', @ischar);
+parser.addParameter('imagemagicImage', 'rendertoolbox/imagemagick', @ischar);
 parser.parse(inFile, varargin{:});
 inFile = parser.Results.inFile;
 outFile = parser.Results.outFile;

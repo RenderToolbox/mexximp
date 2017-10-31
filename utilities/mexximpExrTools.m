@@ -60,7 +60,7 @@ parser.addParameter('operation', '', @ischar);
 parser.addParameter('options', '', @ischar);
 parser.addParameter('blurFile', '', @ischar);
 parser.addParameter('args', '', @ischar);
-parser.addParameter('exrtoolsImage', 'rendertoolbox/imagemagic-docker', @ischar);
+parser.addParameter('exrtoolsImage', 'rendertoolbox/imagemagick', @ischar);
 parser.addParameter('podSelector', 'app=exrtools', @ischar);
 parser.parse(inFile, varargin{:});
 inFile = parser.Results.inFile;
@@ -115,7 +115,7 @@ outFile = fullfile(outPath, [outBase outExt]);
 [status, ~] = system(['docker pull ' dockerImage]);
 kubeStatus = 1;
 %[kubeStatus, ~] = system('kubectl version --client');
-if 0 == status;
+if 0 == status
     % try running in Docker
     [~, uid] = system('id -u `whoami`');
     workDir = pwd();
