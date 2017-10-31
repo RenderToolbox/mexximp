@@ -60,7 +60,7 @@ parser.addParameter('operation', '', @ischar);
 parser.addParameter('options', '', @ischar);
 parser.addParameter('blurFile', '', @ischar);
 parser.addParameter('args', '', @ischar);
-parser.addParameter('exrtoolsImage', 'hblasins/imagemagic-docker', @ischar);
+parser.addParameter('exrtoolsImage', 'rendertoolbox/imagemagic-docker', @ischar);
 parser.addParameter('podSelector', 'app=exrtools', @ischar);
 parser.parse(inFile, varargin{:});
 inFile = parser.Results.inFile;
