@@ -27,6 +27,9 @@ classdef MexximpExrToolsTests < matlab.unittest.TestCase
     
     methods (Test)
         function exrblurTest(obj)
+            obj.exrFile
+            [a,b] = unix('whoami')
+            [a,b] = unix(['ls -l ' obj.exrFile])
             newFile = mexximpExrTools(obj.exrFile, ...
                 'operation', 'exrblur', ...
                 'args', '0.25', ...
