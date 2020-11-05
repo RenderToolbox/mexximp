@@ -1,5 +1,3 @@
-[![Build Status](http://brainard-jenkins.psych.upenn.edu/buildStatus/icon?job=meximp)](http://brainard-jenkins.psych.upenn.edu/job/meximp/)
-
 # mexximp
 
 Matlab [mex-function](http://www.mathworks.com/help/matlab/apiref/mexfunction.html) wrapper for [Assimp](http://www.assimp.org/) tool.
